@@ -8,7 +8,6 @@ import com.dacia1704.truyenonline.module.authentication.dto.response.LoginRespon
 import com.dacia1704.truyenonline.module.authentication.dto.response.RegisterResponse;
 import com.dacia1704.truyenonline.module.authentication.service.AuthenticationService;
 import com.dacia1704.truyenonline.shared.response.ApiResponse;
-import com.nimbusds.jose.JOSEException;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +16,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.text.ParseException;
 
 @RestController
 @RequestMapping("/auth")
@@ -32,15 +29,14 @@ public class AuthenticationController {
         return ApiResponse.success(authenticationService.authenticate(request));
     }
 
-    @PostMapping("/request")
+    @PostMapping("/register")
     ApiResponse<RegisterResponse> register(@RequestBody @Valid RegisterRequest request) {
         return ApiResponse.success(authenticationService.register(request));
     }
 
     @PostMapping("/introspect")
-    ApiResponse<IntrospectResponse> introspect(@RequestBody IntrospectRequest request) throws ParseException, JOSEException {
+    ApiResponse<IntrospectResponse> introspect(@RequestBody IntrospectRequest request) {
         var res = authenticationService.introspect(request);
-        return ApiResponse.<IntrospectResponse>builder()
-                .data(res).build();
+        return ApiResponse.<IntrospectResponse>builder().data(res).build();
     }
 }

@@ -6,10 +6,9 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 @Entity
-// Khai báo thêm index cho cột resource để đồng bộ với DB
-@Table(name = "permissions", indexes = {
-        @Index(name = "idx_perm_resource", columnList = "resource")
-})
+@Table(
+        name = "permissions",
+        indexes = {@Index(name = "idx_perm_resource", columnList = "resource")})
 @Getter
 @Setter
 @Builder

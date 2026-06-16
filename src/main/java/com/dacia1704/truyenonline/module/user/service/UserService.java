@@ -2,6 +2,7 @@ package com.dacia1704.truyenonline.module.user.service;
 
 import com.dacia1704.truyenonline.module.user.dto.request.UserCreateRequest;
 import com.dacia1704.truyenonline.module.user.dto.request.UserUpdateRequest;
+import com.dacia1704.truyenonline.module.user.dto.request.UserUpdateRoleRequest;
 import com.dacia1704.truyenonline.module.user.dto.response.UserResponse;
 import com.dacia1704.truyenonline.module.user.entity.Role;
 import com.dacia1704.truyenonline.module.user.entity.User;
@@ -11,6 +12,8 @@ import com.dacia1704.truyenonline.module.user.repository.UserRepository;
 import com.dacia1704.truyenonline.shared.exception.AppException;
 import com.dacia1704.truyenonline.shared.exception.ErrorCode;
 import com.dacia1704.truyenonline.shared.response.PageResponse;
+import java.util.HashSet;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -21,13 +24,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.HashSet;
-import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@Transactional
 public class UserService {
     UserRepository userRepository;
     UserMapper userMapper;
@@ -43,9 +45,12 @@ public class UserService {
         return userMapper.toUserResponse(user);
     }
 
-    public UserResponse uploadUser(String userId, UserUpdateRequest request) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        userMapper.updateUser(user,request);
+    public UserResponse updateUser(String userId, UserUpdateRequest request) {
+        User user =
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        userMapper.updateUser(user, request);
         user = userRepository.save(user);
         return userMapper.toUserResponse(user);
     }
@@ -53,27 +58,53 @@ public class UserService {
     public UserResponse getMyInfo() {
         var context = SecurityContextHolder.getContext();
         String userId = context.getAuthentication().getName();
-        User user = userRepository.findById(userId)
-                .orElseThrow(() ->
-                        new AppException(ErrorCode.USER_NOT_FOUND));
+        User user =
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         return userMapper.toUserResponse(user);
+    }
+
+    public UserResponse getUserById(String userId) {
+        User user =
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        return userMapper.toUserResponse(user);
+    }
+
+    public UserResponse updateMyInfo(UserUpdateRequest request) {
+        var context = SecurityContextHolder.getContext();
+        String userId = context.getAuthentication().getName();
+        return updateUser(userId, request);
     }
 
     public void deleteUser(String userId) {
         userRepository.deleteById(userId);
     }
 
+    public void ban(String userId) {
+        User user =
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        user.setActive(false);
+        userRepository.save(user);
+    }
+
     public PageResponse<UserResponse> getAll(int page, int size) {
-        int pageNo = (page > 0) ? page -1 :0;
+        int pageNo = (page > 0) ? page - 1 : 0;
         Pageable pageable = PageRequest.of(pageNo, size, Sort.by("createdAt").descending());
         Page<User> userPage = userRepository.findAll(pageable);
-        List<UserResponse> userResponses = userPage.getContent().stream().map(userMapper::toUserResponse).toList();
+        List<UserResponse> userResponses =
+                userPage.getContent().stream().map(userMapper::toUserResponse).toList();
         return PageResponse.<UserResponse>builder()
                 .currentPage(page)
                 .pageSize(userPage.getSize())
                 .totalPages(userPage.getTotalPages())
                 .totalElements(userPage.getTotalElements())
-                .data(userResponses).build();
+                .data(userResponses)
+                .build();
     }
 
     public List<UserResponse> getAll() {
@@ -81,4 +112,20 @@ public class UserService {
         return users.stream().map(userMapper::toUserResponse).toList();
     }
 
+    public UserResponse updateRoles(String userId, UserUpdateRoleRequest request) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        List<Role> roles = roleRepository.findAllById(request.getRoles());
+        if (roles.size() != request.getRoles().size()) {
+            throw new AppException(ErrorCode.ROLE_NOT_FOUND);
+        }
+
+        user.setRoles(new HashSet<>(roles));
+
+        user = userRepository.save(user);
+        return userMapper.toUserResponse(user);
+
+    }
 }

@@ -1,9 +1,8 @@
 package com.dacia1704.truyenonline.module.authentication.dto.response;
 
+import java.util.List;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.util.List;
 
 @Data
 @Builder

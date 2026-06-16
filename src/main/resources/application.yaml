@@ -1,3 +1,10 @@
+server:
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
 spring:
   application:
     name: truyenonline
@@ -29,6 +36,6 @@ spring:
       port: 6379
 
 jwt:
-  secret: OLM0BO91OjjswsnhvrjIqwL458aKkaGqTjeZJ6bfvEg=
+  secret: OLM0BO91OjjswsnhvrjIqwL458aKkaGqTjeZJ6bfvEg_Dacia1704TruyenOnline2026
   expiration: 900000
   refresh-expiration: 3600000

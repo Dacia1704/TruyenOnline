@@ -2,7 +2,6 @@ package com.dacia1704.truyenonline.module.authentication.dto.response;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import java.time.Instant;
 
 @Data
 @Builder

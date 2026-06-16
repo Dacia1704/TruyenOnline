@@ -1,5 +1,7 @@
 package com.dacia1704.truyenonline.module.user.dto.request;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -12,5 +14,9 @@ import lombok.experimental.FieldDefaults;
 public class UserUpdateRequest {
     @Size(min = 4, max = 50, message = "Tên đăng nhập phải từ 4 đến 50 ký tự")
     String username;
+
     String avatarUrl;
+
+    @Email(message = "Email không đúng định dạng")
+    String email;
 }

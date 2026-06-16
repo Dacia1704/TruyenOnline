@@ -11,6 +11,8 @@ public enum ErrorCode {
     UNAUTHENTICATED(HttpStatus.UNAUTHORIZED, "Bạn cần đăng nhập để thực hiện thao tác này"),
     NOT_ACTIVE(HttpStatus.FORBIDDEN, "Tài khoản của bạn đã bị khóa hoặc chưa được kích hoạt."),
     UNAUTHORIZED(HttpStatus.FORBIDDEN, "Bạn không có quyền truy cập"),
+    ROLE_NOT_FOUND(HttpStatus.NOT_FOUND, "Role không tồn tại"),
+    REQUEST_NOT_FOUND(HttpStatus.NOT_FOUND, "Yêu cầu không tồn tại"),
 
     // Story & Chapter
     STORY_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy bộ truyện này"),
@@ -19,8 +21,8 @@ public enum ErrorCode {
     // VNPay
     PAYMENT_FAILED(HttpStatus.BAD_REQUEST, "Giao dịch thanh toán thất bại");
 
-    private final HttpStatus code;        // Mã HTTP Status
-    private final String message;         // Lời nhắn hiển thị cho user
+    private final HttpStatus code; // Mã HTTP Status
+    private final String message; // Lời nhắn hiển thị cho user
 
     ErrorCode(HttpStatus code, String message) {
         this.code = code;

@@ -2,11 +2,10 @@ package com.dacia1704.truyenonline.module.user.entity;
 
 import com.dacia1704.truyenonline.shared.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.*;
-import lombok.experimental.FieldDefaults;
-
 import java.util.HashSet;
 import java.util.Set;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 @Entity
 @Table(name = "users")
@@ -34,22 +33,24 @@ public class User extends BaseEntity {
     @Column(name = "avatar_url", length = 500)
     String avatarUrl;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "auth_provider", nullable = false)
-    AuthProvider authProvider;
-
-    @Column(name = "google_id", unique = true)
-    String googleId;
-
     @Column(name = "is_active", nullable = false)
-    boolean isActive;
+    boolean isActive = true;
 
     @Builder.Default
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "user_roles", // Tên bảng trung gian trong DB
             joinColumns = @JoinColumn(name = "user_id"), // Khóa ngoại trỏ tới bảng users (CHAR 36)
-            inverseJoinColumns = @JoinColumn(name = "role_id") // Khóa ngoại trỏ tới bảng roles (INT)
-    )
+            inverseJoinColumns =
+                    @JoinColumn(name = "role_id") // Khóa ngoại trỏ tới bảng roles (INT)
+            )
     Set<Role> roles = new HashSet<>();
+
+    @Builder.Default
+    @OneToMany(
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY,
+            orphanRemoval = true)
+    Set<UserSocialAccount> socialAccounts = new HashSet<>();
 }
