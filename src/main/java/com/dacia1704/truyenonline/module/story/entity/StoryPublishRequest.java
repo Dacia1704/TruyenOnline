@@ -33,7 +33,6 @@ public class StoryPublishRequest extends BaseEntity {
     String reviewerNote;
 
     // Mối quan hệ N-1 với bảng User (Admin/Mod nào đã duyệt)
-    // nullable = true vì lúc mới tạo request thì chưa có ai duyệt cả
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reviewer_id")
     User reviewer;

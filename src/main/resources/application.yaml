@@ -39,3 +39,8 @@ jwt:
   secret: OLM0BO91OjjswsnhvrjIqwL458aKkaGqTjeZJ6bfvEg_Dacia1704TruyenOnline2026
   expiration: 900000
   refresh-expiration: 3600000
+
+cloudinary:
+  cloud-name: dholkmmtu
+  api-key: 232163996635681
+  api-secret: ADDBaz_hC58d2MX_Z75PRqnTXMw

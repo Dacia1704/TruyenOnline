@@ -306,6 +306,7 @@ CREATE TABLE chapters (
     story_id        CHAR(36)      NOT NULL,
     chapter_number  DECIMAL(8,1)  NOT NULL,   -- hỗ trợ chap 1.5, 10.5
     title           VARCHAR(500),
+    title_no_accent VARCHAR(500),
     is_published    TINYINT(1)    NOT NULL DEFAULT 0,
     view_count      BIGINT        NOT NULL DEFAULT 0,
     content         LONGTEXT,                 -- NOVEL: nội dung văn bản

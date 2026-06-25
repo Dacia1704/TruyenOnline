@@ -1,0 +1,21 @@
+package com.dacia1704.truyenonline.module.chapter.repository;
+
+import com.dacia1704.truyenonline.module.chapter.entity.Chapter;
+import com.dacia1704.truyenonline.module.chapter.entity.ChapterPage;
+import com.dacia1704.truyenonline.module.story.entity.Story;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface ChapterPageRepository extends JpaRepository<ChapterPage, String>, JpaSpecificationExecutor<ChapterPage> {
+    List<ChapterPage> findByChapterId(String chapterId);
+    List<ChapterPage> findByChapterIdOrderByPageNumberAsc(String chapterId);
+    @Modifying
+    @Query("DELETE FROM ChapterPage c WHERE c.chapterId = :chapterId")
+    void deleteByChapterId(@Param("chapterId") String chapterId);
+}

@@ -55,7 +55,7 @@ public class UserController {
         return ApiResponse.success("Xóa thành công");
     }
 
-    @PostMapping("/{userId}/roles}")
+    @PostMapping("/{userId}/roles")
     @PreAuthorize("hasAuthority('user:manage_roles')")
     ApiResponse<UserResponse> createUser(@PathVariable("userId") String userId, @RequestBody @Valid UserUpdateRoleRequest request) {
         return ApiResponse.success(userService.updateRoles(userId,request));

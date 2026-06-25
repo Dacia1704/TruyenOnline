@@ -13,6 +13,7 @@ public enum ErrorCode {
     UNAUTHORIZED(HttpStatus.FORBIDDEN, "Bạn không có quyền truy cập"),
     ROLE_NOT_FOUND(HttpStatus.NOT_FOUND, "Role không tồn tại"),
     REQUEST_NOT_FOUND(HttpStatus.NOT_FOUND, "Yêu cầu không tồn tại"),
+    CHAPTER_NOT_FOUND(HttpStatus.NOT_FOUND, "Chapter không tồn tại"),
 
     // Story & Chapter
     STORY_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy bộ truyện này"),
