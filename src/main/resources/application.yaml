@@ -1,3 +1,4 @@
+# application.yaml
 server:
   servlet:
     encoding:
@@ -8,15 +9,16 @@ server:
 spring:
   application:
     name: truyenonline
+  profiles:
+    active: local
 
   datasource:
     url: jdbc:mysql://localhost:3306/truyenonline?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true
     username: root
-    password: 123456 # Nên truyền qua biến môi trường
+    password: ${DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
-    # Tắt tính năng tự động tạo bảng của Hibernate vì đã dùng Flyway
     hibernate:
       ddl-auto: validate
     show-sql: true
@@ -36,11 +38,11 @@ spring:
       port: 6379
 
 jwt:
-  secret: OLM0BO91OjjswsnhvrjIqwL458aKkaGqTjeZJ6bfvEg_Dacia1704TruyenOnline2026
+  secret: ${JWT_SECRET:YOUR_SECRET_KEY_HERE}
   expiration: 900000
   refresh-expiration: 3600000
 
 cloudinary:
-  cloud-name: dholkmmtu
-  api-key: 232163996635681
-  api-secret: ADDBaz_hC58d2MX_Z75PRqnTXMw
+  cloud-name: ${CLOUDINARY_NAME:}
+  api-key: ${CLOUDINARY_API_KEY:}
+  api-secret: ${CLOUDINARY_API_SECRET:}
