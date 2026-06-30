@@ -114,8 +114,10 @@ public class UserService {
 
     public UserResponse updateRoles(String userId, UserUpdateRoleRequest request) {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        User user =
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         List<Role> roles = roleRepository.findAllById(request.getRoles());
         if (roles.size() != request.getRoles().size()) {
@@ -126,6 +128,5 @@ public class UserService {
 
         user = userRepository.save(user);
         return userMapper.toUserResponse(user);
-
     }
 }

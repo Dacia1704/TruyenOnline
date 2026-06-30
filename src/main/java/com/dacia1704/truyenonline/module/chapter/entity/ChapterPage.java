@@ -1,6 +1,5 @@
 package com.dacia1704.truyenonline.module.chapter.entity;
 
-
 import com.dacia1704.truyenonline.shared.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -12,10 +11,12 @@ import org.hibernate.annotations.OnDeleteAction;
 @Table(
         name = "chapter_pages",
         indexes = {
-                @Index(name = "idx_page_chapter_id", columnList = "chapter_id"),
+            @Index(name = "idx_page_chapter_id", columnList = "chapter_id"),
         },
         uniqueConstraints = {
-                @UniqueConstraint(name = "uq_page", columnNames = {"chapter_id", "page_number"})
+            @UniqueConstraint(
+                    name = "uq_page",
+                    columnNames = {"chapter_id", "page_number"})
         })
 @Getter
 @Setter
@@ -35,10 +36,10 @@ public class ChapterPage extends BaseEntity {
     @OnDelete(action = OnDeleteAction.CASCADE)
     Chapter chapter;
 
-    @Column(name = "page_number",nullable = false)
+    @Column(name = "page_number", nullable = false)
     Integer pageNumber;
 
-    @Column(name = "image_url", length = 500,nullable = false)
+    @Column(name = "image_url", length = 500, nullable = false)
     String imageUrl;
 
     @Column(name = "cloudinary_id", length = 200)

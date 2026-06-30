@@ -1,11 +1,8 @@
 package com.dacia1704.truyenonline.module.chapter.dto.request;
 
-import com.dacia1704.truyenonline.module.chapter.entity.Chapter;
+import java.util.List;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 @Getter
 @Setter

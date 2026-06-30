@@ -5,6 +5,8 @@ import com.dacia1704.truyenonline.module.story.entity.Story;
 import com.dacia1704.truyenonline.module.user.entity.User;
 import com.dacia1704.truyenonline.shared.entity.BaseEntity;
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.Check;
@@ -15,9 +17,9 @@ import org.hibernate.annotations.OnDeleteAction;
 @Table(
         name = "comments",
         indexes = {
-                @Index(name = "idx_cmt_story_id", columnList = "story_id"),
-                @Index(name = "idx_cmt_chapter_id", columnList = "chapter_id"),
-                @Index(name = "idx_cmt_user_id", columnList = "user_id"),
+            @Index(name = "idx_cmt_story_id", columnList = "story_id"),
+            @Index(name = "idx_cmt_chapter_id", columnList = "chapter_id"),
+            @Index(name = "idx_cmt_user_id", columnList = "user_id"),
         })
 @Check(constraints = "story_id IS NOT NULL OR chapter_id IS NOT NULL")
 @Getter
@@ -54,4 +56,10 @@ public class Comment extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     Comment parent;
+
+    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OrderBy(
+            "createdAt ASC") // Sắp xếp comment con theo thời gian cũ nhất lên trước (nếu BaseEntity
+    // có createdAt)
+    List<Comment> replies = new ArrayList<>();
 }

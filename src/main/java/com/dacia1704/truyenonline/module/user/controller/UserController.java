@@ -1,6 +1,5 @@
 package com.dacia1704.truyenonline.module.user.controller;
 
-import com.dacia1704.truyenonline.module.user.dto.request.UserCreateRequest;
 import com.dacia1704.truyenonline.module.user.dto.request.UserUpdateRequest;
 import com.dacia1704.truyenonline.module.user.dto.request.UserUpdateRoleRequest;
 import com.dacia1704.truyenonline.module.user.dto.response.UserResponse;
@@ -21,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     UserService userService;
 
-    //User - Uploader
+    // User - Uploader
     @PatchMapping("/me")
     ApiResponse<UserResponse> updateMyInfo(@RequestBody @Valid UserUpdateRequest request) {
         return ApiResponse.success(userService.updateMyInfo(request));
@@ -32,7 +31,7 @@ public class UserController {
         return ApiResponse.success(userService.getMyInfo());
     }
 
-    //Admin
+    // Admin
     @GetMapping("/")
     @PreAuthorize("hasAuthority('user:read')")
     public ApiResponse<PageResponse<UserResponse>> getUsers(
@@ -57,8 +56,9 @@ public class UserController {
 
     @PostMapping("/{userId}/roles")
     @PreAuthorize("hasAuthority('user:manage_roles')")
-    ApiResponse<UserResponse> createUser(@PathVariable("userId") String userId, @RequestBody @Valid UserUpdateRoleRequest request) {
-        return ApiResponse.success(userService.updateRoles(userId,request));
+    ApiResponse<UserResponse> createUser(
+            @PathVariable("userId") String userId,
+            @RequestBody @Valid UserUpdateRoleRequest request) {
+        return ApiResponse.success(userService.updateRoles(userId, request));
     }
-
 }

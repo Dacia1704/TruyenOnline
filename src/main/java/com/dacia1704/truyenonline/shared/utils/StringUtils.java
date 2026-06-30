@@ -5,9 +5,7 @@ import java.util.regex.Pattern;
 
 public class StringUtils {
 
-    /**
-     * Chuyển đổi chuỗi có dấu thành không dấu
-     */
+    /** Chuyển đổi chuỗi có dấu thành không dấu */
     public static String removeAccent(String input) {
         if (input == null || input.isBlank()) {
             return "";

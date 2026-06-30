@@ -3,16 +3,15 @@ package com.dacia1704.truyenonline.shared.service;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.dacia1704.truyenonline.shared.storage.CloudinaryUploadResult;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -23,12 +22,14 @@ public class CloudinaryService {
     @Qualifier("cloudinaryExecutor")
     private final Executor executor;
 
-    public CloudinaryUploadResult uploadImage(MultipartFile file, String folder) throws IOException {
-        Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(),
-                ObjectUtils.asMap(
-                        "folder", folder,
-                        "resource_type", "image"
-                ));
+    public CloudinaryUploadResult uploadImage(MultipartFile file, String folder)
+            throws IOException {
+        Map<String, Object> uploadResult =
+                cloudinary
+                        .uploader()
+                        .upload(
+                                file.getBytes(),
+                                ObjectUtils.asMap("folder", folder, "resource_type", "image"));
 
         return CloudinaryUploadResult.builder()
                 .secureUrl(uploadResult.get("secure_url").toString())
@@ -38,24 +39,35 @@ public class CloudinaryService {
                 .build();
     }
 
-    public List<CloudinaryUploadResult> uploadImagesAsync(List<MultipartFile> files, String folder) {
+    public List<CloudinaryUploadResult> uploadImagesAsync(
+            List<MultipartFile> files, String folder) {
         // 1. Chia việc cho các Thread chạy song song
-        List<CompletableFuture<CloudinaryUploadResult>> futures = files.stream()
-                .map(file -> CompletableFuture.supplyAsync(() -> {
-                    try {
-                        // Gọi lại hàm upload 1 file của chính class này
-                        return uploadImage(file, folder);
-                    } catch (IOException e) {
-                        // Ném lỗi RuntimeException để đánh dấu Thread này thất bại
-                        throw new RuntimeException("Lỗi upload file: " + file.getOriginalFilename(), e);
-                    }
-                }, executor)) // <--- Ép nó chạy trên ThreadPool chuyên dụng, không dùng luồng chính
-                .toList();
+        List<CompletableFuture<CloudinaryUploadResult>> futures =
+                files.stream()
+                        .map(
+                                file ->
+                                        CompletableFuture.supplyAsync(
+                                                () -> {
+                                                    try {
+                                                        // Gọi lại hàm upload 1 file của chính class
+                                                        // này
+                                                        return uploadImage(file, folder);
+                                                    } catch (IOException e) {
+                                                        // Ném lỗi RuntimeException để đánh dấu
+                                                        // Thread này thất bại
+                                                        throw new RuntimeException(
+                                                                "Lỗi upload file: "
+                                                                        + file
+                                                                                .getOriginalFilename(),
+                                                                e);
+                                                    }
+                                                },
+                                                executor)) // <--- Ép nó chạy trên ThreadPool chuyên
+                        // dụng, không dùng luồng chính
+                        .toList();
 
         // 2. Chờ TẤT CẢ các luồng hoàn thành và gom kết quả lại
-        return futures.stream()
-                .map(CompletableFuture::join)
-                .toList();
+        return futures.stream().map(CompletableFuture::join).toList();
     }
 
     public void deleteImage(String publicId) throws IOException {

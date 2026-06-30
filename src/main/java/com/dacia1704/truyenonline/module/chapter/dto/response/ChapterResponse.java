@@ -2,10 +2,9 @@ package com.dacia1704.truyenonline.module.chapter.dto.response;
 
 import com.dacia1704.truyenonline.module.story.entity.Story;
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.math.BigDecimal;
 
 @Data
 @Builder

@@ -1,18 +1,16 @@
 package com.dacia1704.truyenonline.module.story.repository.specification;
 
-import com.dacia1704.truyenonline.module.story.dto.request.StoryFilter;
-import com.dacia1704.truyenonline.module.story.entity.Story;
 import com.dacia1704.truyenonline.module.story.entity.StoryPublishRequest;
 import com.dacia1704.truyenonline.module.story.entity.StoryPublishRequestStatus;
 import jakarta.persistence.criteria.Predicate;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class StoryPublishRequestSpecification {
-    public static Specification<StoryPublishRequest> filterRequests(String storyId, StoryPublishRequestStatus status, String uploaderId) {
+    public static Specification<StoryPublishRequest> filterRequests(
+            String storyId, StoryPublishRequestStatus status, String uploaderId) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -28,9 +26,12 @@ public class StoryPublishRequestSpecification {
             }
 
             // 3. Lọc (Filter) theo uploaderId (Chủ sở hữu của truyện)
-            // Đi từ entity hiện tại (StoryPublishRequest) -> gọi "story" -> gọi "uploader" -> so sánh "id"
+            // Đi từ entity hiện tại (StoryPublishRequest) -> gọi "story" -> gọi "uploader" -> so
+            // sánh "id"
             if (StringUtils.hasText(uploaderId)) {
-                predicates.add(criteriaBuilder.equal(root.get("story").get("uploader").get("id"), uploaderId));
+                predicates.add(
+                        criteriaBuilder.equal(
+                                root.get("story").get("uploader").get("id"), uploaderId));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

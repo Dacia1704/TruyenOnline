@@ -1,13 +1,11 @@
 package com.dacia1704.truyenonline.module.chapter.dto.request;
 
-import com.dacia1704.truyenonline.module.story.entity.Story;
 import jakarta.persistence.*;
+import java.math.BigDecimal;
+import java.util.List;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.math.BigDecimal;
-import java.util.List;
 
 @Getter
 @Setter

@@ -1,10 +1,9 @@
 package com.dacia1704.truyenonline.module.user.dto.request;
 
 import jakarta.validation.constraints.NotEmpty;
+import java.util.List;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.util.List;
 
 @Data
 @AllArgsConstructor

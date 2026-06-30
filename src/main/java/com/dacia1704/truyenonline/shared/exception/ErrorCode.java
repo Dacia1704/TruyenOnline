@@ -14,6 +14,12 @@ public enum ErrorCode {
     ROLE_NOT_FOUND(HttpStatus.NOT_FOUND, "Role không tồn tại"),
     REQUEST_NOT_FOUND(HttpStatus.NOT_FOUND, "Yêu cầu không tồn tại"),
     CHAPTER_NOT_FOUND(HttpStatus.NOT_FOUND, "Chapter không tồn tại"),
+    GENRE_NOT_FOUND(HttpStatus.NOT_FOUND, "Thể loại không tồn tại"),
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "Bình luận không tồn tại"),
+    BOOKMARK_NOT_FOUND(HttpStatus.NOT_FOUND, "Dấu trang không tồn tại"),
+    SESSION_INVALID(HttpStatus.UNAUTHORIZED, "Session không hợp lệ hoặc không được để trống"),
+
+    NO_PERMISSION(HttpStatus.FORBIDDEN, "Bạn không có quyền thực hiện hành động này"),
 
     // Story & Chapter
     STORY_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy bộ truyện này"),

@@ -34,12 +34,17 @@ public class StoryController {
             @RequestParam() String search,
             @RequestParam() StoryType type,
             @RequestParam() StoryStatus status,
-            @RequestParam() boolean isPublished
-            ) {
-        PageResponse<StoryResponse> result = storyService.getStories(page, size,search, StoryFilter.builder()
-                .isPublished(isPublished)
-                .status(status)
-                .type(type).build());
+            @RequestParam() boolean isPublished) {
+        PageResponse<StoryResponse> result =
+                storyService.getStories(
+                        page,
+                        size,
+                        search,
+                        StoryFilter.builder()
+                                .isPublished(isPublished)
+                                .status(status)
+                                .type(type)
+                                .build());
         return ApiResponse.success(result);
     }
 
@@ -58,8 +63,9 @@ public class StoryController {
 
     @PatchMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('story:update_own', 'story:update_any')")
-    public ApiResponse<StoryResponse> updateStory(@PathVariable("id") String id, @RequestBody @Valid StoryUpdateRequest request) {
-        StoryResponse result = storyService.updateStory(id,request);
+    public ApiResponse<StoryResponse> updateStory(
+            @PathVariable("id") String id, @RequestBody @Valid StoryUpdateRequest request) {
+        StoryResponse result = storyService.updateStory(id, request);
         return ApiResponse.success(result);
     }
 
@@ -77,36 +83,37 @@ public class StoryController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam() String storyId,
             @RequestParam() StoryPublishRequestStatus status,
-            @RequestParam() String uploaderId)
-    {
-        var result = storyService.getPublishRequests(page,size, storyId, status,uploaderId);
+            @RequestParam() String uploaderId) {
+        var result = storyService.getPublishRequests(page, size, storyId, status, uploaderId);
         return ApiResponse.success(result);
     }
+
     @GetMapping("/publish-requests/me")
     @PreAuthorize("hasAnyAuthority('story:update_own')")
     public ApiResponse<PageResponse<StoryPublishRequestResponse>> getMyPublishRequests(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam() String storyId,
-            @RequestParam() StoryPublishRequestStatus status)
-    {
-        var result = storyService.getMyPublishRequests(page,size, storyId, status);
+            @RequestParam() StoryPublishRequestStatus status) {
+        var result = storyService.getMyPublishRequests(page, size, storyId, status);
         return ApiResponse.success(result);
     }
+
     @PatchMapping("/publish-requests/approve/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<StoryPublishRequestResponse> approvePublishRequest(@PathVariable("id") String id, @RequestBody @Valid StoryPublishRequestReviewRequest request) {
+    public ApiResponse<StoryPublishRequestResponse> approvePublishRequest(
+            @PathVariable("id") String id,
+            @RequestBody @Valid StoryPublishRequestReviewRequest request) {
         var result = storyService.approvePublishRequest(id, request);
         return ApiResponse.success(result);
     }
 
     @PatchMapping("/publish-requests/reject/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<StoryPublishRequestResponse> rejectPublishRequest(@PathVariable("id") String id, @RequestBody @Valid StoryPublishRequestReviewRequest request) {
+    public ApiResponse<StoryPublishRequestResponse> rejectPublishRequest(
+            @PathVariable("id") String id,
+            @RequestBody @Valid StoryPublishRequestReviewRequest request) {
         var result = storyService.rejectPublishRequest(id, request);
         return ApiResponse.success(result);
     }
-
-
-
 }

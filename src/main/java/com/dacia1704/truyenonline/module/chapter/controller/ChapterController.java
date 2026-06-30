@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -24,9 +25,9 @@ public class ChapterController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @PathVariable("slug") String slug,
-            @RequestParam() String search
-    ) {
-        PageResponse<ChapterResponse> result = chapterService.getChaptersBySlug(page, size,slug,search);
+            @RequestParam() String search) {
+        PageResponse<ChapterResponse> result =
+                chapterService.getChaptersBySlug(page, size, slug, search);
         return ApiResponse.success(result);
     }
 
@@ -37,18 +38,23 @@ public class ChapterController {
     }
 
     @PostMapping("/stories/{id}/chapters")
-    public ApiResponse<ChapterResponse> createChapters(@PathVariable("id") String id, @RequestBody @Valid ChapterCreateRequest request) {
+    @PreAuthorize("hasAuthority('chapter:create')")
+    public ApiResponse<ChapterResponse> createChapters(
+            @PathVariable("id") String id, @RequestBody @Valid ChapterCreateRequest request) {
         ChapterResponse result = chapterService.createChapter(id, request);
         return ApiResponse.success(result);
     }
 
     @PatchMapping("/chapters/{id}")
-    public ApiResponse<ChapterResponse> updateChapter(@PathVariable("id") String id, @RequestBody @Valid ChapterUpdateRequest request) {
+    @PreAuthorize("hasAuthority('chapter:update_own')")
+    public ApiResponse<ChapterResponse> updateChapter(
+            @PathVariable("id") String id, @RequestBody @Valid ChapterUpdateRequest request) {
         ChapterResponse result = chapterService.updateChapters(id, request);
         return ApiResponse.success(result);
     }
 
     @DeleteMapping("/api/chapter{id}")
+    @PreAuthorize("hasAuthority('chapter:delete_own')")
     public ApiResponse<String> deleteChapter(@PathVariable("id") String id) {
         chapterService.deleteChapter(id);
         return ApiResponse.success("Xóa chương thành công");

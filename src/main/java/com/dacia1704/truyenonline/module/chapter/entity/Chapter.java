@@ -1,22 +1,22 @@
 package com.dacia1704.truyenonline.module.chapter.entity;
 
-
 import com.dacia1704.truyenonline.module.story.entity.Story;
 import com.dacia1704.truyenonline.shared.entity.BaseEntity;
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.math.BigDecimal;
 
 @Entity
 @Table(
         name = "chapters",
         indexes = {
-                @Index(name = "idx_chap_story_id", columnList = "story_id"),
+            @Index(name = "idx_chap_story_id", columnList = "story_id"),
         },
         uniqueConstraints = {
-                @UniqueConstraint(name = "uq_chapter", columnNames = {"story_id", "chapter_number"})
+            @UniqueConstraint(
+                    name = "uq_chapter",
+                    columnNames = {"story_id", "chapter_number"})
         })
 @Getter
 @Setter

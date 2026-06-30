@@ -3,6 +3,8 @@ package com.dacia1704.truyenonline.module.story.entity;
 import com.dacia1704.truyenonline.module.user.entity.User; // Import Entity User của bạn
 import com.dacia1704.truyenonline.shared.entity.BaseEntity;
 import jakarta.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -10,10 +12,10 @@ import lombok.experimental.FieldDefaults;
 @Table(
         name = "stories",
         indexes = {
-                @Index(name = "idx_story_slug", columnList = "slug"),
-                @Index(name = "idx_story_uploader_id", columnList = "uploader_id"),
-                @Index(name = "idx_story_status", columnList = "status"),
-                @Index(name = "idx_story_view_count", columnList = "view_count")
+            @Index(name = "idx_story_slug", columnList = "slug"),
+            @Index(name = "idx_story_uploader_id", columnList = "uploader_id"),
+            @Index(name = "idx_story_status", columnList = "status"),
+            @Index(name = "idx_story_view_count", columnList = "view_count")
         })
 @Getter
 @Setter
@@ -69,4 +71,11 @@ public class Story extends BaseEntity {
     @Builder.Default
     @Column(name = "view_count", nullable = false)
     Long viewCount = 0L;
+
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+            name = "story_genres",
+            joinColumns = @JoinColumn(name = "story_id"),
+            inverseJoinColumns = @JoinColumn(name = "genre_id"))
+    Set<Genre> genres = new HashSet<>();
 }

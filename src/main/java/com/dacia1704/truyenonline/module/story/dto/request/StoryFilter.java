@@ -2,7 +2,6 @@ package com.dacia1704.truyenonline.module.story.dto.request;
 
 import com.dacia1704.truyenonline.module.story.entity.StoryStatus;
 import com.dacia1704.truyenonline.module.story.entity.StoryType;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -14,5 +13,6 @@ import lombok.experimental.FieldDefaults;
 public class StoryFilter {
     StoryType type;
     StoryStatus status;
+    Integer genreId;
     Boolean isPublished;
 }

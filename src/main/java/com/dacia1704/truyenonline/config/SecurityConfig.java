@@ -1,5 +1,6 @@
 package com.dacia1704.truyenonline.config;
 
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,15 +16,13 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.List;
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
 
     private final String[] PUBLIC_ENDPOINTS = {
-            "/auth/login", "/auth/register", "/auth/introspect", "/auth/logout", "/auth/refresh"
+        "/auth/login", "/auth/register", "/auth/introspect", "/auth/logout", "/auth/refresh"
     };
 
     @Autowired private CustomJwtDecoder customJwtDecoder;
