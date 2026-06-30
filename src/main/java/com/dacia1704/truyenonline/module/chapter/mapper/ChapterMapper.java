@@ -1,0 +1,19 @@
+package com.dacia1704.truyenonline.module.chapter.mapper;
+
+import com.dacia1704.truyenonline.module.chapter.dto.request.ChapterCreateRequest;
+import com.dacia1704.truyenonline.module.chapter.dto.request.ChapterUpdateRequest;
+import com.dacia1704.truyenonline.module.chapter.dto.response.ChapterResponse;
+import com.dacia1704.truyenonline.module.chapter.entity.Chapter;
+import org.mapstruct.*;
+
+@Mapper(componentModel = "spring")
+public interface ChapterMapper {
+    @Mapping(target = "content", ignore = true)
+    ChapterResponse toChapterResponse(Chapter chapter);
+
+    Chapter toChapter(ChapterCreateRequest request);
+
+    Chapter toChapter(ChapterUpdateRequest request);
+
+    void updateChapter(@MappingTarget Chapter chapter, ChapterUpdateRequest request);
+}

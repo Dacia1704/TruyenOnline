@@ -1,0 +1,265 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Truyen Online API",
+    "description": "API collection cho module Authentication và User.\n\n**Cách dùng:**\n1. Import collection và file environment vào Postman.\n2. Chọn environment `Truyen Online - Local`.\n3. Gọi `Authentication > Login` để lấy access token (token tự lưu vào biến `accessToken`).\n4. Các request cần đăng nhập sẽ dùng Bearer token từ biến đó.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "description": "Các endpoint xác thực: đăng nhập, đăng ký, kiểm tra token.",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data) {",
+                  "        if (jsonData.data.accessToken) {",
+                  "            pm.collectionVariables.set('accessToken', jsonData.data.accessToken);",
+                  "        }",
+                  "        if (jsonData.data.id) {",
+                  "            pm.collectionVariables.set('userId', jsonData.data.id);",
+                  "        }",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Đăng nhập bằng email và mật khẩu. Trả về accessToken, refreshToken cùng thông tin user."
+          },
+          "response": []
+        },
+        {
+          "name": "Register",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newuser@example.com\",\n  \"username\": \"newuser\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Đăng ký tài khoản mới."
+          },
+          "response": []
+        },
+        {
+          "name": "Introspect Token",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{accessToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/introspect",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "introspect"]
+            },
+            "description": "Kiểm tra token JWT có hợp lệ hay không."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "description": "Các endpoint dành cho user đã đăng nhập.",
+      "item": [
+        {
+          "name": "Get My Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/myinfo",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "myinfo"]
+            },
+            "description": "Lấy thông tin user hiện tại từ JWT token."
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"updated_username\",\n  \"avatarUrl\": \"https://example.com/avatar.png\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}"]
+            },
+            "description": "Cập nhật thông tin user (username, avatarUrl)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - Users",
+      "description": "Các endpoint quản trị user. Yêu cầu quyền tương ứng:\n- `user:manage_roles` — tạo user\n- `user:read` — xem danh sách\n- `user:ban` — xóa user",
+      "item": [
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin-created@example.com\",\n  \"username\": \"adminuser\",\n  \"password\": \"123456\",\n  \"avatarUrl\": \"https://example.com/avatar.png\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users"]
+            },
+            "description": "Tạo user mới (yêu cầu quyền `user:manage_roles`)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users?page=1&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Trang hiện tại (mặc định: 1)"
+                },
+                {
+                  "key": "size",
+                  "value": "10",
+                  "description": "Số bản ghi mỗi trang (mặc định: 10)"
+                }
+              ]
+            },
+            "description": "Lấy danh sách user phân trang (yêu cầu quyền `user:read`)."
+          },
+          "response": []
+        },
+        {
+          "name": "Soft Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/soft/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users", "soft", "{{userId}}"]
+            },
+            "description": "Xóa mềm user (yêu cầu quyền `user:ban`)."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users", "{{userId}}"]
+            },
+            "description": "Xóa user (yêu cầu quyền `user:ban`)."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

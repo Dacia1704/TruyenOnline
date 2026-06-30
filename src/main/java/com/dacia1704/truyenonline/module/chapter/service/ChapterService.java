@@ -1,0 +1,100 @@
+package com.dacia1704.truyenonline.module.chapter.service;
+
+import com.dacia1704.truyenonline.module.chapter.dto.request.ChapterCreateRequest;
+import com.dacia1704.truyenonline.module.chapter.dto.request.ChapterUpdateRequest;
+import com.dacia1704.truyenonline.module.chapter.dto.response.ChapterResponse;
+import com.dacia1704.truyenonline.module.chapter.entity.Chapter;
+import com.dacia1704.truyenonline.module.chapter.mapper.ChapterMapper;
+import com.dacia1704.truyenonline.module.chapter.repository.ChapterRepository;
+import com.dacia1704.truyenonline.module.chapter.repository.specification.ChapterSpecification;
+import com.dacia1704.truyenonline.module.story.entity.Story;
+import com.dacia1704.truyenonline.module.story.repository.StoryRepository;
+import com.dacia1704.truyenonline.shared.exception.AppException;
+import com.dacia1704.truyenonline.shared.exception.ErrorCode;
+import com.dacia1704.truyenonline.shared.response.PageResponse;
+import com.dacia1704.truyenonline.shared.utils.StringUtils;
+import java.math.BigDecimal;
+import java.util.List;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@Transactional
+public class ChapterService {
+    ChapterRepository chapterRepository;
+    ChapterMapper chapterMapper;
+    StoryRepository storyRepository;
+
+    public PageResponse<ChapterResponse> getChaptersBySlug(
+            int page, int size, String slug, String search) {
+        Story story =
+                storyRepository
+                        .findBySlug(slug)
+                        .orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
+
+        int pageNo = (page > 0) ? page - 1 : 0;
+        Pageable pageable = PageRequest.of(pageNo, size, Sort.by("chapterNumber").ascending());
+
+        Specification<Chapter> spec = ChapterSpecification.filterChapters(search, story);
+
+        Page<Chapter> chapterPage = chapterRepository.findAll(spec, pageable);
+        List<ChapterResponse> chapterResponses =
+                chapterPage.getContent().stream().map(chapterMapper::toChapterResponse).toList();
+        return PageResponse.<ChapterResponse>builder()
+                .currentPage(page)
+                .pageSize(chapterPage.getSize())
+                .totalPages(chapterPage.getTotalPages())
+                .totalElements(chapterPage.getTotalElements())
+                .data(chapterResponses)
+                .build();
+    }
+
+    public ChapterResponse getChapterById(String chapterId) {
+        Chapter chapter =
+                chapterRepository
+                        .findById(chapterId)
+                        .orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND));
+        if (BigDecimal.valueOf(chapter.getStory().getFreeChapterLimit())
+                        .compareTo(chapter.getChapterNumber())
+                < 0) {
+            throw new AppException(ErrorCode.PREMIUM_REQUIRED);
+        }
+        return chapterMapper.toChapterResponse(chapter);
+    }
+
+    public ChapterResponse createChapter(String storyId, ChapterCreateRequest request) {
+        Story story =
+                storyRepository
+                        .findById(storyId)
+                        .orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
+        Chapter chapter = chapterMapper.toChapter(request);
+        chapter.setTitleNoAccent(StringUtils.removeAccent(chapter.getTitle()));
+        chapter.setStory(story);
+        chapter = chapterRepository.save(chapter);
+        return chapterMapper.toChapterResponse(chapter);
+    }
+
+    public ChapterResponse updateChapters(String chapterId, ChapterUpdateRequest request) {
+        Chapter chapter =
+                chapterRepository
+                        .findById(chapterId)
+                        .orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND));
+        chapterMapper.updateChapter(chapter, request);
+        chapter = chapterRepository.save(chapter);
+        return chapterMapper.toChapterResponse(chapter);
+    }
+
+    public void deleteChapter(String chapterId) {
+        chapterRepository.deleteById(chapterId);
+    }
+}
