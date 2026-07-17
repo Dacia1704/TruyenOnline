@@ -16,8 +16,4 @@ public class ChapterUpdateRequest {
     BigDecimal chapterNumber;
     String title;
     boolean isPublished = false;
-    String content;
-    Integer pageCount;
-
-    List<MultipartFile> pages;
 }

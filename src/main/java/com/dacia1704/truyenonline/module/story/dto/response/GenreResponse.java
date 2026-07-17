@@ -10,4 +10,6 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class GenreResponse {
     String name;
+    Integer id;
+    Integer storyQuantity = 0;
 }

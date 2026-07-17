@@ -3,8 +3,10 @@ package com.dacia1704.truyenonline.module.story.dto.request;
 import com.dacia1704.truyenonline.module.story.entity.StoryStatus;
 import com.dacia1704.truyenonline.module.story.entity.StoryType;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @AllArgsConstructor
@@ -19,14 +21,14 @@ public class StoryCreateRequest {
 
     String coverImageUrl;
 
-    @NotEmpty(message = "Trường thể loại truyện không được để trống")
+    MultipartFile coverImageFile;
+
+    @NotNull(message = "Trường thể loại truyện không được để trống")
     StoryType storyType;
 
+    @Builder.Default
     StoryStatus status = StoryStatus.ONGOING;
-
-    boolean isPublished = false;
 
     Integer freeChapterLimit;
 
-    Long viewCount = 0L;
 }

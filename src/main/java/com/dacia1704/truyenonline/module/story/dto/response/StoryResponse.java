@@ -2,6 +2,7 @@ package com.dacia1704.truyenonline.module.story.dto.response;
 
 import com.dacia1704.truyenonline.module.story.entity.StoryStatus;
 import com.dacia1704.truyenonline.module.story.entity.StoryType;
+import com.dacia1704.truyenonline.module.user.dto.response.UserResponse;
 import com.dacia1704.truyenonline.module.user.entity.User;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -14,7 +15,7 @@ import lombok.experimental.FieldDefaults;
 public class StoryResponse {
     String id;
 
-    User uploader;
+    UserResponse uploader;
 
     String title;
 

@@ -15,7 +15,6 @@ public class StoryPublishRequestSpecification {
             List<Predicate> predicates = new ArrayList<>();
 
             // 1. Lọc (Filter) theo storyId
-            // Đã sửa lỗi sai: root.get("storyType") -> root.get("story").get("id")
             if (StringUtils.hasText(storyId)) {
                 predicates.add(criteriaBuilder.equal(root.get("story").get("id"), storyId));
             }
@@ -26,8 +25,6 @@ public class StoryPublishRequestSpecification {
             }
 
             // 3. Lọc (Filter) theo uploaderId (Chủ sở hữu của truyện)
-            // Đi từ entity hiện tại (StoryPublishRequest) -> gọi "story" -> gọi "uploader" -> so
-            // sánh "id"
             if (StringUtils.hasText(uploaderId)) {
                 predicates.add(
                         criteriaBuilder.equal(

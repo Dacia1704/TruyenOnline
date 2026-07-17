@@ -1,8 +1,17 @@
 package com.dacia1704.truyenonline.module.user.service;
 
-import com.dacia1704.truyenonline.module.user.dto.request.UserCreateRequest;
-import com.dacia1704.truyenonline.module.user.dto.request.UserUpdateRequest;
-import com.dacia1704.truyenonline.module.user.dto.request.UserUpdateRoleRequest;
+import com.dacia1704.truyenonline.module.administration.dto.request.AuditLogCreateRequest;
+import com.dacia1704.truyenonline.module.administration.dto.request.ModerationActionCreateRequest;
+import com.dacia1704.truyenonline.module.administration.entity.AuditAction;
+import com.dacia1704.truyenonline.module.administration.entity.AuditObjectType;
+import com.dacia1704.truyenonline.module.administration.entity.ModerationActionType;
+import com.dacia1704.truyenonline.module.administration.entity.ModerationObjectType;
+import com.dacia1704.truyenonline.module.administration.service.AuditLogService;
+import com.dacia1704.truyenonline.module.administration.service.ModerationActionService;
+import com.dacia1704.truyenonline.module.chapter.dto.request.ChapterBanRequest;
+import com.dacia1704.truyenonline.module.chapter.dto.response.ChapterResponse;
+import com.dacia1704.truyenonline.module.chapter.entity.Chapter;
+import com.dacia1704.truyenonline.module.user.dto.request.*;
 import com.dacia1704.truyenonline.module.user.dto.response.UserResponse;
 import com.dacia1704.truyenonline.module.user.entity.Role;
 import com.dacia1704.truyenonline.module.user.entity.User;
@@ -14,6 +23,9 @@ import com.dacia1704.truyenonline.shared.exception.ErrorCode;
 import com.dacia1704.truyenonline.shared.response.PageResponse;
 import java.util.HashSet;
 import java.util.List;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -35,6 +47,9 @@ public class UserService {
     UserMapper userMapper;
     PasswordEncoder passwordEncoder;
     RoleRepository roleRepository;
+    ModerationActionService moderationActionService;
+    AuditLogService auditLogService;
+    ObjectMapper objectMapper;
 
     public UserResponse createUser(UserCreateRequest request) {
         User user = userMapper.toUser(request);
@@ -56,12 +71,7 @@ public class UserService {
     }
 
     public UserResponse getMyInfo() {
-        var context = SecurityContextHolder.getContext();
-        String userId = context.getAuthentication().getName();
-        User user =
-                userRepository
-                        .findById(userId)
-                        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        User user = getCurrentUser();
         return userMapper.toUserResponse(user);
     }
 
@@ -83,13 +93,97 @@ public class UserService {
         userRepository.deleteById(userId);
     }
 
-    public void ban(String userId) {
-        User user =
-                userRepository
-                        .findById(userId)
-                        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        user.setActive(false);
-        userRepository.save(user);
+    public UserResponse banUser(String userId, UserBanRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        if (user.isBanned()) {
+            throw new AppException(ErrorCode.USER_ALREADY_BANNED);
+        }
+
+        String oldValue;
+        String newValue;
+
+        try {
+            oldValue = objectMapper.writeValueAsString(user);
+
+            user.setBanned(true);
+
+            newValue = objectMapper.writeValueAsString(user);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Cannot serialize user", e);
+        }
+
+        moderationActionService.createModerationAction(
+                ModerationActionCreateRequest.builder()
+                        .objectId(userId)
+                        .objectType(ModerationObjectType.USER)
+                        .actionType(ModerationActionType.BAN)
+                        .violationType(request.getViolationType())
+                        .reason(request.getReason())
+                        .build()
+        );
+
+        auditLogService.createAuditLog(
+                AuditLogCreateRequest.builder()
+                        .action(AuditAction.BAN)
+                        .objectType(AuditObjectType.USER)
+                        .objectId(userId)
+                        .description(request.getReason())
+                        .oldValue(oldValue)
+                        .newValue(newValue)
+                        .build()
+        );
+
+        user = userRepository.save(user);
+
+        return userMapper.toUserResponse(user);
+    }
+
+    public UserResponse unbanUser(String userId, UserUnbanRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        if (!user.isBanned()) {
+            throw new AppException(ErrorCode.USER_NOT_GET_BANNED);
+        }
+
+        String oldValue;
+        String newValue;
+
+        try {
+            oldValue = objectMapper.writeValueAsString(user);
+
+            user.setBanned(false);
+
+            newValue = objectMapper.writeValueAsString(user);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Cannot serialize user", e);
+        }
+
+        moderationActionService.createModerationAction(
+                ModerationActionCreateRequest.builder()
+                        .objectId(userId)
+                        .objectType(ModerationObjectType.USER)
+                        .actionType(ModerationActionType.UNBAN)
+                        .reason(request.getReason())
+                        .build()
+        );
+
+        auditLogService.createAuditLog(
+                AuditLogCreateRequest.builder()
+                        .action(AuditAction.UNBAN)
+                        .objectType(AuditObjectType.USER)
+                        .objectId(userId)
+                        .description(request.getReason())
+                        .oldValue(oldValue)
+                        .newValue(newValue)
+                        .build()
+        );
+
+        user = userRepository.save(user);
+
+        return userMapper.toUserResponse(user);
     }
 
     public PageResponse<UserResponse> getAll(int page, int size) {
@@ -128,5 +222,13 @@ public class UserService {
 
         user = userRepository.save(user);
         return userMapper.toUserResponse(user);
+    }
+
+    public User getCurrentUser() {
+        var context = SecurityContextHolder.getContext();
+        String userId = context.getAuthentication().getName();
+        return userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     }
 }

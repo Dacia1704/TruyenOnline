@@ -1,5 +1,6 @@
 package com.dacia1704.truyenonline.module.interaction.entity;
 
+import com.dacia1704.truyenonline.module.administration.entity.ModerationAction;
 import com.dacia1704.truyenonline.module.chapter.entity.Chapter;
 import com.dacia1704.truyenonline.module.story.entity.Story;
 import com.dacia1704.truyenonline.module.user.entity.User;
@@ -62,4 +63,12 @@ public class Comment extends BaseEntity {
             "createdAt ASC") // Sắp xếp comment con theo thời gian cũ nhất lên trước (nếu BaseEntity
     // có createdAt)
     List<Comment> replies = new ArrayList<>();
+
+    @Builder.Default
+    @Column(name = "is_banned", nullable = false)
+    boolean isBanned = false;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "current_moderation_id")
+    ModerationAction currentModeration;
 }

@@ -1,5 +1,6 @@
 package com.dacia1704.truyenonline.module.story.entity;
 
+import com.dacia1704.truyenonline.module.administration.entity.ModerationAction;
 import com.dacia1704.truyenonline.module.user.entity.User; // Import Entity User của bạn
 import com.dacia1704.truyenonline.shared.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -78,4 +79,12 @@ public class Story extends BaseEntity {
             joinColumns = @JoinColumn(name = "story_id"),
             inverseJoinColumns = @JoinColumn(name = "genre_id"))
     Set<Genre> genres = new HashSet<>();
+
+    @Builder.Default
+    @Column(name = "is_banned", nullable = false)
+    boolean isBanned = false;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "current_moderation_id")
+    ModerationAction currentModeration;
 }

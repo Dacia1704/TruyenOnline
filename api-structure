@@ -1,0 +1,157 @@
+// api trả về luôn ở dạng này
+public class ApiResponse<T> {
+
+    @Builder.Default private int code = 200;
+
+    private String message;
+
+    private T data;
+
+    public static <T> ApiResponse<T> success(T data) {
+        return ApiResponse.<T>builder().code(200).message("Success").data(data).build();
+    }
+}
+
+// trong trường hợp là page thì data trả ve sẽ có dạng: ApiResponse<PageResponse<T>>
+public class PageResponse<T> {
+    int currentPage;
+    int pageSize;
+    int totalPages;
+    long totalElements;
+    List<T> data;
+}
+
+public class UserResponse {
+    String id;
+    String email;
+    String username;
+    String avatarUrl;
+    boolean isActive;
+    Set<Role> roles = new HashSet<>();
+}
+
+public class GenreResponse {
+    String name;
+    Integer id;
+    Integer storyQuantity = 0;
+}
+
+public class StoryPublishRequestResponse {
+    String id;
+    StoryResponse story;
+    String requesterNote;
+    String reviewerNote;
+    UserResponse reviewer;
+    StoryPublishRequestStatus status;
+}
+public class StoryResponse {
+    String id;
+
+    UserResponse uploader;
+
+    String title;
+
+    String slug;
+
+    String description;
+
+    String coverImageUrl;
+
+    StoryType storyType;
+
+    StoryStatus status = StoryStatus.ONGOING;
+
+    boolean isPublished;
+
+    Integer freeChapterLimit;
+
+    Long viewCount;
+}
+public class ChapterPageResponse {
+    String id;
+    Integer pageNumber;
+    String imageUrl;
+    Integer width;
+    Integer height;
+}
+public class ChapterResponse {
+    String id;
+    StoryResponse story;
+    BigDecimal chapterNumber;
+    String title;
+    boolean isPublished;
+    Long viewCount = 0L;
+    String content;
+    Integer pageCount;
+    List<ChapterPageResponse> pages;
+}
+public class IntrospectResponse {
+    boolean valid;
+}
+public class LoginResponse {
+    String id;
+    String email;
+    String username;
+    String avatarUrl;
+    List<String> roles;
+    List<String> permissions;
+    String accessToken;
+    String refreshToken;
+}
+public class RefreshTokenResponse {
+    String accessToken;
+    String refreshToken;
+}
+public class RegisterResponse {
+    String id;
+    String email;
+    String username;
+}
+public class AuditLogResponse {
+
+    String id;
+
+    String actorId;
+
+    String actorUsername;
+
+    String actorRole;
+
+    AuditAction action;
+
+    AuditObjectType objectType;
+
+    String objectId;
+
+    String description;
+
+    String oldValue;
+
+    String newValue;
+
+    String ipAddress;
+
+    String userAgent;
+
+    LocalDateTime createdAt;
+}
+public class ModerationActionResponse {
+
+    String id;
+
+    String objectId;
+
+    ModerationObjectType objectType;
+
+    ModerationActionType actionType;
+
+    ViolationType violationType;
+
+    String reason;
+
+    String adminId;
+
+    String adminUsername;
+
+    LocalDateTime createdAt;
+}

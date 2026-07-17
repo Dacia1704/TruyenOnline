@@ -1,5 +1,6 @@
 package com.dacia1704.truyenonline.module.user.entity;
 
+import com.dacia1704.truyenonline.module.administration.entity.ModerationAction;
 import com.dacia1704.truyenonline.shared.entity.BaseEntity;
 import jakarta.persistence.*;
 import java.util.HashSet;
@@ -33,6 +34,7 @@ public class User extends BaseEntity {
     @Column(name = "avatar_url", length = 500)
     String avatarUrl;
 
+    @Builder.Default
     @Column(name = "is_active", nullable = false)
     boolean isActive = true;
 
@@ -53,4 +55,12 @@ public class User extends BaseEntity {
             fetch = FetchType.LAZY,
             orphanRemoval = true)
     Set<UserSocialAccount> socialAccounts = new HashSet<>();
+
+    @Builder.Default
+    @Column(name = "is_banned", nullable = false)
+    boolean isBanned = false;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "current_moderation_id")
+    ModerationAction currentModeration;
 }

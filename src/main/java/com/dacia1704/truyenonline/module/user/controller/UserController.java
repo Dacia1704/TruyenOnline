@@ -1,5 +1,10 @@
 package com.dacia1704.truyenonline.module.user.controller;
 
+import com.dacia1704.truyenonline.module.story.dto.request.StoryBanRequest;
+import com.dacia1704.truyenonline.module.story.dto.request.StoryUnbanRequest;
+import com.dacia1704.truyenonline.module.story.dto.response.StoryResponse;
+import com.dacia1704.truyenonline.module.user.dto.request.UserBanRequest;
+import com.dacia1704.truyenonline.module.user.dto.request.UserUnbanRequest;
 import com.dacia1704.truyenonline.module.user.dto.request.UserUpdateRequest;
 import com.dacia1704.truyenonline.module.user.dto.request.UserUpdateRoleRequest;
 import com.dacia1704.truyenonline.module.user.dto.response.UserResponse;
@@ -12,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/users")
@@ -32,7 +39,7 @@ public class UserController {
     }
 
     // Admin
-    @GetMapping("/")
+    @GetMapping("")
     @PreAuthorize("hasAuthority('user:read')")
     public ApiResponse<PageResponse<UserResponse>> getUsers(
             @RequestParam(defaultValue = "1") int page,
@@ -47,11 +54,20 @@ public class UserController {
         return ApiResponse.success(userService.getUserById(userId));
     }
 
-    @PatchMapping("/{userId}/ban")
-    @PreAuthorize("hasAuthority('user:ban')")
-    ApiResponse<String> ban(@PathVariable("userId") String userId) {
-        userService.ban(userId);
-        return ApiResponse.success("Xóa thành công");
+    @PatchMapping("/{id}/ban")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<UserResponse> banUser(
+            @PathVariable("id") String id, @RequestBody @Valid UserBanRequest request) throws IOException {
+        UserResponse result = userService.banUser(id, request);
+        return ApiResponse.success(result);
+    }
+
+    @PatchMapping("/{id}/unban")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<UserResponse> unbanUser(
+            @PathVariable("id") String id, @RequestBody @Valid UserUnbanRequest request) throws IOException {
+        UserResponse result = userService.unbanUser(id, request);
+        return ApiResponse.success(result);
     }
 
     @PostMapping("/{userId}/roles")

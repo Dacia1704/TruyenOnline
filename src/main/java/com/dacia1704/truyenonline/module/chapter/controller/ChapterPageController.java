@@ -1,6 +1,7 @@
 package com.dacia1704.truyenonline.module.chapter.controller;
 
 import com.dacia1704.truyenonline.module.chapter.dto.request.ChapterPageListRequest;
+import com.dacia1704.truyenonline.module.chapter.dto.request.ChapterPageRequest;
 import com.dacia1704.truyenonline.module.chapter.dto.response.ChapterPageResponse;
 import com.dacia1704.truyenonline.module.chapter.service.ChapterPageService;
 import com.dacia1704.truyenonline.shared.response.ApiResponse;
@@ -13,6 +14,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/chapters")
@@ -28,11 +30,19 @@ public class ChapterPageController {
     }
 
     @PostMapping(value = "/pages", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAuthority('chapter:create')")
     public ApiResponse<List<ChapterPageResponse>> createChapterPages(
-            @ModelAttribute @Valid ChapterPageListRequest request) throws IOException {
-        List<ChapterPageResponse> result = chapterPageService.createChapterPage(request);
-        return ApiResponse.success(result);
+            @RequestPart("chapterPageRequests") List<ChapterPageRequest> chapterPageRequests,
+            @RequestPart("files") List<MultipartFile> files,
+            @RequestPart("chapterId") String chapterId
+    ) throws IOException {
+
+        ChapterPageListRequest request = ChapterPageListRequest.builder()
+                .chapterId(chapterId)
+                .chapterPageRequests(chapterPageRequests)
+                .files(files)
+                .build();
+
+        return ApiResponse.success(chapterPageService.createChapterPage(request));
     }
 
     @PatchMapping(value = "/pages", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

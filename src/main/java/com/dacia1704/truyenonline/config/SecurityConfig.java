@@ -1,7 +1,7 @@
 package com.dacia1704.truyenonline.config;
 
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -16,16 +16,21 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+@RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
 
+    {
+        System.out.println("SECURITY CONFIG LOADED");
+    }
+
     private final String[] PUBLIC_ENDPOINTS = {
         "/auth/login", "/auth/register", "/auth/introspect", "/auth/logout", "/auth/refresh"
     };
 
-    @Autowired private CustomJwtDecoder customJwtDecoder;
+    private final CustomJwtDecoder customJwtDecoder;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
@@ -33,6 +38,8 @@ public class SecurityConfig {
         httpSecurity.authorizeHttpRequests(
                 request ->
                         request.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS)
+                                .permitAll()
+                                .requestMatchers(HttpMethod.OPTIONS, "/**")
                                 .permitAll()
                                 .anyRequest()
                                 .authenticated());
@@ -73,7 +80,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:3000"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 

@@ -1,5 +1,6 @@
 package com.dacia1704.truyenonline.module.chapter.entity;
 
+import com.dacia1704.truyenonline.module.administration.entity.ModerationAction;
 import com.dacia1704.truyenonline.module.story.entity.Story;
 import com.dacia1704.truyenonline.shared.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -57,4 +58,12 @@ public class Chapter extends BaseEntity {
 
     @Column(name = "page_count")
     Integer pageCount;
+
+    @Builder.Default
+    @Column(name = "is_banned", nullable = false)
+    boolean isBanned = false;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "current_moderation_id")
+    ModerationAction currentModeration;
 }

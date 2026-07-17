@@ -15,4 +15,5 @@ public class StoryFilter {
     StoryStatus status;
     Integer genreId;
     Boolean isPublished;
+    String uploaderId;
 }

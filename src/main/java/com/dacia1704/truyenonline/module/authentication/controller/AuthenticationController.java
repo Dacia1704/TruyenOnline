@@ -2,9 +2,11 @@ package com.dacia1704.truyenonline.module.authentication.controller;
 
 import com.dacia1704.truyenonline.module.authentication.dto.request.IntrospectRequest;
 import com.dacia1704.truyenonline.module.authentication.dto.request.LoginRequest;
+import com.dacia1704.truyenonline.module.authentication.dto.request.RefreshTokenRequest;
 import com.dacia1704.truyenonline.module.authentication.dto.request.RegisterRequest;
 import com.dacia1704.truyenonline.module.authentication.dto.response.IntrospectResponse;
 import com.dacia1704.truyenonline.module.authentication.dto.response.LoginResponse;
+import com.dacia1704.truyenonline.module.authentication.dto.response.RefreshTokenResponse;
 import com.dacia1704.truyenonline.module.authentication.dto.response.RegisterResponse;
 import com.dacia1704.truyenonline.module.authentication.service.AuthenticationService;
 import com.dacia1704.truyenonline.shared.response.ApiResponse;
@@ -27,6 +29,11 @@ public class AuthenticationController {
     @PostMapping("/login")
     ApiResponse<LoginResponse> login(@RequestBody @Valid LoginRequest request) {
         return ApiResponse.success(authenticationService.authenticate(request));
+    }
+
+    @PostMapping("/refresh")
+    ApiResponse<RefreshTokenResponse> refresh(@RequestBody @Valid RefreshTokenRequest request) {
+        return ApiResponse.success(authenticationService.refreshToken(request));
     }
 
     @PostMapping("/register")

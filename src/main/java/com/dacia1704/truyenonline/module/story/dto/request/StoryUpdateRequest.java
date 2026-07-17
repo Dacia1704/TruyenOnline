@@ -4,6 +4,7 @@ import com.dacia1704.truyenonline.module.story.entity.StoryStatus;
 import com.dacia1704.truyenonline.module.story.entity.StoryType;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @AllArgsConstructor
@@ -16,6 +17,8 @@ public class StoryUpdateRequest {
     String description;
 
     String coverImageUrl;
+
+    MultipartFile coverImageFile;
 
     StoryType storyType;
 

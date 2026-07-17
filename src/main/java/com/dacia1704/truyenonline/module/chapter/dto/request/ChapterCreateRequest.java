@@ -17,9 +17,4 @@ public class ChapterCreateRequest {
     BigDecimal chapterNumber;
     String title;
     boolean isPublished = false;
-    Integer pageCount;
-
-    String content;
-
-    List<MultipartFile> pages;
 }

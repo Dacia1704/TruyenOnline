@@ -1,5 +1,13 @@
 package com.dacia1704.truyenonline.module.story.service;
 
+import com.dacia1704.truyenonline.module.administration.dto.request.AuditLogCreateRequest;
+import com.dacia1704.truyenonline.module.administration.dto.request.ModerationActionCreateRequest;
+import com.dacia1704.truyenonline.module.administration.entity.AuditAction;
+import com.dacia1704.truyenonline.module.administration.entity.AuditObjectType;
+import com.dacia1704.truyenonline.module.administration.entity.ModerationActionType;
+import com.dacia1704.truyenonline.module.administration.entity.ModerationObjectType;
+import com.dacia1704.truyenonline.module.administration.service.AuditLogService;
+import com.dacia1704.truyenonline.module.administration.service.ModerationActionService;
 import com.dacia1704.truyenonline.module.story.dto.request.*;
 import com.dacia1704.truyenonline.module.story.dto.response.StoryPublishRequestResponse;
 import com.dacia1704.truyenonline.module.story.dto.response.StoryResponse;
@@ -14,11 +22,19 @@ import com.dacia1704.truyenonline.module.story.repository.specification.StoryPub
 import com.dacia1704.truyenonline.module.story.repository.specification.StorySpecification;
 import com.dacia1704.truyenonline.module.user.entity.User;
 import com.dacia1704.truyenonline.module.user.repository.UserRepository;
+import com.dacia1704.truyenonline.module.user.service.UserService;
 import com.dacia1704.truyenonline.shared.exception.AppException;
 import com.dacia1704.truyenonline.shared.exception.ErrorCode;
 import com.dacia1704.truyenonline.shared.response.PageResponse;
+import com.dacia1704.truyenonline.shared.service.CloudinaryService;
+import com.dacia1704.truyenonline.shared.storage.CloudinaryUploadResult;
 import com.dacia1704.truyenonline.shared.utils.StringUtils;
+
+import java.io.IOException;
 import java.util.List;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -42,6 +58,13 @@ public class StoryService {
     StoryPublishRequestRepository storyPublishRequestRepository;
     StoryPublishRequestMapper storyPublishRequestMapper;
     UserRepository userRepository;
+    CloudinaryService cloudinaryService;
+    UserService userService;
+    ModerationActionService moderationActionService;
+    AuditLogService auditLogService;
+    ObjectMapper objectMapper;
+
+    String folderPath = "truyenonline/stories/%s";
 
     // lấy toàn bộ truyện có phân trang, search theo tên, filter thuộc tính
     public PageResponse<StoryResponse> getStories(
@@ -80,19 +103,36 @@ public class StoryService {
         return storyMapper.toStoryResponse(story);
     }
 
-    public StoryResponse createStory(StoryCreateRequest request) {
+    public StoryResponse createStory(StoryCreateRequest request) throws IOException {
         Story story = storyMapper.toStory(request);
+        User uploader = userService.getCurrentUser();
+        story.setUploader(uploader);
+
+        if (request.getCoverImageFile() != null && !request.getCoverImageFile().isEmpty()) {
+            String path = String.format(folderPath, story.getId());
+            CloudinaryUploadResult fileUploadResult = cloudinaryService.uploadImage(request.getCoverImageFile(), path);
+            story.setCoverImageUrl(fileUploadResult.getSecureUrl());
+        }
+
         story.setSlug(generateSlug(request.getTitle()));
         story.setTitleNoAccent(StringUtils.removeAccent(request.getTitle()));
         story = storyRepository.save(story);
         return storyMapper.toStoryResponse(story);
     }
 
-    public StoryResponse updateStory(String storyId, StoryUpdateRequest request) {
+    public StoryResponse updateStory(String storyId, StoryUpdateRequest request) throws IOException {
         Story story =
                 storyRepository
                         .findById(storyId)
                         .orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
+
+        if(request.getCoverImageFile().isEmpty()) {
+            String path = String.format(folderPath, story.getId());
+            CloudinaryUploadResult fileUploadResult = cloudinaryService.uploadImage(request.getCoverImageFile(), path);
+            story.setCoverImageUrl(fileUploadResult.getSecureUrl());
+
+        }
+
         storyMapper.updateStory(story, request);
         story.setSlug(generateSlug(request.getTitle()));
         story.setTitleNoAccent(StringUtils.removeAccent(request.getTitle()));
@@ -104,12 +144,31 @@ public class StoryService {
         storyRepository.deleteById(id);
     }
 
+    public void deletePublishRequest(String id) {
+        storyPublishRequestRepository.deleteById(id);
+    }
+
     public StoryPublishRequestResponse requestPublish(
             String storyId, StoryPublishRequestCreateRequest request) {
         Story story =
                 storyRepository
                         .findById(storyId)
                         .orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
+
+        var context = SecurityContextHolder.getContext();
+        String userId = context.getAuthentication().getName();
+        if(!userId.equals(story.getUploader().getId())) {
+            throw new AppException(ErrorCode.NO_PERMISSION);
+        }
+
+        List<StoryPublishRequest> storyPublishRequests = storyPublishRequestRepository.findAllByStoryId(storyId);
+        if (story.isPublished() && storyPublishRequests.stream().anyMatch(publishRequest -> publishRequest.getStatus() == StoryPublishRequestStatus.APPROVED)) {
+            throw new AppException(ErrorCode.STORY_PUBLISH_REQUEST_APPROVED);
+        }
+
+        if (storyPublishRequests.stream().anyMatch(publishRequest -> publishRequest.getStatus() == StoryPublishRequestStatus.PENDING)) {
+            throw new AppException(ErrorCode.STORY_PUBLISH_REQUEST_PENDING);
+        }
 
         StoryPublishRequest storyPublishRequest = new StoryPublishRequest();
         storyPublishRequest.setRequesterNote(request.getRequesterNote());
@@ -122,20 +181,26 @@ public class StoryService {
 
     public StoryPublishRequestResponse approvePublishRequest(
             String publishRequestId, StoryPublishRequestReviewRequest request) {
-        var context = SecurityContextHolder.getContext();
-        String userId = context.getAuthentication().getName();
-        User user =
-                userRepository
-                        .findById(userId)
-                        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        User user = userService.getCurrentUser();
         StoryPublishRequest storyPublishRequest =
                 storyPublishRequestRepository
                         .findById(publishRequestId)
                         .orElseThrow(() -> new AppException(ErrorCode.REQUEST_NOT_FOUND));
+
+        StoryPublishRequest publishRequest = storyPublishRequestRepository.findById(publishRequestId).orElseThrow(() -> new AppException(ErrorCode.STORY_PUBLISH_REQUEST_NOT_FOUND));
+        if (publishRequest.getStatus() != StoryPublishRequestStatus.PENDING) {
+            throw new AppException(ErrorCode.STORY_PUBLISH_REQUEST_CONFIRMED);
+        }
+
         storyPublishRequest.setReviewerNote(request.getReviewerNote());
         storyPublishRequest.setReviewer(user);
         storyPublishRequest.setStatus(StoryPublishRequestStatus.APPROVED);
         storyPublishRequest = storyPublishRequestRepository.save(storyPublishRequest);
+
+        Story story = storyPublishRequest.getStory();
+        story.setPublished(true);
+        storyRepository.save(story);
+
         return storyPublishRequestMapper.toStoryPublishRequestResponse(storyPublishRequest);
     }
 
@@ -151,6 +216,10 @@ public class StoryService {
                 storyPublishRequestRepository
                         .findById(publishRequestId)
                         .orElseThrow(() -> new AppException(ErrorCode.REQUEST_NOT_FOUND));
+        StoryPublishRequest publishRequest = storyPublishRequestRepository.findById(publishRequestId).orElseThrow(() -> new AppException(ErrorCode.STORY_PUBLISH_REQUEST_NOT_FOUND));
+        if (publishRequest.getStatus() != StoryPublishRequestStatus.PENDING) {
+            throw new AppException(ErrorCode.STORY_PUBLISH_REQUEST_CONFIRMED);
+        }
         storyPublishRequest.setReviewerNote(request.getReviewerNote());
         storyPublishRequest.setReviewer(user);
         storyPublishRequest.setStatus(StoryPublishRequestStatus.REJECTED);
@@ -208,6 +277,100 @@ public class StoryService {
                 .build();
     }
 
+    public StoryResponse banStory(String storyId, StoryBanRequest request) {
+
+        Story story = storyRepository.findById(storyId)
+                .orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
+
+        if (story.isBanned()) {
+            throw new AppException(ErrorCode.STORY_ALREADY_BANNED);
+        }
+
+        String oldValue;
+        String newValue;
+
+        try {
+            oldValue = objectMapper.writeValueAsString(story);
+
+            story.setBanned(true);
+
+            newValue = objectMapper.writeValueAsString(story);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Cannot serialize story", e);
+        }
+
+        moderationActionService.createModerationAction(
+                ModerationActionCreateRequest.builder()
+                        .objectId(storyId)
+                        .objectType(ModerationObjectType.STORY)
+                        .actionType(ModerationActionType.BAN)
+                        .violationType(request.getViolationType())
+                        .reason(request.getReason())
+                        .build()
+        );
+
+        auditLogService.createAuditLog(
+                AuditLogCreateRequest.builder()
+                        .action(AuditAction.BAN)
+                        .objectType(AuditObjectType.STORY)
+                        .objectId(storyId)
+                        .description(request.getReason())
+                        .oldValue(oldValue)
+                        .newValue(newValue)
+                        .build()
+        );
+
+        story = storyRepository.save(story);
+
+        return storyMapper.toStoryResponse(story);
+    }
+    public StoryResponse unbanStory(String storyId, StoryUnbanRequest request) {
+
+        Story story = storyRepository.findById(storyId)
+                .orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
+
+        if (!story.isBanned()) {
+            throw new AppException(ErrorCode.STORY_NOT_GET_BANNED);
+        }
+
+        String oldValue;
+        String newValue;
+
+        try {
+            oldValue = objectMapper.writeValueAsString(story);
+
+            story.setBanned(false);
+
+            newValue = objectMapper.writeValueAsString(story);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Cannot serialize story", e);
+        }
+
+        moderationActionService.createModerationAction(
+                ModerationActionCreateRequest.builder()
+                        .objectId(storyId)
+                        .objectType(ModerationObjectType.STORY)
+                        .actionType(ModerationActionType.UNBAN)
+                        .reason(request.getReason())
+                        .build()
+        );
+
+        auditLogService.createAuditLog(
+                AuditLogCreateRequest.builder()
+                        .action(AuditAction.UNBAN)
+                        .objectType(AuditObjectType.STORY)
+                        .objectId(storyId)
+                        .description(request.getReason())
+                        .oldValue(oldValue)
+                        .newValue(newValue)
+                        .build()
+        );
+
+        story = storyRepository.save(story);
+
+        return storyMapper.toStoryResponse(story);
+    }
+
     private String generateSlug(String title) {
         // 1. Tạo title không dấu
         String titleNoAccent = StringUtils.removeAccent(title);
@@ -224,4 +387,6 @@ public class StoryService {
 
         return finalSlug;
     }
+
+
 }

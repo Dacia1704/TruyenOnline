@@ -1,11 +1,9 @@
 package com.dacia1704.truyenonline.module.story.controller;
 
-import com.dacia1704.truyenonline.module.story.dto.request.StoryCreateRequest;
-import com.dacia1704.truyenonline.module.story.dto.request.StoryFilter;
-import com.dacia1704.truyenonline.module.story.dto.request.StoryPublishRequestReviewRequest;
-import com.dacia1704.truyenonline.module.story.dto.request.StoryUpdateRequest;
+import com.dacia1704.truyenonline.module.story.dto.request.*;
 import com.dacia1704.truyenonline.module.story.dto.response.StoryPublishRequestResponse;
 import com.dacia1704.truyenonline.module.story.dto.response.StoryResponse;
+import com.dacia1704.truyenonline.module.story.entity.StoryPublishRequest;
 import com.dacia1704.truyenonline.module.story.entity.StoryPublishRequestStatus;
 import com.dacia1704.truyenonline.module.story.entity.StoryStatus;
 import com.dacia1704.truyenonline.module.story.entity.StoryType;
@@ -16,8 +14,11 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/stories")
@@ -27,14 +28,16 @@ public class StoryController {
 
     StoryService storyService;
 
-    @GetMapping("/")
+    @GetMapping("")
     public ApiResponse<PageResponse<StoryResponse>> getStories(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam() String search,
-            @RequestParam() StoryType type,
-            @RequestParam() StoryStatus status,
-            @RequestParam() boolean isPublished) {
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String uploaderId,
+            @RequestParam(required = false) StoryType type,
+            @RequestParam(required = false) StoryStatus status,
+            @RequestParam(required = false) Boolean isPublished
+    ) {
         PageResponse<StoryResponse> result =
                 storyService.getStories(
                         page,
@@ -42,6 +45,7 @@ public class StoryController {
                         search,
                         StoryFilter.builder()
                                 .isPublished(isPublished)
+                                .uploaderId(uploaderId)
                                 .status(status)
                                 .type(type)
                                 .build());
@@ -54,19 +58,33 @@ public class StoryController {
         return ApiResponse.success(result);
     }
 
-    @PostMapping("/")
+    @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAuthority('story:create')")
-    public ApiResponse<StoryResponse> createStory(@RequestBody @Valid StoryCreateRequest request) {
+    public ApiResponse<StoryResponse> createStory(@ModelAttribute @Valid StoryCreateRequest request) throws IOException {
         StoryResponse result = storyService.createStory(request);
+        return ApiResponse.success(result);
+    }
+
+    @PostMapping("/{id}/publish-requests")
+    @PreAuthorize("hasAuthority('story:create')")
+    public ApiResponse<StoryPublishRequestResponse> requestPublish(@PathVariable("id") String id,@RequestBody @Valid StoryPublishRequestCreateRequest request) throws IOException {
+        StoryPublishRequestResponse result = storyService.requestPublish(id,request);
         return ApiResponse.success(result);
     }
 
     @PatchMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('story:update_own', 'story:update_any')")
     public ApiResponse<StoryResponse> updateStory(
-            @PathVariable("id") String id, @RequestBody @Valid StoryUpdateRequest request) {
+            @PathVariable("id") String id, @RequestBody @Valid StoryUpdateRequest request) throws IOException {
         StoryResponse result = storyService.updateStory(id, request);
         return ApiResponse.success(result);
+    }
+
+    @DeleteMapping("/publish-requests/{id}")
+    @PreAuthorize("hasAnyAuthority('story:delete_own', 'story:delete_any')")
+    public ApiResponse<String> deletePublishRequest(@PathVariable("id") String id) {
+        storyService.deletePublishRequest(id);
+        return ApiResponse.success("Xóa yêu cầu xuất bản thành công");
     }
 
     @DeleteMapping("/{id}")
@@ -81,9 +99,9 @@ public class StoryController {
     public ApiResponse<PageResponse<StoryPublishRequestResponse>> getPublishRequests(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam() String storyId,
-            @RequestParam() StoryPublishRequestStatus status,
-            @RequestParam() String uploaderId) {
+            @RequestParam(required = false) String storyId,
+            @RequestParam(required = false) StoryPublishRequestStatus status,
+            @RequestParam(required = false) String uploaderId) {
         var result = storyService.getPublishRequests(page, size, storyId, status, uploaderId);
         return ApiResponse.success(result);
     }
@@ -93,8 +111,8 @@ public class StoryController {
     public ApiResponse<PageResponse<StoryPublishRequestResponse>> getMyPublishRequests(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam() String storyId,
-            @RequestParam() StoryPublishRequestStatus status) {
+            @RequestParam(required = false) String storyId,
+            @RequestParam(required = false) StoryPublishRequestStatus status) {
         var result = storyService.getMyPublishRequests(page, size, storyId, status);
         return ApiResponse.success(result);
     }
@@ -116,4 +134,21 @@ public class StoryController {
         var result = storyService.rejectPublishRequest(id, request);
         return ApiResponse.success(result);
     }
+
+    @PatchMapping("/{id}/ban")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<StoryResponse> banStory(
+            @PathVariable("id") String id, @RequestBody @Valid StoryBanRequest request) throws IOException {
+        StoryResponse result = storyService.banStory(id, request);
+        return ApiResponse.success(result);
+    }
+
+    @PatchMapping("/{id}/unban")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<StoryResponse> unbanStory(
+            @PathVariable("id") String id, @RequestBody @Valid StoryUnbanRequest request) throws IOException {
+        StoryResponse result = storyService.unbanStory(id, request);
+        return ApiResponse.success(result);
+    }
+
 }

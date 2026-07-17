@@ -144,17 +144,6 @@ CREATE TABLE user_roles (
     INDEX idx_ur_role_id (role_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Trigger: tự động gán role USER (is_default = 1) khi tạo tài khoản mới
-DELIMITER $$
-CREATE TRIGGER trg_assign_default_roles
-AFTER INSERT ON users
-FOR EACH ROW
-BEGIN
-    INSERT INTO user_roles (user_id, role_id)
-    SELECT NEW.id, id FROM roles WHERE is_default = 1;
-END$$
-DELIMITER ;
-
 CREATE TABLE user_social_accounts (
     id              CHAR(36)     PRIMARY KEY,
     user_id         CHAR(36)     NOT NULL,

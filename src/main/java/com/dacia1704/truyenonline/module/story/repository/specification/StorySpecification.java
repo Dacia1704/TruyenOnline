@@ -44,12 +44,20 @@ public class StorySpecification {
                         criteriaBuilder.equal(root.get("isPublished"), filters.getIsPublished()));
             }
 
+
             // 5. Lọc (Filter) theo Thể loại (Genre) - Xử lý Many-To-Many
             if (filters.getGenreId() != null) {
                 Join<Object, Object> genreJoin = root.join("genres");
                 predicates.add(criteriaBuilder.equal(genreJoin.get("id"), filters.getGenreId()));
                 assert query != null;
                 query.distinct(true);
+            }
+
+            //uploader
+            if (filters.getUploaderId() != null) {
+                predicates.add(
+                        criteriaBuilder.equal(root.get("uploader").get("id"), filters.getUploaderId())
+                );
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
