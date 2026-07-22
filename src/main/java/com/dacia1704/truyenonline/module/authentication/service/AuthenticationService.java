@@ -9,6 +9,7 @@ import com.dacia1704.truyenonline.module.authentication.dto.response.IntrospectR
 import com.dacia1704.truyenonline.module.authentication.dto.response.LoginResponse;
 import com.dacia1704.truyenonline.module.authentication.dto.response.RefreshTokenResponse;
 import com.dacia1704.truyenonline.module.authentication.dto.response.RegisterResponse;
+import com.dacia1704.truyenonline.module.interaction.service.ReadingHistoryService;
 import com.dacia1704.truyenonline.module.user.entity.Permission;
 import com.dacia1704.truyenonline.module.user.entity.Role;
 import com.dacia1704.truyenonline.module.user.entity.User;
@@ -30,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,8 +57,10 @@ public class AuthenticationService {
     final RoleRepository roleRepository;
     final JwtTokenService jwtTokenService;
     final PasswordEncoderConfig passwordEncoderConfig;
+    final ReadingHistoryService readingHistoryService;
 
-    public LoginResponse authenticate(LoginRequest request) {
+    public LoginResponse authenticate(String sessionId, LoginRequest request) {
+        System.out.println(request.getEmail());
         var user =
                 userRepository
                         .findByEmail(request.getEmail())
@@ -71,6 +75,9 @@ public class AuthenticationService {
 
         var accessToken = generateAccessToken(user);
         var refreshToken = generateRefreshToken(user);
+
+        readingHistoryService.mergeSessionHistory(user.getId(), sessionId);
+
         return LoginResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())

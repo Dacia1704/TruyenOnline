@@ -1,4 +1,4 @@
-# TruyenOnline - API Endpoints & Permission Matrix v5
+# TruyenOnline - API Endpoints & Permission Matrix v5.1
 
 > **3 Role:** `ADMIN` | `UPLOADER` | `USER`
 >
@@ -123,21 +123,22 @@
 
 ### Comment Module (`/api/comments`)
 
-| Method | Endpoint                | Permission              | ADMIN | UPLOADER | USER |
-| ------ | ----------------------- | ---------------------- | ----- | -------- | ---- |
-| GET    | `/api/comments`         | Public                 | Yes   | Yes      | Yes  |
-| POST   | `/api/comments`         | `comment:create`       | Yes   | Yes      | Yes  |
-| PATCH  | `/api/comments/{id}`   | `comment:create`       | Yes   | Own only | Own only |
-| DELETE | `/api/comments/{id}`   | `comment:delete_own`   | Yes   | Own only | Own only |
+| Method | Endpoint                     | Permission              | ADMIN | UPLOADER | USER |
+| ------ | ---------------------------- | ---------------------- | ----- | -------- | ---- |
+| GET    | `/api/comments/chapter/{id}` | Public                 | Yes   | Yes      | Yes  |
+| GET    | `/api/comments/story/{id}`    | Public                 | Yes   | Yes      | Yes  |
+| POST   | `/api/comments`              | `comment:create`       | Yes   | Yes      | Yes  |
+| PATCH  | `/api/comments/{id}`         | `comment:create`       | Yes   | Own only | Own only |
+| DELETE | `/api/comments/{id}`         | `comment:delete_own`   | Yes   | Own only | Own only |
 
 ### Reading History Module (`/api/reading-histories`)
 
-| Method | Endpoint                    | Permission              | ADMIN | UPLOADER | USER |
-| ------ | --------------------------- | ---------------------- | ----- | -------- | ---- |
-| GET    | `/api/reading-histories`     | Authenticated          | Yes   | Yes      | Yes  |
-| POST   | `/api/reading-histories`     | Public (guest + user)  | Yes   | Yes      | Yes  |
-| PATCH  | `/api/reading-histories`     | Public (guest + user)  | Yes   | Yes      | Yes  |
-| DELETE | `/api/reading-histories`     | Authenticated          | Yes   | Yes      | Yes  |
+| Method | Endpoint                          | Permission              | ADMIN | UPLOADER | USER |
+| ------ | --------------------------------- | ---------------------- | ----- | -------- | ---- |
+| GET    | `/api/reading-histories`           | Public (guest + user) | Yes   | Yes      | Yes  |
+| GET    | `/api/reading-histories/story/{id}` | Public (guest + user) | Yes   | Yes      | Yes  |
+| POST   | `/api/reading-histories`           | Public (guest + user) | Yes   | Yes      | Yes  |
+| DELETE | `/api/reading-histories`           | Public (guest + user) | Yes   | Yes      | Yes  |
 
 ### Audit Log Module (`/api/audit-logs`)
 
@@ -186,6 +187,9 @@
 **Permission**: Public
 **Role**: Tat ca
 
+**Headers**:
+- `Session-Id` (Optional - guest session, neu khong co se tu tao moi)
+
 **Request Body** (`LoginRequest`):
 
 | Field      | Type   | Required | Description                  |
@@ -231,6 +235,10 @@
   }
 }
 ```
+
+**Luu y**:
+- Neu truyen `Session-Id` header, he thong se link guest session voi tai khoan sau khi dang nhap thanh cong.
+- Neu khong truyen `Session-Id`, he thong se tao session moi cho nguoi dung.
 
 ---
 
@@ -587,41 +595,70 @@
 
 ### GET `/api/stories`
 
-**Mo ta**: Lay danh sach truyen voi bo loc
+**Mo ta**: Lay danh sach truyen voi bo loc, sap xep va loc theo the loai
 
 **Permission**: Public
 **Role**: Tat ca
 
 **Query Params**:
 
-| Field        | Type          | Required | Default | Description              |
-| ------------ | ------------- | -------- | ------- | ------------------------ |
-| `page`       | Integer       | No       | 1       | So trang                 |
-| `size`       | Integer       | No       | 10      | So phan tu tren trang    |
-| `search`     | String        | No       | -       | Tu khoa tim kiem         |
-| `uploaderId` | String        | No       | -       | Loc theo uploader ID     |
-| `type`       | StoryType     | No       | -       | Loai truyen              |
-| `status`     | StoryStatus   | No       | -       | Trang thai truyen        |
-| `isPublished`| Boolean       | No       | -       | Da duyet chua            |
+| Field   | Type    | Required | Default | Description              |
+| ------- | ------- | -------- | ------- | ----------------------- |
+| `page`  | Integer | No       | 1       | So trang               |
+| `size`  | Integer | No       | 10      | So phan tu tren trang   |
+
+**Request Body** (`StoryFilter`):
+
+| Field        | Type           | Required | Default   | Description                                      |
+| ------------ | -------------- | -------- | --------- | ----------------------------------------------- |
+| `search`     | String         | No       | -         | Tu khoa tim kiem theo title hoac titleNoAccent |
+| `uploaderId` | String         | No       | -         | Loc theo uploader ID (UUID)                    |
+| `type`       | StoryType      | No       | -         | Loai truyen                                    |
+| `status`     | StoryStatus    | No       | -         | Trang thai truyen                              |
+| `isPublished`| Boolean        | No       | -         | Da duyet chua                                  |
+| `genres`     | List\<String\> | No       | -         | Loc theo the loai (genre slug), tra ve truyen co it nhat 1 genre trong danh sach |
+| `sortType`   | SortType       | No       | NEWEST    | Kieu sap xep                                   |
 
 **StoryType values**: `NOVEL`, `MANGA`
+
 **StoryStatus values**: `ONGOING`, `COMPLETED`, `HIATUS`, `DROPPED`
+
+**SortType values**:
+- `NEWEST` - Moi nhat (theo createdAt giam dan) - **default**
+- `UPDATED` - Moi cap nhat (theo updatedAt giam dan)
+- `VIEW` - Luot xem nhieu nhat (theo viewCount giam dan)
+- `FOLLOW` - Nhieu nguoi theo doi nhat (theo so bookmark giam dan)
+- `ALPHABET_ASC` - A -> Z (theo title tang dan)
+- `ALPHABET_DESC` - Z -> A (theo title giam dan)
+- `OLDEST` - Cu nhat (theo createdAt tang dan)
+
+**Example Request** (loc truyen NOVEL, the loai Action hoac Fantasy, sap xep theo luot xem):
+```
+GET /api/stories?page=1&size=20
+Body: { "type": "NOVEL", "genres": ["action", "fantasy"], "sortType": "VIEW" }
+```
+
+**Example Request** (tim kiem truyen co tu "dragon", sap xep moi nhat):
+```
+GET /api/stories
+Body: { "search": "dragon", "sortType": "NEWEST" }
+```
 
 **Response** (`ApiResponse<PageResponse<StoryResponse>>`):
 
-| Field                | Type              | Description              |
-| -------------------- | ----------------- | ------------------------ |
-| `id`                 | String            | Story ID (UUID)          |
-| `uploader`           | UserResponse      | Thong tin nguoi upload   |
-| `title`              | String            | Tieu de                  |
-| `slug`               | String            | Slug URL                 |
-| `description`        | String            | Mo ta                   |
-| `coverImageUrl`      | String            | URL hinh bia             |
-| `storyType`          | StoryType         | Loai truyen (NOVEL/MANGA)|
-| `status`             | StoryStatus       | Trang thai              |
-| `isPublished`        | boolean           | Da duyet chua           |
-| `freeChapterLimit`   | Integer           | So chuong free (null = all free)|
-| `viewCount`          | Long              | Luot xem                |
+| Field                | Type              | Description                                 |
+| -------------------- | ----------------- | ------------------------------------------- |
+| `id`                 | String            | Story ID (UUID)                             |
+| `uploader`           | UserResponse      | Thong tin nguoi upload                      |
+| `title`              | String            | Tieu de                                     |
+| `slug`               | String            | Slug URL                                    |
+| `description`        | String            | Mo ta                                      |
+| `coverImageUrl`      | String            | URL hinh bia                               |
+| `storyType`          | StoryType         | Loai truyen (NOVEL/MANGA)                  |
+| `status`             | StoryStatus       | Trang thai                                 |
+| `isPublished`        | boolean           | Da duyet chua                              |
+| `freeChapterLimit`   | Integer           | So chuong free (null = all free)            |
+| `viewCount`          | Long              | Luot xem                                   |
 
 **Example Response**:
 ```json
@@ -1619,26 +1656,32 @@ files: [file1.jpg, file2.jpg]
 
 ## COMMENT MODULE
 
-### GET `/api/comments`
+### GET `/api/comments/chapter/{id}`
 
 **Mo ta**: Lay danh sach binh luan theo chuong
 
 **Permission**: Public
 **Role**: Tat ca
 
+**Path Variables**:
+
+| Field | Type   | Description        |
+| ----- | ------ | ------------------ |
+| `id`  | String | Chapter ID (UUID)  |
+
 **Query Params**:
 
-| Field      | Type    | Required | Default | Description          |
-| ---------- | ------- | -------- | ------- | -------------------- |
-| `page`     | Integer | No       | 1       | So trang             |
-| `size`     | Integer | No       | 10      | So phan tu tren trang|
-| `chapterId`| String  | No       | -       | Loc theo chapter     |
+| Field | Type    | Required | Default | Description          |
+| ----- | ------- | -------- | ------- | -------------------- |
+| `page`| Integer | No       | 1       | So trang             |
+| `size`| Integer | No       | 10      | So phan tu tren trang|
 
 **Response** (`ApiResponse<PageResponse<CommentResponse>>`):
 
 | Field     | Type                     | Description         |
 | --------- | ------------------------ | ------------------- |
 | `id`      | String                   | Comment ID (UUID)   |
+| `type`    | CommentType              | Loai binh luan (STORY/CHAPTER)|
 | `content` | String                   | Noi dung binh luan  |
 | `author`  | UserResponse             | Thong tin tac gia   |
 | `replies` | List<CommentResponse>    | Danh sach tra loi   |
@@ -1656,10 +1699,17 @@ files: [file1.jpg, file2.jpg]
     "data": [
       {
         "id": "comment-uuid",
-        "content": "Truyen hay qua!",
+        "type": "CHAPTER",
+        "content": "Chuong nay hay qua!",
         "author": {"id": "...", "username": "reader1"},
         "replies": [
-          {"id": "reply-uuid", "content": "Dong y!", "author": {"id": "...", "username": "reader2"}}
+          {
+            "id": "reply-uuid",
+            "type": "CHAPTER",
+            "content": "Dong y!",
+            "author": {"id": "...", "username": "reader2"},
+            "replies": []
+          }
         ]
       }
     ]
@@ -1669,9 +1719,33 @@ files: [file1.jpg, file2.jpg]
 
 ---
 
+### GET `/api/comments/story/{id}`
+
+**Mo ta**: Lay danh sach binh luan theo truyen (khong co chapterId - binh luan tong quan ve truyen)
+
+**Permission**: Public
+**Role**: Tat ca
+
+**Path Variables**:
+
+| Field | Type   | Description       |
+| ----- | ------ | ----------------- |
+| `id`  | String | Story ID (UUID)  |
+
+**Query Params**:
+
+| Field | Type    | Required | Default | Description          |
+| ----- | ------- | -------- | ------- | -------------------- |
+| `page`| Integer | No       | 1       | So trang             |
+| `size`| Integer | No       | 10      | So phan tu tren trang|
+
+**Response** (`ApiResponse<PageResponse<CommentResponse>>`): Xem cau truc o tren
+
+---
+
 ### POST `/api/comments`
 
-**Mo ta**: Tao binh luan moi
+**Mo ta**: Tao binh luan moi (cho truyen hoac chuong)
 
 **Permission**: `comment:create`
 **Role**: ADMIN, UPLOADER, USER
@@ -1681,32 +1755,84 @@ files: [file1.jpg, file2.jpg]
 
 **Request Body** (`CommentCreateRequest`):
 
-| Field      | Type   | Required | Description                    |
-| ---------- | ------ | -------- | ------------------------------ |
-| `chapterId`| String | No      | Chapter ID (một trong hai)     |
-| `content`  | String | Yes     | Noi dung binh luan              |
-| `parentId` | String | No      | Parent comment ID (tra loi)    |
+| Field      | Type        | Required | Description                          |
+| ---------- | ----------- | -------- | ------------------------------------ |
+| `type`     | CommentType | Yes     | Loai binh luan: `STORY` hoac `CHAPTER` |
+| `storyId`  | String      | Yes*    | Story ID (UUID) - bat buoc neu type=STORY |
+| `chapterId`| String      | Yes*    | Chapter ID (UUID) - bat buoc neu type=CHAPTER |
+| `content`  | String      | Yes     | Noi dung binh luan (toi da 2000 ky tu) |
+| `parentId` | String      | No      | Parent comment ID (neu la tra loi)   |
 
-> **Luu y**: Phai co `chapterId` hoac storyId (neu khong co chapterId)
+> **Luu y**: `storyId` hoac `chapterId` phu thuoc vao `type`. Neu `type=STORY` thi bat buoc `storyId`. Neu `type=CHAPTER` thi bat buoc `chapterId`.
 
-**Example Request**:
+**CommentType enum values**: `STORY`, `CHAPTER`
+
+**Example Request** (binh luan chuong):
 ```json
 {
-  "chapterId": "chapter-uuid-123",
-  "content": "Truyen rat hay, cam on tac gia!",
+  "type": "CHAPTER",
+  "chapterId": "550e8400-e29b-41d4-a716-446655440001",
+  "content": "Chuong nay vo cung hap dan, cam on tac gia!",
   "parentId": null
 }
 ```
 
-**Response** (`ApiResponse<CommentResponse>`): Xem cau truc o tren
+**Example Request** (tra loi binh luan):
+```json
+{
+  "type": "CHAPTER",
+  "chapterId": "550e8400-e29b-41d4-a716-446655440001",
+  "content": "Dong y voi ban, chuong nay that su hay!",
+  "parentId": "comment-uuid-goc"
+}
+```
+
+**Example Request** (binh luan truyen - khong thuoc chuong cu the):
+```json
+{
+  "type": "STORY",
+  "storyId": "550e8400-e29b-41d4-a716-446655440000",
+  "content": "Truyen nay that su tuyet voi, nen doc!",
+  "parentId": null
+}
+```
+
+**Response** (`ApiResponse<CommentResponse>`):
+
+| Field     | Type                     | Description         |
+| --------- | ------------------------ | ------------------- |
+| `id`      | String                   | Comment ID (UUID)   |
+| `type`    | CommentType              | Loai binh luan      |
+| `content` | String                   | Noi dung binh luan  |
+| `author`  | UserResponse             | Thong tin tac gia   |
+| `replies` | List<CommentResponse>    | Danh sach tra loi   |
+
+**Example Response**:
+```json
+{
+  "code": 201,
+  "message": "Success",
+  "data": {
+    "id": "new-comment-uuid",
+    "type": "CHAPTER",
+    "content": "Chuong nay vo cung hap dan, cam on tac gia!",
+    "author": {
+      "id": "user-uuid",
+      "username": "reader1",
+      "avatarUrl": "https://example.com/avatar.jpg"
+    },
+    "replies": []
+  }
+}
+```
 
 ---
 
 ### PATCH `/api/comments/{id}`
 
-**Mo ta**: Cap nhat binh luan
+**Mo ta**: Cap nhat binh luan cua minh
 
-**Permission**: `comment:create`
+**Permission**: `comment:create` (chi binh luan cua minh)
 **Role**: ADMIN, UPLOADER, USER (chi binh luan cua minh)
 
 **Headers**:
@@ -1716,13 +1842,13 @@ files: [file1.jpg, file2.jpg]
 
 | Field | Type   | Description      |
 | ----- | ------ | ---------------- |
-| `id`  | String | Comment ID       |
+| `id`  | String | Comment ID (UUID) |
 
 **Request Body** (`CommentUpdateRequest`):
 
-| Field    | Type   | Required | Description              |
-| -------- | ------ | -------- | ------------------------ |
-| `content`| String | Yes     | Noi dung binh luan moi    |
+| Field    | Type   | Required | Description                   |
+| -------- | ------ | -------- | ----------------------------- |
+| `content`| String | Yes     | Noi dung binh luan moi (toi da 2000 ky tu) |
 
 **Response** (`ApiResponse<CommentResponse>`): Xem cau truc o tren
 
@@ -1742,7 +1868,7 @@ files: [file1.jpg, file2.jpg]
 
 | Field | Type   | Description      |
 | ----- | ------ | ---------------- |
-| `id`  | String | Comment ID       |
+| `id`  | String | Comment ID (UUID) |
 
 **Response** (`ApiResponse<String>`): Xem cau truc chung
 
@@ -1750,34 +1876,126 @@ files: [file1.jpg, file2.jpg]
 
 ## READING HISTORY MODULE
 
-### GET `/api/reading-histories`
+### GET `/api/reading-histories/story/{storyId}`
 
-**Mo ta**: Lay lich su doc cua nguoi dung hien tai
+**Mo ta**: Lay chuong doc gan nhat trong mot truyen (de quay tro lai doc tiep)
 
-**Permission**: Authenticated
-**Role**: ADMIN, UPLOADER, USER
+**Permission**: Public (guest + user)
+**Role**: Tat ca
 
 **Headers**:
-- `Authorization: Bearer {token}` (Required)
-- `Session-Id` (Optional - cho guest)
+- `Authorization: Bearer {token}` (Optional - cho authenticated user)
+- `Session-Id` (Optional - cho guest, bat buoc neu khong co token)
+
+**Path Variables**:
+
+| Field    | Type   | Description      |
+| -------- | ------ | ---------------- |
+| `storyId`| String | Story ID (UUID) |
+
+**Response** (`ApiResponse<ReadingHistoryResponse>`):
+
+| Field       | Type             | Description                   |
+| ----------- | ---------------- | ----------------------------- |
+| `id`        | String           | History ID (UUID)             |
+| `story`     | StoryResponse    | Entity truyen                 |
+| `chapter`   | ChapterResponse  | Entity chuong doc gan nhat    |
+| `lastReadAt`| LocalDateTime    | Thoi gian doc gan nhat        |
+
+**Example Response**:
+```json
+{
+  "code": 200,
+  "message": "Success",
+  "data": {
+    "id": "history-uuid",
+    "story": {"id": "story-uuid", "title": "The Great Story", "slug": "the-great-story"},
+    "chapter": {"id": "chapter-uuid", "chapterNumber": 5, "title": "Chapter 5: The Journey"},
+    "lastReadAt": "2024-01-15T10:30:00"
+  }
+}
+```
+
+> **Luu y**: Neu nguoi dung chua tung doc truyen nay, tra ve `null` trong `data`.
+
+---
+
+### GET `/api/reading-histories`
+
+**Mo ta**: Lay danh sach lich su doc cua nguoi dung/guest hien tai
+
+**Permission**: Public (guest + user)
+**Role**: Tat ca
+
+**Headers**:
+- `Authorization: Bearer {token}` (Optional - cho authenticated user)
+- `Session-Id` (Optional - cho guest, bat buoc neu khong co token)
 
 **Query Params**:
 
-| Field | Type    | Required | Default | Description          |
-| ----- | ------- | -------- | ------- | -------------------- |
-| `page`| Integer | No       | 1       | So trang             |
-| `size`| Integer | No       | 10      | So phan tu tren trang|
+| Field      | Type                      | Required | Default | Description                      |
+| ---------- | ------------------------- | -------- | ------- | -------------------------------- |
+| `page`     | Integer                   | No       | 1       | So trang                         |
+| `size`     | Integer                   | No       | 10      | So phan tu tren trang            |
+| `type`     | ReadingHistoryFilterType  | No       | ALL     | Loc theo loai: ALL, STORY, CHAPTER |
+| `fromDate` | LocalDate (yyyy-MM-dd)    | No       | -       | Loc tu ngay                      |
+| `toDate`   | LocalDate (yyyy-MM-dd)    | No       | -       | Loc den ngay                     |
+
+**ReadingHistoryFilterType values**:
+- `ALL` - Tat ca lich su
+- `STORY` - Chi lich su theo truyen (nhom theo story, lay chuong doc gan nhat moi nhat)
+- `CHAPTER` - Chi lich su theo chuong (chi tiet tung chuong da doc)
+
+**Example Request** (lay lich su doc theo truyen):
+```
+GET /api/reading-histories?type=STORY&page=1&size=10
+Headers: Session-Id: guest-session-uuid
+```
+
+**Example Request** (lay lich su doc chi tiet theo chuong, co loc ngay):
+```
+GET /api/reading-histories?type=CHAPTER&fromDate=2024-01-01&toDate=2024-01-31
+Headers: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
 
 **Response** (`ApiResponse<PageResponse<ReadingHistoryResponse>>`):
 
-| Field       | Type             | Description           |
-| ----------- | ---------------- | --------------------- |
-| `id`        | String           | History ID (UUID)     |
-| `story`     | Story            | Entity truyen         |
-| `chapter`   | Chapter          | Entity chuong         |
-| `lastReadAt`| LocalDateTime    | Thoi gian doc gan nhat|
+| Field       | Type             | Description                   |
+| ----------- | ---------------- | ----------------------------- |
+| `id`        | String           | History ID (UUID)             |
+| `story`     | StoryResponse    | Entity truyen                 |
+| `chapter`   | ChapterResponse  | Entity chuong                 |
+| `lastReadAt`| LocalDateTime    | Thoi gian doc gan nhat        |
 
-**Example Response**:
+**Example Response** (type=STORY):
+```json
+{
+  "code": 200,
+  "message": "Success",
+  "data": {
+    "currentPage": 1,
+    "pageSize": 10,
+    "totalPages": 1,
+    "totalElements": 3,
+    "data": [
+      {
+        "id": "history-uuid-1",
+        "story": {"id": "story-1", "title": "The Great Story"},
+        "chapter": {"id": "chapter-5", "chapterNumber": 5, "title": "Chapter 5"},
+        "lastReadAt": "2024-01-15T10:30:00"
+      },
+      {
+        "id": "history-uuid-2",
+        "story": {"id": "story-2", "title": "Another Story"},
+        "chapter": {"id": "chapter-10", "chapterNumber": 10, "title": "Chapter 10"},
+        "lastReadAt": "2024-01-14T08:00:00"
+      }
+    ]
+  }
+}
+```
+
+**Example Response** (type=CHAPTER):
 ```json
 {
   "code": 200,
@@ -1789,10 +2007,16 @@ files: [file1.jpg, file2.jpg]
     "totalElements": 5,
     "data": [
       {
-        "id": "history-uuid",
-        "story": {"id": "...", "title": "The Great Story"},
-        "chapter": {"id": "...", "chapterNumber": 5, "title": "Chapter 5"},
+        "id": "history-uuid-1",
+        "story": {"id": "story-1", "title": "The Great Story"},
+        "chapter": {"id": "chapter-5", "chapterNumber": 5, "title": "Chapter 5"},
         "lastReadAt": "2024-01-15T10:30:00"
+      },
+      {
+        "id": "history-uuid-2",
+        "story": {"id": "story-1", "title": "The Great Story"},
+        "chapter": {"id": "chapter-4", "chapterNumber": 4, "title": "Chapter 4"},
+        "lastReadAt": "2024-01-14T09:00:00"
       }
     ]
   }
@@ -1803,61 +2027,83 @@ files: [file1.jpg, file2.jpg]
 
 ### POST `/api/reading-histories`
 
-**Mo ta**: Tao lich su doc moi (guest + user)
+**Mo ta**: Tao/Cap nhat lich su doc (guest + user)
 
 **Permission**: Public (guest + user)
 **Role**: Tat ca
 
 **Headers**:
 - `Authorization: Bearer {token}` (Optional - cho authenticated user)
-- `Session-Id` (Optional - cho guest)
+- `Session-Id` (Optional - cho guest, bat buoc neu khong co token)
 
 **Request Body** (`ReadingHistoryRequest`):
 
-| Field      | Type   | Required | Description      |
-| ---------- | ------ | -------- | ---------------- |
-| `chapterId`| String | Yes     | Chapter ID       |
-| `storyId`  | String | Yes     | Story ID         |
+| Field      | Type        | Required | Description                              |
+| ---------- | ----------- | -------- | ---------------------------------------- |
+| `chapterId`| String      | Yes     | Chapter ID (UUID)                        |
+| `storyId`  | String      | Yes     | Story ID (UUID)                          |
+| `type`     | HistoryType | Yes     | Loai: `STORY` (doc truyen) hoac `CHAPTER` (doc chuong) |
 
-**Example Request**:
+**HistoryType enum values**: `STORY`, `CHAPTER`
+
+**Example Request** (doc truyen - quay tro lai tu dau):
 ```json
 {
-  "chapterId": "chapter-uuid-123",
-  "storyId": "story-uuid-456"
+  "storyId": "550e8400-e29b-41d4-a716-446655440000",
+  "chapterId": "550e8400-e29b-41d4-a716-446655440001",
+  "type": "STORY"
 }
 ```
 
-**Response** (`ApiResponse<ReadingHistoryResponse>`): Xem cau truc o tren
+**Example Request** (doc chuong cu the):
+```json
+{
+  "storyId": "550e8400-e29b-41d4-a716-446655440000",
+  "chapterId": "550e8400-e29b-41d4-a716-446655440002",
+  "type": "CHAPTER"
+}
+```
 
----
+**Response** (`ApiResponse<ReadingHistoryResponse>`):
 
-### PATCH `/api/reading-histories`
+| Field       | Type             | Description                   |
+| ----------- | ---------------- | ----------------------------- |
+| `id`        | String           | History ID (UUID)             |
+| `story`     | StoryResponse    | Entity truyen                 |
+| `chapter`   | ChapterResponse  | Entity chuong                 |
+| `lastReadAt`| LocalDateTime    | Thoi gian doc                 |
 
-**Mo ta**: Cap nhat lich su doc (guest + user)
+**Example Response**:
+```json
+{
+  "code": 201,
+  "message": "Success",
+  "data": {
+    "id": "history-uuid",
+    "story": {"id": "story-uuid", "title": "The Great Story"},
+    "chapter": {"id": "chapter-uuid", "chapterNumber": 5, "title": "Chapter 5"},
+    "lastReadAt": "2024-01-15T10:30:00"
+  }
+}
+```
 
-**Permission**: Public (guest + user)
-**Role**: Tat ca
-
-**Headers**:
-- `Authorization: Bearer {token}` (Optional)
-- `Session-Id` (Optional)
-
-**Request Body** (`ReadingHistoryRequest`): Xem POST o tren
-
-**Response** (`ApiResponse<ReadingHistoryResponse>`): Xem cau truc o tren
+**Luu y**:
+- Neu da co lich su doc cho `chapterId` nay, `lastReadAt` se duoc cap nhat.
+- Neu chua co, se tao moi mot ban ghi lich su.
+- Header `Session-Id` duoc su dung de nhan dien guest, neu khong co token.
 
 ---
 
 ### DELETE `/api/reading-histories`
 
-**Mo ta**: Xoa lich su doc
+**Mo ta**: Xoa toan bo lich su doc cua nguoi dung/guest hien tai
 
-**Permission**: Authenticated
-**Role**: ADMIN, UPLOADER, USER
+**Permission**: Public (guest + user)
+**Role**: Tat ca
 
 **Headers**:
-- `Authorization: Bearer {token}` (Required)
-- `Session-Id` (Optional)
+- `Authorization: Bearer {token}` (Optional - cho authenticated user)
+- `Session-Id` (Optional - cho guest, bat buoc neu khong co token)
 
 **Response** (`ApiResponse<String>`): Xem cau truc chung
 
@@ -2052,6 +2298,28 @@ files: [file1.jpg, file2.jpg]
 - `APPROVED` - Da duyet
 - `REJECTED` - Tu choi
 
+## CommentType
+- `STORY` - Binh luan ve truyen (khong thuoc chuong cu the)
+- `CHAPTER` - Binh luan ve chuong cu the
+
+## HistoryType
+- `STORY` - Ghi nhan viec doc truyen (quay tro lai doc tu dau)
+- `CHAPTER` - Ghi nhan viec doc chuong cu the
+
+## ReadingHistoryFilterType
+- `ALL` - Tat ca lich su doc
+- `STORY` - Chi lich su theo truyen (nhom theo story)
+- `CHAPTER` - Chi tiet lich su theo chuong da doc
+
+## SortType
+- `NEWEST` - Moi nhat (theo createdAt giam dan)
+- `OLDEST` - Cu nhat (theo createdAt tang dan)
+- `UPDATED` - Moi cap nhat (theo updatedAt giam dan)
+- `VIEW` - Nhieu luot xem nhat (theo viewCount giam dan)
+- `FOLLOW` - Nhieu nguoi theo doi nhat (theo so bookmark giam dan)
+- `ALPHABET_ASC` - Theo bang chu cai A -> Z
+- `ALPHABET_DESC` - Theo bang chu cai Z -> A
+
 ## ViolationType
 - `COPYRIGHT` - Vi pham ban quyen
 - `PORNOGRAPHY` - Noi dung khiem nham
@@ -2084,4 +2352,4 @@ files: [file1.jpg, file2.jpg]
 
 ---
 
-_TruyenOnline API Documentation | v5.0 | Updated: July 2026_
+_TruyenOnline API Documentation | v5.1 | Updated: July 2026_

@@ -28,27 +28,17 @@ public class StoryController {
 
     StoryService storyService;
 
-    @GetMapping("")
+    @PostMapping("/list")
     public ApiResponse<PageResponse<StoryResponse>> getStories(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String search,
-            @RequestParam(required = false) String uploaderId,
-            @RequestParam(required = false) StoryType type,
-            @RequestParam(required = false) StoryStatus status,
-            @RequestParam(required = false) Boolean isPublished
-    ) {
+            @RequestBody @Valid StoryFilter filter
+            ) {
         PageResponse<StoryResponse> result =
                 storyService.getStories(
                         page,
                         size,
-                        search,
-                        StoryFilter.builder()
-                                .isPublished(isPublished)
-                                .uploaderId(uploaderId)
-                                .status(status)
-                                .type(type)
-                                .build());
+                        filter);
         return ApiResponse.success(result);
     }
 

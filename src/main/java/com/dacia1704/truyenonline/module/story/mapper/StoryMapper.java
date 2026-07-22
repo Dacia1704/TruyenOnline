@@ -25,5 +25,4 @@ public interface StoryMapper {
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateStory(@MappingTarget Story story, StoryUpdateRequest request);
 
-    UserResponse toUserResponse(User user);
 }

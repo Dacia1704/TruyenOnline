@@ -68,11 +68,11 @@ public class StoryService {
 
     // lấy toàn bộ truyện có phân trang, search theo tên, filter thuộc tính
     public PageResponse<StoryResponse> getStories(
-            int page, int size, String search, StoryFilter filters) {
+            int page, int size, StoryFilter filters) {
         int pageNo = (page > 0) ? page - 1 : 0;
-        Pageable pageable = PageRequest.of(pageNo, size, Sort.by("createdAt").descending());
+        Pageable pageable = PageRequest.of(pageNo, size);
 
-        Specification<Story> spec = StorySpecification.filterStories(search, filters);
+        Specification<Story> spec = StorySpecification.filterStories(filters);
 
         Page<Story> storyPage = storyRepository.findAll(spec, pageable);
         List<StoryResponse> storyResponses =
@@ -84,15 +84,6 @@ public class StoryService {
                 .totalElements(storyPage.getTotalElements())
                 .data(storyResponses)
                 .build();
-    }
-
-    // lấy toàn bộ ko phân trang
-    public List<StoryResponse> getStories(String search, StoryFilter filters) {
-
-        Specification<Story> spec = StorySpecification.filterStories(search, filters);
-
-        List<Story> stories = storyRepository.findAll(spec);
-        return stories.stream().map(storyMapper::toStoryResponse).toList();
     }
 
     public StoryResponse getStoryBySlug(String slug) {

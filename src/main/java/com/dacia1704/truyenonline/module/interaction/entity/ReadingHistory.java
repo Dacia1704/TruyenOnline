@@ -11,19 +11,20 @@ import lombok.experimental.FieldDefaults;
 
 @Entity
 @Table(
-        name = "reading_history", // Đã sửa tên bảng
+        name = "reading_history",
         indexes = {
-            @Index(name = "idx_rh_user_id", columnList = "user_id"),
-            @Index(name = "idx_rh_session_id", columnList = "session_id"),
-            @Index(name = "idx_rh_last_read", columnList = "last_read_at"),
+                @Index(name = "idx_rh_user_id", columnList = "user_id"),
+                @Index(name = "idx_rh_session_id", columnList = "session_id"),
+                @Index(name = "idx_rh_last_read", columnList = "last_read_at"),
         },
+        // Cập nhật lại Unique Constraint thêm cột 'type'
         uniqueConstraints = {
-            @UniqueConstraint(
-                    name = "uq_user_story",
-                    columnNames = {"user_id", "story_id"}),
-            @UniqueConstraint(
-                    name = "uq_session_story",
-                    columnNames = {"session_id", "story_id"})
+                @UniqueConstraint(
+                        name = "uq_user_story_type",
+                        columnNames = {"user_id", "story_id", "type"}),
+                @UniqueConstraint(
+                        name = "uq_session_story_type",
+                        columnNames = {"session_id", "story_id", "type"})
         })
 @Getter
 @Setter
@@ -39,19 +40,25 @@ public class ReadingHistory extends BaseEntity {
     String id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "story_id", nullable = false)
-    Story story;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "chapter_id", nullable = false)
-    Chapter chapter;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     User user;
 
     @Column(name = "session_id")
     String sessionId;
+
+    // Thêm trường type phân loại lịch sử đọc
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false)
+    HistoryType type;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "story_id", nullable = false)
+    Story story;
+
+    // Bỏ nullable = false để cho phép lưu lịch sử theo Story (không cần chapter_id)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "chapter_id")
+    Chapter chapter;
 
     @Column(name = "last_read_at", nullable = false)
     LocalDateTime lastReadAt;

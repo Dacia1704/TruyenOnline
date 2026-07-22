@@ -6,8 +6,10 @@ import com.dacia1704.truyenonline.module.interaction.dto.request.CommentCreateRe
 import com.dacia1704.truyenonline.module.interaction.dto.request.CommentUpdateRequest;
 import com.dacia1704.truyenonline.module.interaction.dto.response.CommentResponse;
 import com.dacia1704.truyenonline.module.interaction.entity.Comment;
+import com.dacia1704.truyenonline.module.interaction.entity.CommentType;
 import com.dacia1704.truyenonline.module.interaction.mapper.CommentMapper;
 import com.dacia1704.truyenonline.module.interaction.repository.CommentRepository;
+import com.dacia1704.truyenonline.module.story.entity.Story;
 import com.dacia1704.truyenonline.module.story.repository.StoryRepository;
 import com.dacia1704.truyenonline.module.user.entity.User;
 import com.dacia1704.truyenonline.module.user.repository.UserRepository;
@@ -25,6 +27,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -58,29 +61,55 @@ public class CommentService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
+    public PageResponse<CommentResponse> getCommentStory(String storyId, int page, int size) {
+
+        int pageNo = (page > 0) ? page - 1 : 0;
+        Pageable pageable = PageRequest.of(pageNo, size, Sort.by("createdAt").descending());
+
+        Page<Comment> commentPage =
+                commentRepository.findByStoryIdAndParentIsNull(storyId, pageable);
+
+        List<CommentResponse> content =
+                commentPage.getContent().stream().map(commentMapper::toCommentResponse).toList();
+
+        return PageResponse.<CommentResponse>builder()
+                .currentPage(page)
+                .pageSize(commentPage.getSize())
+                .totalPages(commentPage.getTotalPages())
+                .totalElements(commentPage.getTotalElements())
+                .data(content)
+                .build();
+    }
+
     public CommentResponse createMyComment(CommentCreateRequest request) {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         String userId = authentication.getName();
-        Chapter chapter =
-                chapterRepository
-                        .findById(request.getChapterId())
-                        .orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND));
         User user =
                 userRepository
                         .findById(userId)
                         .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        Comment parent =
-                commentRepository
-                        .findById(request.getParentId())
-                        .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND));
+
+
+        Story story = storyRepository.findById(request.getStoryId())
+                .orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
         Comment comment =
                 Comment.builder()
-                        .chapter(chapter)
-                        .story(chapter.getStory())
+                        .story(story)
                         .user(user)
+                        .type(request.getType())
                         .content(request.getContent())
-                        .parent(parent)
                         .build();
+        if(StringUtils.hasText(request.getParentId())) {
+            comment.setParent(commentRepository
+                    .findById(request.getParentId())
+                    .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND)));
+        }
+        if(request.getType().equals(CommentType.CHAPTER)) {
+            comment.setChapter(chapterRepository
+                    .findById(request.getChapterId())
+                    .orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND)));
+        }
         comment = commentRepository.save(comment);
         return commentMapper.toCommentResponse(comment);
     }

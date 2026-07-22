@@ -18,11 +18,12 @@ import org.hibernate.annotations.OnDeleteAction;
 @Table(
         name = "comments",
         indexes = {
-            @Index(name = "idx_cmt_story_id", columnList = "story_id"),
-            @Index(name = "idx_cmt_chapter_id", columnList = "chapter_id"),
-            @Index(name = "idx_cmt_user_id", columnList = "user_id"),
+                @Index(name = "idx_cmt_story_id", columnList = "story_id"),
+                @Index(name = "idx_cmt_chapter_id", columnList = "chapter_id"),
+                @Index(name = "idx_cmt_user_id", columnList = "user_id"),
         })
-@Check(constraints = "story_id IS NOT NULL OR chapter_id IS NOT NULL")
+// Cập nhật lại Check Constraint để bắt buộc validate theo type
+@Check(constraints = "(type = 'STORY' AND story_id IS NOT NULL) OR (type = 'CHAPTER' AND chapter_id IS NOT NULL)")
 @Getter
 @Setter
 @Builder
@@ -30,11 +31,20 @@ import org.hibernate.annotations.OnDeleteAction;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Comment extends BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", columnDefinition = "CHAR(36)")
     String id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    User user;
+
+    // Map thêm field type tương ứng với DB
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false)
+    CommentType type;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "story_id")
@@ -46,11 +56,6 @@ public class Comment extends BaseEntity {
     @OnDelete(action = OnDeleteAction.CASCADE)
     Chapter chapter;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    User user;
-
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     String content;
 
@@ -58,10 +63,9 @@ public class Comment extends BaseEntity {
     @JoinColumn(name = "parent_id")
     Comment parent;
 
+    @Builder.Default // Thêm @Builder.Default để tránh null list khi build() object
     @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @OrderBy(
-            "createdAt ASC") // Sắp xếp comment con theo thời gian cũ nhất lên trước (nếu BaseEntity
-    // có createdAt)
+    @OrderBy("createdAt ASC")
     List<Comment> replies = new ArrayList<>();
 
     @Builder.Default

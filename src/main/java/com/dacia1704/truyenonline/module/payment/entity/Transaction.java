@@ -1,4 +1,4 @@
-package com.dacia1704.truyenonline.module.billing.entity;
+package com.dacia1704.truyenonline.module.payment.entity;
 
 import com.dacia1704.truyenonline.module.user.entity.User;
 import com.dacia1704.truyenonline.shared.entity.BaseEntity;

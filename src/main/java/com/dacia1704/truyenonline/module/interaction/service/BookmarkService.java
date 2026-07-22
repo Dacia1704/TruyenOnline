@@ -36,11 +36,9 @@ public class BookmarkService {
             throw new AppException(ErrorCode.UNAUTHORIZED); // Ném lỗi 401
         }
         String userId = authentication.getName();
-        Bookmark bookmark =
-                bookmarkRepository
-                        .findByUserIdAndStoryId(userId, storyId)
-                        .orElseThrow(() -> new AppException(ErrorCode.BOOKMARK_NOT_FOUND));
-        return bookmarkMapper.toBookmarkResponse(bookmark);
+        return bookmarkRepository.findByUserIdAndStoryId(userId, storyId)
+                .map(bookmarkMapper::toBookmarkResponse)
+                .orElse(null);
     }
 
     public BookmarkResponse createBookmark(String storyId) {

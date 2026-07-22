@@ -6,9 +6,15 @@ import com.dacia1704.truyenonline.module.chapter.dto.response.ChapterResponse;
 import com.dacia1704.truyenonline.module.chapter.entity.Chapter;
 import com.dacia1704.truyenonline.module.story.dto.response.StoryResponse;
 import com.dacia1704.truyenonline.module.story.entity.Story;
+import com.dacia1704.truyenonline.module.story.mapper.StoryMapper;
 import org.mapstruct.*;
 
-@Mapper(componentModel = "spring")
+@Mapper(
+        componentModel = "spring",
+        uses = {
+                StoryMapper.class,
+        }
+)
 public interface ChapterMapper {
     @Mapping(target = "content", ignore = true)
     ChapterResponse toChapterResponse(Chapter chapter);
@@ -19,5 +25,4 @@ public interface ChapterMapper {
 
     void updateChapter(@MappingTarget Chapter chapter, ChapterUpdateRequest request);
 
-    StoryResponse toStoryResponse(Story story);
 }

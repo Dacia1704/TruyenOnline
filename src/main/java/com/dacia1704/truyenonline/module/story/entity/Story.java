@@ -1,6 +1,7 @@
 package com.dacia1704.truyenonline.module.story.entity;
 
 import com.dacia1704.truyenonline.module.administration.entity.ModerationAction;
+import com.dacia1704.truyenonline.module.interaction.entity.Bookmark;
 import com.dacia1704.truyenonline.module.user.entity.User; // Import Entity User của bạn
 import com.dacia1704.truyenonline.shared.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -87,4 +88,7 @@ public class Story extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "current_moderation_id")
     ModerationAction currentModeration;
+
+    @OneToMany(mappedBy = "story")
+    Set<Bookmark> bookmarks = new HashSet<>();
 }

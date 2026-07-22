@@ -2,18 +2,24 @@ package com.dacia1704.truyenonline.module.interaction.service;
 
 import com.dacia1704.truyenonline.module.chapter.entity.Chapter;
 import com.dacia1704.truyenonline.module.chapter.repository.ChapterRepository;
+import com.dacia1704.truyenonline.module.interaction.dto.request.ReadingHistoryFilter;
 import com.dacia1704.truyenonline.module.interaction.dto.request.ReadingHistoryRequest;
 import com.dacia1704.truyenonline.module.interaction.dto.response.ReadingHistoryResponse;
+import com.dacia1704.truyenonline.module.interaction.entity.HistoryType;
 import com.dacia1704.truyenonline.module.interaction.entity.ReadingHistory;
 import com.dacia1704.truyenonline.module.interaction.mapper.ReadingHistoryMapper;
 import com.dacia1704.truyenonline.module.interaction.repository.ReadingHistoryRepository;
+import com.dacia1704.truyenonline.module.interaction.repository.specification.ReadingHistorySpecification;
 import com.dacia1704.truyenonline.module.story.entity.Story;
+import com.dacia1704.truyenonline.module.story.repository.StoryRepository;
 import com.dacia1704.truyenonline.module.user.entity.User;
 import com.dacia1704.truyenonline.module.user.repository.UserRepository;
 import com.dacia1704.truyenonline.shared.exception.AppException;
 import com.dacia1704.truyenonline.shared.exception.ErrorCode;
 import com.dacia1704.truyenonline.shared.response.PageResponse;
 import java.util.List;
+import java.util.Optional;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -21,9 +27,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -34,140 +42,118 @@ public class ReadingHistoryService {
     UserRepository userRepository;
     ReadingHistoryRepository readingHistoryRepository;
     ReadingHistoryMapper readingHistoryMapper;
+    StoryRepository storyRepository;
 
     public PageResponse<ReadingHistoryResponse> getMyReadingHistory(
-            int page, int size, String sessionId) {
+            int page, int size, ReadingHistoryFilter filter) {
+
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAuthenticated =
                 authentication != null
                         && authentication.isAuthenticated()
                         && !"anonymousUser".equals(authentication.getPrincipal());
 
-        int pageNo = (page > 0) ? page - 1 : 0;
-        Pageable pageable = PageRequest.of(pageNo, size, Sort.by("lastReadAt").descending());
+        int pageNo = Math.max(page - 1, 0);
+        Pageable pageable = PageRequest.of(
+                pageNo,
+                size,
+                Sort.by(Sort.Direction.DESC, "lastReadAt"));
 
-        Page<ReadingHistory> readingHistories;
+        String userId = null;
 
         if (isAuthenticated) {
-            String userId = authentication.getName();
-            readingHistories = readingHistoryRepository.findByUserId(userId, pageable);
+            userId = authentication.getName();
         } else {
-            if (sessionId == null || sessionId.isBlank()) {
+            if (filter.getSessionId() == null || filter.getSessionId().isBlank()) {
                 throw new AppException(ErrorCode.SESSION_INVALID);
             }
-            readingHistories = readingHistoryRepository.findBySessionId(sessionId, pageable);
         }
 
-        List<ReadingHistoryResponse> readingHistoryResponses =
-                readingHistories.getContent().stream()
-                        .map(readingHistoryMapper::toReadingHistoryResponse)
-                        .toList();
+        Specification<ReadingHistory> specification =
+                ReadingHistorySpecification.filter(userId, filter.getSessionId(), filter);
+
+        Page<ReadingHistory> readingHistories =
+                readingHistoryRepository.findAll(specification, pageable);
+
+        List<ReadingHistoryResponse> responses = readingHistories.getContent()
+                .stream()
+                .map(readingHistoryMapper::toReadingHistoryResponse)
+                .toList();
 
         return PageResponse.<ReadingHistoryResponse>builder()
                 .currentPage(page)
                 .pageSize(readingHistories.getSize())
                 .totalPages(readingHistories.getTotalPages())
                 .totalElements(readingHistories.getTotalElements())
-                .data(readingHistoryResponses)
+                .data(responses)
                 .build();
     }
 
-    public ReadingHistoryResponse createMyReadingHistory(
-            String sessionId, ReadingHistoryRequest request) {
-        Chapter chapter =
-                chapterRepository
-                        .findById(request.getChapterId())
-                        .orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND));
-        Story story = chapter.getStory();
+    public ReadingHistoryResponse getLastReadingChapterInStory(
+            String sessionId, String storyId) {
 
         var authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        boolean isAuthenticated =
-                authentication != null
-                        && authentication.isAuthenticated()
+        boolean isAuthenticated = authentication != null && authentication.isAuthenticated()
                         && !"anonymousUser".equals(authentication.getPrincipal());
-
-        ReadingHistory readingHistory;
-
+        Optional<ReadingHistory> optional;
         if (isAuthenticated) {
             String userId = authentication.getName();
-            User user =
-                    userRepository
-                            .findById(userId)
-                            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-
-            readingHistory =
-                    readingHistoryRepository
-                            .findByStoryIdAndUserId(story.getId(), userId)
-                            .orElseGet(
-                                    () -> ReadingHistory.builder().story(story).user(user).build());
+            optional = readingHistoryRepository.findByStoryIdAndUserIdAndType(storyId, userId, HistoryType.CHAPTER);
         } else {
-            if (sessionId == null || sessionId.isBlank()) {
-                throw new AppException(ErrorCode.SESSION_INVALID);
-            }
-
-            readingHistory =
-                    readingHistoryRepository
-                            .findByStoryIdAndSessionId(story.getId(), sessionId)
-                            .orElseGet(
-                                    () ->
-                                            ReadingHistory.builder()
-                                                    .story(story)
-                                                    .sessionId(sessionId)
-                                                    .build());
+            if (sessionId == null || sessionId.isBlank()) return null;
+            optional = readingHistoryRepository.findByStoryIdAndSessionIdAndType(storyId, sessionId, HistoryType.CHAPTER);
         }
-
-        readingHistory.setChapter(chapter);
-        readingHistory = readingHistoryRepository.save(readingHistory);
-        return readingHistoryMapper.toReadingHistoryResponse(readingHistory);
+        return optional.map(readingHistoryMapper::toReadingHistoryResponse).orElse(null);
     }
 
     public ReadingHistoryResponse updateMyReadingHistory(
             String sessionId, ReadingHistoryRequest request) {
-        Chapter chapter =
-                chapterRepository
-                        .findById(request.getChapterId())
-                        .orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND));
-        Story story = chapter.getStory();
-
         var authentication = SecurityContextHolder.getContext().getAuthentication();
-
         boolean isAuthenticated =
                 authentication != null
                         && authentication.isAuthenticated()
                         && !"anonymousUser".equals(authentication.getPrincipal());
+        Story story = storyRepository.findById(request.getStoryId()).orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
 
         ReadingHistory readingHistory;
+        if(request.getType().equals(HistoryType.STORY)) {
+            if (isAuthenticated) {
+                String userId = authentication.getName();
+                User user = userRepository.findById(userId)
+                        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                readingHistory = readingHistoryRepository.findByStoryIdAndUserIdAndType(story.getId(), userId, HistoryType.STORY)
+                                .orElseGet(() -> ReadingHistory.builder().story(story).user(user).type(HistoryType.STORY).build());
+            } else {
+                if (sessionId == null || sessionId.isBlank()) {
+                    throw new AppException(ErrorCode.SESSION_INVALID);
+                }
 
-        if (isAuthenticated) {
-            String userId = authentication.getName();
-            User user =
-                    userRepository
-                            .findById(userId)
-                            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-
-            readingHistory =
-                    readingHistoryRepository
-                            .findByStoryIdAndUserId(story.getId(), userId)
-                            .orElseGet(
-                                    () -> ReadingHistory.builder().story(story).user(user).build());
-        } else {
-            if (sessionId == null || sessionId.isBlank()) {
-                throw new AppException(ErrorCode.SESSION_INVALID);
+                readingHistory = readingHistoryRepository.findByStoryIdAndSessionIdAndType(story.getId(), sessionId, HistoryType.STORY)
+                                .orElseGet(() -> ReadingHistory.builder().story(story).sessionId(sessionId).type(HistoryType.STORY).build());
             }
+            story.setViewCount(story.getViewCount()+1);
+            storyRepository.save(story);
+        } else {
+            Chapter chapter = chapterRepository.findById(request.getChapterId())
+                            .orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND));
+            if (isAuthenticated) {
+                String userId = authentication.getName();
+                User user = userRepository.findById(userId)
+                        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                readingHistory = readingHistoryRepository.findByChapterIdAndUserIdAndType(chapter.getId(), userId, HistoryType.CHAPTER)
+                        .orElseGet(() -> ReadingHistory.builder().story(story).chapter(chapter).user(user).type(HistoryType.CHAPTER).build());
+            } else {
+                if (sessionId == null || sessionId.isBlank()) {
+                    throw new AppException(ErrorCode.SESSION_INVALID);
+                }
 
-            readingHistory =
-                    readingHistoryRepository
-                            .findByStoryIdAndSessionId(story.getId(), sessionId)
-                            .orElseGet(
-                                    () ->
-                                            ReadingHistory.builder()
-                                                    .story(story)
-                                                    .sessionId(sessionId)
-                                                    .build());
+                readingHistory = readingHistoryRepository.findByChapterIdAndSessionIdAndType(chapter.getId(), sessionId, HistoryType.CHAPTER)
+                        .orElseGet(() -> ReadingHistory.builder().story(story).chapter(chapter).sessionId(sessionId).type(HistoryType.CHAPTER).build());
+            }
+            chapter.setViewCount(chapter.getViewCount()+1);
+            chapterRepository.save(chapter);
         }
-
-        readingHistory.setChapter(chapter);
         readingHistory = readingHistoryRepository.save(readingHistory);
         return readingHistoryMapper.toReadingHistoryResponse(readingHistory);
     }
@@ -186,5 +172,21 @@ public class ReadingHistoryService {
         } else {
             readingHistoryRepository.deleteBySessionId(sessionId);
         }
+    }
+
+    public void mergeSessionHistory(String userId, String sessionId) {
+        if(userId == null) {
+            throw new AppException(ErrorCode.NO_PERMISSION);
+        }
+        ReadingHistoryFilter filter = ReadingHistoryFilter.builder().sessionId(sessionId).build();
+        Specification<ReadingHistory> specification =
+                ReadingHistorySpecification.filter(null, filter.getSessionId(), filter);
+
+        List<ReadingHistory> readingHistories =
+                readingHistoryRepository.findAll(specification);
+
+        User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        readingHistories.forEach(readingHistory -> readingHistory.setUser(user));
+        readingHistoryRepository.saveAll(readingHistories);
     }
 }

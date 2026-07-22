@@ -13,6 +13,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CommentResponse {
     String id;
+    String type;
     String content;
     UserResponse author;
     List<CommentResponse> replies;

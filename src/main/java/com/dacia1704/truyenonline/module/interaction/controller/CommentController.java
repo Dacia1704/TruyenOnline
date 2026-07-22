@@ -20,13 +20,23 @@ import org.springframework.web.bind.annotation.*;
 public class CommentController {
     CommentService commentService;
 
-    @GetMapping("")
+    @GetMapping("/chapter/{id}")
     public ApiResponse<PageResponse<CommentResponse>> getCommentChapter(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam() String chapterId) {
+            @PathVariable("id") String chapterId) {
         PageResponse<CommentResponse> result =
                 commentService.getCommentChapter(chapterId, page, size);
+        return ApiResponse.success(result);
+    }
+
+    @GetMapping("/story/{id}")
+    public ApiResponse<PageResponse<CommentResponse>> getCommentStory(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @PathVariable("id") String storyId) {
+        PageResponse<CommentResponse> result =
+                commentService.getCommentStory(storyId, page, size);
         return ApiResponse.success(result);
     }
 

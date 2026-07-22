@@ -1,26 +1,29 @@
 package com.dacia1704.truyenonline.module.interaction.repository;
 
+import com.dacia1704.truyenonline.module.interaction.entity.HistoryType;
 import com.dacia1704.truyenonline.module.interaction.entity.ReadingHistory;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 @Repository
-public interface ReadingHistoryRepository extends JpaRepository<ReadingHistory, String> {
-    Optional<ReadingHistory> findByStoryIdAndUserId(String storyId, String userId);
+public interface ReadingHistoryRepository extends JpaRepository<ReadingHistory, String>, JpaSpecificationExecutor<ReadingHistory> {
+    Optional<ReadingHistory> findByStoryIdAndUserIdAndType(String storyId, String userId, HistoryType type);
 
-    Optional<ReadingHistory> findByStoryIdAndSessionId(String storyId, String sessionId);
+    Optional<ReadingHistory> findByStoryIdAndSessionIdAndType(String storyId, String sessionId, HistoryType type);
 
-    Page<ReadingHistory> findByUserId(String userId, Pageable pageable);
+    Optional<ReadingHistory> findByChapterIdAndUserIdAndType(String chapterId, String userId, HistoryType type);
 
-    Page<ReadingHistory> findBySessionId(String sessionId, Pageable pageable);
-
-    @Transactional
-    long deleteByUserId(String userId);
+    Optional<ReadingHistory> findByChapterIdAndSessionIdAndType(String chapterId, String sessionId, HistoryType type);
 
     @Transactional
-    long deleteBySessionId(String sessionId);
+    void deleteByUserId(String userId);
+
+    @Transactional
+    void deleteBySessionId(String sessionId);
 }

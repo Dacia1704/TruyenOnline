@@ -37,10 +37,10 @@ public class SecurityConfig {
         // 1. Phân quyền API endpoints
         httpSecurity.authorizeHttpRequests(
                 request ->
-                        request.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS)
-                                .permitAll()
-                                .requestMatchers(HttpMethod.OPTIONS, "/**")
-                                .permitAll()
+                        request.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
+                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                .requestMatchers("/api/payment/vnpay-ipn").permitAll()
+                                .requestMatchers("/api/payment/vnpay-return").permitAll()
                                 .anyRequest()
                                 .authenticated());
 

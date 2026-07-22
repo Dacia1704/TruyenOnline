@@ -32,6 +32,7 @@ public enum ErrorCode {
     CHAPTER_NOT_GET_BANNED(HttpStatus.BAD_REQUEST, "Chương truyện này hiện đang không bị hạn chế xuất bản."),
     USER_NOT_GET_BANNED(HttpStatus.BAD_REQUEST, "Tài khoản này hiện đang không bị tạm khóa."),
     COMMENT_NOT_GET_BANNED(HttpStatus.BAD_REQUEST, "Bình luận này hiện đang không bị ẩn do vi phạm."),
+    INVALID_PLAN(HttpStatus.BAD_REQUEST, "Gói bạn chọn không hợp lệ"),
 
     NO_PERMISSION(HttpStatus.FORBIDDEN, "Bạn không có quyền thực hiện hành động này"),
 

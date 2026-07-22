@@ -1,4 +1,4 @@
-package com.dacia1704.truyenonline.module.billing.entity;
+package com.dacia1704.truyenonline.module.payment.entity;
 
 public enum SubscriptionPlan {
     FREE,
