@@ -30,4 +30,5 @@ public class StoryFilter {
     Boolean isPublished;
     SortType sortType;
     List<String> genres; // có 1 trong các genre là dc, danh sách slug
+    List<String> authors; // có 1 là dc, danh sách slug
 }

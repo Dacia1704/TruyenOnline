@@ -1,4 +1,4 @@
-# TruyenOnline - API Endpoints & Permission Matrix v5.1
+# TruyenOnline - API Endpoints & Permission Matrix v5.2
 
 > **3 Role:** `ADMIN` | `UPLOADER` | `USER`
 >
@@ -14,7 +14,7 @@
 
 ## Bang tong hop quyen theo role
 
-| Permission              | ADMIN | UPLOADER | USER |
+| Permission             | ADMIN | UPLOADER | USER |
 | ---------------------- | ----- | -------- | ---- |
 | `user:read`            | Yes   | No       | No   |
 | `user:ban`             | Yes   | No       | No   |
@@ -30,9 +30,12 @@
 | `chapter:delete_own`   | Yes   | Yes      | No   |
 | `chapter:read_premium` | Yes   | Yes      | Yes  |
 | `comment:create`       | Yes   | Yes      | Yes  |
-| `comment:delete_own`  | Yes   | Yes      | Yes  |
-| `comment:delete_any`  | Yes   | No       | No   |
-| `subscription:buy`    | Yes   | Yes      | Yes  |
+| `comment:delete_own`   | Yes   | Yes      | Yes  |
+| `comment:delete_any`   | Yes   | No       | No   |
+| `subscription:buy`     | Yes   | Yes      | Yes  |
+| `author:create`        | Yes   | Yes      | No   |
+| `author:update`        | Yes   | Yes      | No   |
+| `author:delete`        | Yes   | Yes      | No   |
 
 > **Ghi chú:** `chapter:read_premium` - UPLOADER chi ap dung cho bo cua minh, USER can subscription active
 
@@ -48,109 +51,139 @@
 | ------ | ------------------ | ---------- | ----- | -------- | ---- |
 | POST   | `/auth/login`      | Public     | Yes   | Yes      | Yes  |
 | POST   | `/auth/register`   | Public     | Yes   | Yes      | Yes  |
-| POST   | `/auth/refresh`   | Public     | Yes   | Yes      | Yes  |
+| POST   | `/auth/refresh`    | Public     | Yes   | Yes      | Yes  |
 | POST   | `/auth/introspect` | Public     | Yes   | Yes      | Yes  |
 
 ### User Module (`/api/users`)
 
-| Method | Endpoint                  | Permission          | ADMIN | UPLOADER | USER |
-| ------ | ------------------------- | ------------------- | ----- | -------- | ---- |
-| GET    | `/api/users/me`           | Authenticated       | Yes   | Yes      | Yes  |
-| PATCH  | `/api/users/me`           | Authenticated       | Yes   | Yes      | Yes  |
-| GET    | `/api/users`              | `user:read`         | Yes   | No       | No   |
-| GET    | `/api/users/{userId}`     | `user:read`         | Yes   | No       | No   |
-| PATCH  | `/api/users/{id}/ban`     | `user:ban`          | Yes   | No       | No   |
-| PATCH  | `/api/users/{id}/unban`   | `user:ban`          | Yes   | No       | No   |
+| Method | Endpoint                    | Permission          | ADMIN | UPLOADER | USER |
+| ------ | --------------------------- | ------------------- | ----- | -------- | ---- |
+| GET    | `/api/users/me`             | Authenticated       | Yes   | Yes      | Yes  |
+| PATCH  | `/api/users/me`             | Authenticated       | Yes   | Yes      | Yes  |
+| GET    | `/api/users`                | `user:read`         | Yes   | No       | No   |
+| GET    | `/api/users/{userId}`       | `user:read`         | Yes   | No       | No   |
+| PATCH  | `/api/users/{id}/ban`       | `user:ban`          | Yes   | No       | No   |
+| PATCH  | `/api/users/{id}/unban`     | `user:ban`          | Yes   | No       | No   |
 | POST   | `/api/users/{userId}/roles` | `user:manage_roles` | Yes   | No       | No   |
 
 ### Story Module (`/api/stories`)
 
-| Method | Endpoint                                      | Permission                            | ADMIN | UPLOADER | USER |
-| ------ | --------------------------------------------- | ------------------------------------- | ----- | -------- | ---- |
-| GET    | `/api/stories`                                | Public                                | Yes   | Yes      | Yes  |
-| GET    | `/api/stories/{slug}`                         | Public                                | Yes   | Yes      | Yes  |
-| POST   | `/api/stories`                                | `story:create`                        | Yes   | Yes      | No   |
-| PATCH  | `/api/stories/{id}`                           | `story:update_own` / `story:update_any` | Yes   | Own only | No   |
-| DELETE | `/api/stories/{id}`                           | `story:delete_own` / `story:delete_any` | Yes   | Own only | No   |
-| POST   | `/api/stories/{id}/publish-requests`          | `story:create`                        | Yes   | Yes      | No   |
-| GET    | `/api/stories/publish-requests`               | ADMIN role                            | Yes   | No       | No   |
-| GET    | `/api/stories/publish-requests/me`             | `story:update_own`                    | Yes   | Yes      | No   |
-| PATCH  | `/api/stories/publish-requests/approve/{id}`   | ADMIN role                            | Yes   | No       | No   |
-| PATCH  | `/api/stories/publish-requests/reject/{id}`   | ADMIN role                            | Yes   | No       | No   |
-| DELETE | `/api/stories/publish-requests/{id}`           | `story:delete_own` / `story:delete_any` | Yes   | Own only | No   |
-| PATCH  | `/api/stories/{id}/ban`                       | ADMIN role                            | Yes   | No       | No   |
-| PATCH  | `/api/stories/{id}/unban`                     | ADMIN role                            | Yes   | No       | No   |
+| Method | Endpoint | Permission | ADMIN | UPLOADER | USER |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/api/stories` | Public | Yes | Yes | Yes |
+| GET | `/api/stories/{slug}` | Public | Yes | Yes | Yes |
+| POST | `/api/stories` | `story:create` | Yes | Yes | No |
+| PATCH | `/api/stories/{id}` | `story:update_own` / `story:update_any` | Yes | Own only | No |
+| DELETE | `/api/stories/{id}` | `story:delete_own` / `story:delete_any` | Yes | Own only | No |
+| POST | `/api/stories/{id}/publish-requests` | `story:create` | Yes | Yes | No |
+| GET | `/api/stories/publish-requests` | ADMIN role | Yes | No | No |
+| GET | `/api/stories/publish-requests/me` | `story:update_own` | Yes | Yes | No |
+| PATCH | `/api/stories/publish-requests/approve/{id}` | ADMIN role | Yes | No | No |
+| PATCH | `/api/stories/publish-requests/reject/{id}` | ADMIN role | Yes | No | No |
+| DELETE | `/api/stories/publish-requests/{id}` | `story:delete_own` / `story:delete_any` | Yes | Own only | No |
+| PATCH | `/api/stories/{id}/ban` | ADMIN role | Yes | No | No |
+| PATCH | `/api/stories/{id}/unban` | ADMIN role | Yes | No | No |
 
 ### Genre Module (`/api/genres`)
 
 | Method | Endpoint           | Permission | ADMIN | UPLOADER | USER |
-| ------ | ----------------- | ---------- | ----- | -------- | ---- |
-| GET    | `/api/genres`     | Public     | Yes   | Yes      | Yes  |
-| POST   | `/api/genres`     | ADMIN      | Yes   | No       | No   |
+| ------ | ------------------ | ---------- | ----- | -------- | ---- |
+| GET    | `/api/genres`      | Public     | Yes   | Yes      | Yes  |
+| POST   | `/api/genres`      | ADMIN      | Yes   | No       | No   |
 | PATCH  | `/api/genres/{id}` | ADMIN      | Yes   | No       | No   |
 | DELETE | `/api/genres/{id}` | ADMIN      | Yes   | No       | No   |
 
 ### Chapter Module (`/api`)
 
-| Method | Endpoint                                | Permission              | ADMIN | UPLOADER | USER |
-| ------ | --------------------------------------- | ---------------------- | ----- | -------- | ---- |
-| GET    | `/api/stories/{slug}/chapters`          | Public                 | Yes   | Yes      | Yes  |
-| GET    | `/api/chapters/{id}`                    | Public (limited)       | Yes   | Limited  | Limited |
-| POST   | `/api/stories/{id}/chapters`            | `chapter:create`       | Yes   | Yes      | No   |
-| PATCH  | `/api/chapters/{id}`                    | `chapter:update_own`   | Yes   | Own only | No   |
-| PATCH  | `/api/chapters/{id}/update-content`     | `chapter:update_own`   | Yes   | Own only | No   |
-| PATCH  | `/api/chapters/update-publish-status`    | `chapter:update_own`   | Yes   | Own only | No   |
-| DELETE | `/api/chapter/{id}`                     | `chapter:delete_own`   | Yes   | Own only | No   |
-| PATCH  | `/api/{id}/ban`                        | ADMIN role             | Yes   | No       | No   |
-| PATCH  | `/api/{id}/unban`                      | ADMIN role             | Yes   | No       | No   |
+| Method | Endpoint                              | Permission           | ADMIN | UPLOADER | USER    |
+| ------ | ------------------------------------- | -------------------- | ----- | -------- | ------- |
+| GET    | `/api/stories/{slug}/chapters`        | Public               | Yes   | Yes      | Yes     |
+| GET    | `/api/chapters/{id}`                  | Public (limited)     | Yes   | Limited  | Limited |
+| POST   | `/api/stories/{id}/chapters`          | `chapter:create`     | Yes   | Yes      | No      |
+| PATCH  | `/api/chapters/{id}`                  | `chapter:update_own` | Yes   | Own only | No      |
+| PATCH  | `/api/chapters/{id}/update-content`   | `chapter:update_own` | Yes   | Own only | No      |
+| PATCH  | `/api/chapters/update-publish-status` | `chapter:update_own` | Yes   | Own only | No      |
+| DELETE | `/api/chapter/{id}`                   | `chapter:delete_own` | Yes   | Own only | No      |
+| PATCH  | `/api/{id}/ban`                       | ADMIN role           | Yes   | No       | No      |
+| PATCH  | `/api/{id}/unban`                     | ADMIN role           | Yes   | No       | No      |
 
 ### Chapter Page Module (`/api/chapters`)
 
-| Method | Endpoint                         | Permission              | ADMIN | UPLOADER | USER |
-| ------ | -------------------------------- | ---------------------- | ----- | -------- | ---- |
-| GET    | `/api/chapters/{id}/pages`       | Public (limited)       | Yes   | Limited  | Limited |
-| POST   | `/api/chapters/pages`             | `chapter:create`       | Yes   | Yes      | No   |
-| PATCH  | `/api/chapters/pages`             | `chapter:update_own`    | Yes   | Yes      | No   |
-| DELETE | `/api/chapters/{id}/page`         | `chapter:delete_own`   | Yes   | Own only | No   |
+| Method | Endpoint                   | Permission           | ADMIN | UPLOADER | USER    |
+| ------ | -------------------------- | -------------------- | ----- | -------- | ------- |
+| GET    | `/api/chapters/{id}/pages` | Public (limited)     | Yes   | Limited  | Limited |
+| POST   | `/api/chapters/pages`      | `chapter:create`     | Yes   | Yes      | No      |
+| PATCH  | `/api/chapters/pages`      | `chapter:update_own` | Yes   | Yes      | No      |
+| DELETE | `/api/chapters/{id}/page`  | `chapter:delete_own` | Yes   | Own only | No      |
 
 ### Bookmark Module (`/api/bookmarks`)
 
-| Method | Endpoint                  | Permission    | ADMIN | UPLOADER | USER |
-| ------ | ------------------------- | ------------- | ----- | -------- | ---- |
-| GET    | `/api/bookmarks`           | Authenticated | Yes   | Yes      | Yes  |
-| POST   | `/api/bookmarks`           | Authenticated | Yes   | Yes      | Yes  |
-| DELETE | `/api/bookmarks`           | Authenticated | Yes   | Yes      | Yes  |
+| Method | Endpoint         | Permission    | ADMIN | UPLOADER | USER |
+| ------ | ---------------- | ------------- | ----- | -------- | ---- |
+| GET    | `/api/bookmarks` | Authenticated | Yes   | Yes      | Yes  |
+| POST   | `/api/bookmarks` | Authenticated | Yes   | Yes      | Yes  |
+| DELETE | `/api/bookmarks` | Authenticated | Yes   | Yes      | Yes  |
 
 ### Comment Module (`/api/comments`)
 
-| Method | Endpoint                     | Permission              | ADMIN | UPLOADER | USER |
-| ------ | ---------------------------- | ---------------------- | ----- | -------- | ---- |
-| GET    | `/api/comments/chapter/{id}` | Public                 | Yes   | Yes      | Yes  |
-| GET    | `/api/comments/story/{id}`    | Public                 | Yes   | Yes      | Yes  |
-| POST   | `/api/comments`              | `comment:create`       | Yes   | Yes      | Yes  |
-| PATCH  | `/api/comments/{id}`         | `comment:create`       | Yes   | Own only | Own only |
-| DELETE | `/api/comments/{id}`         | `comment:delete_own`   | Yes   | Own only | Own only |
+| Method | Endpoint                     | Permission           | ADMIN | UPLOADER | USER     |
+| ------ | ---------------------------- | -------------------- | ----- | -------- | -------- |
+| GET    | `/api/comments/chapter/{id}` | Public               | Yes   | Yes      | Yes      |
+| GET    | `/api/comments/story/{id}`   | Public               | Yes   | Yes      | Yes      |
+| POST   | `/api/comments`              | `comment:create`     | Yes   | Yes      | Yes      |
+| PATCH  | `/api/comments/{id}`         | `comment:create`     | Yes   | Own only | Own only |
+| DELETE | `/api/comments/{id}`         | `comment:delete_own` | Yes   | Own only | Own only |
 
 ### Reading History Module (`/api/reading-histories`)
 
-| Method | Endpoint                          | Permission              | ADMIN | UPLOADER | USER |
-| ------ | --------------------------------- | ---------------------- | ----- | -------- | ---- |
-| GET    | `/api/reading-histories`           | Public (guest + user) | Yes   | Yes      | Yes  |
+| Method | Endpoint                            | Permission            | ADMIN | UPLOADER | USER |
+| ------ | ----------------------------------- | --------------------- | ----- | -------- | ---- |
+| GET    | `/api/reading-histories`            | Public (guest + user) | Yes   | Yes      | Yes  |
 | GET    | `/api/reading-histories/story/{id}` | Public (guest + user) | Yes   | Yes      | Yes  |
-| POST   | `/api/reading-histories`           | Public (guest + user) | Yes   | Yes      | Yes  |
-| DELETE | `/api/reading-histories`           | Public (guest + user) | Yes   | Yes      | Yes  |
+| POST   | `/api/reading-histories`            | Public (guest + user) | Yes   | Yes      | Yes  |
+| DELETE | `/api/reading-histories`            | Public (guest + user) | Yes   | Yes      | Yes  |
 
 ### Audit Log Module (`/api/audit-logs`)
 
-| Method | Endpoint           | Permission    | ADMIN | UPLOADER | USER |
+| Method | Endpoint          | Permission    | ADMIN | UPLOADER | USER |
 | ------ | ----------------- | ------------- | ----- | -------- | ---- |
 | GET    | `/api/audit-logs` | Authenticated | Yes   | Yes      | Yes  |
 
 ### Moderation Action Module (`/api/moderation-actions`)
 
-| Method | Endpoint                        | Permission    | ADMIN | UPLOADER | USER |
-| ------ | ------------------------------- | ------------- | ----- | -------- | ---- |
-| GET    | `/api/moderation-actions`       | Authenticated | Yes   | Yes      | Yes  |
+| Method | Endpoint                  | Permission    | ADMIN | UPLOADER | USER |
+| ------ | ------------------------- | ------------- | ----- | -------- | ---- |
+| GET    | `/api/moderation-actions` | Authenticated | Yes   | Yes      | Yes  |
+
+### Payment Module (`/api/payment`)
+
+| Method | Endpoint                    | Permission              | ADMIN | UPLOADER | USER |
+| ------ | --------------------------- | ----------------------- | ----- | -------- | ---- |
+| POST   | `/api/payment/create`       | Authenticated           | Yes   | Yes      | Yes  |
+| GET    | `/api/payment/vnpay-return` | Public                  | Yes   | Yes      | Yes  |
+| GET    | `/api/payment/vnpay-ipn`    | Public (VNPay callback) | Yes   | Yes      | Yes  |
+| GET    | `/api/payment/transactions` | Authenticated           | Yes   | Yes      | Yes  |
+
+### Subscription Plan Module (`/api/subscription-plan`)
+
+| Method | Endpoint                        | Permission | ADMIN | UPLOADER | USER |
+| ------ | ------------------------------- | ---------- | ----- | -------- | ---- |
+| GET    | `/api/subscription-plan`        | Public     | Yes   | Yes      | Yes  |
+| GET    | `/api/subscription-plan/{code}` | Public     | Yes   | Yes      | Yes  |
+| POST   | `/api/subscription-plan`        | ADMIN      | Yes   | No       | No   |
+| PATCH  | `/api/subscription-plan/{code}` | ADMIN      | Yes   | No       | No   |
+| DELETE | `/api/subscription-plan/{code}` | ADMIN      | Yes   | No       | No   |
+
+### Author Module (`/api/authors`)
+
+| Method | Endpoint                       | Permission                              | ADMIN | UPLOADER | USER |
+| ------ | ------------------------------ | --------------------------------------- | ----- | -------- | ---- |
+| GET    | `/api/authors`                 | Public                                  | Yes   | Yes      | Yes  |
+| GET    | `/api/authors/{slug}`          | Public                                  | Yes   | Yes      | Yes  |
+| POST   | `/api/authors`                 | `author:create`                         | Yes   | Yes      | No   |
+| PATCH  | `/api/authors/{id}`            | `author:update`                         | Yes   | Yes      | No   |
+| DELETE | `/api/authors/{id}`            | `author:delete`                         | Yes   | Yes      | No   |
+| PUT    | `/api/authors/story/{storyId}` | `story:update_own` / `story:update_any` | Yes   | Own only | No   |
 
 ---
 
@@ -160,21 +193,33 @@
 
 ### ApiResponse<T>
 
-| Field  | Type | Description           |
-| ------ | ---- | --------------------- |
-| `code` | int  | HTTP status code      |
-| `message` | String | Response message  |
-| `data` | T    | Response data         |
+| Field     | Type   | Description      |
+| --------- | ------ | ---------------- |
+| `code`    | int    | HTTP status code |
+| `message` | String | Response message |
+| `data`    | T      | Response data    |
 
 ### PageResponse<T>
 
-| Field          | Type    | Description                    |
-| -------------- | ------- | ------------------------------ |
-| `currentPage`  | int     | Current page number (1-based)  |
-| `pageSize`     | int     | Number of items per page       |
-| `totalPages`   | int     | Total number of pages          |
-| `totalElements`| long    | Total number of items          |
-| `data`         | List<T> | List of items                  |
+| Field           | Type    | Description                   |
+| --------------- | ------- | ----------------------------- |
+| `currentPage`   | int     | Current page number (1-based) |
+| `pageSize`      | int     | Number of items per page      |
+| `totalPages`    | int     | Total number of pages         |
+| `totalElements` | long    | Total number of items         |
+| `data`          | List<T> | List of items                 |
+
+### AuthorResponse
+
+| Field       | Type         | Description                  |
+| ----------- | ------------ | ---------------------------- |
+| `id`        | String       | Author ID (UUID)             |
+| `name`      | String       | Ten tac gia                  |
+| `slug`      | String       | Slug URL                     |
+| `bio`       | String       | Tieu su                      |
+| `avatarUrl` | String       | URL avatar                   |
+| `country`   | String       | Quoc gia                     |
+| `user`      | UserResponse | Thong tin tai khoan (neu co) |
 
 ---
 
@@ -184,20 +229,21 @@
 
 **Mo ta**: Dang nhap nguoi dung
 
-**Permission**: Public
-**Role**: Tat ca
+**Permission**: Public **Role**: Tat ca
 
 **Headers**:
+
 - `Session-Id` (Optional - guest session, neu khong co se tu tao moi)
 
 **Request Body** (`LoginRequest`):
 
 | Field      | Type   | Required | Description                  |
 | ---------- | ------ | -------- | ---------------------------- |
-| `email`    | String | Yes     | Email (dinh dang email)       |
-| `password` | String | Yes     | Mat khau (toi thieu 6 ky tu)  |
+| `email`    | String | Yes      | Email (dinh dang email)      |
+| `password` | String | Yes      | Mat khau (toi thieu 6 ky tu) |
 
 **Example Request**:
+
 ```json
 {
   "email": "user@example.com",
@@ -207,18 +253,19 @@
 
 **Response** (`ApiResponse<LoginResponse>`):
 
-| Field          | Type         | Description              |
-| -------------- | ------------ | ------------------------ |
-| `id`           | String       | User ID (UUID)           |
-| `email`        | String       | Email                    |
-| `username`     | String       | Username                 |
-| `avatarUrl`    | String       | Avatar URL               |
-| `roles`        | List<String> | List of role names       |
-| `permissions`  | List<String> | List of permissions      |
-| `accessToken`  | String       | JWT access token         |
-| `refreshToken` | String       | JWT refresh token        |
+| Field          | Type         | Description         |
+| -------------- | ------------ | ------------------- |
+| `id`           | String       | User ID (UUID)      |
+| `email`        | String       | Email               |
+| `username`     | String       | Username            |
+| `avatarUrl`    | String       | Avatar URL          |
+| `roles`        | List<String> | List of role names  |
+| `permissions`  | List<String> | List of permissions |
+| `accessToken`  | String       | JWT access token    |
+| `refreshToken` | String       | JWT refresh token   |
 
 **Example Response**:
+
 ```json
 {
   "code": 200,
@@ -237,6 +284,7 @@
 ```
 
 **Luu y**:
+
 - Neu truyen `Session-Id` header, he thong se link guest session voi tai khoan sau khi dang nhap thanh cong.
 - Neu khong truyen `Session-Id`, he thong se tao session moi cho nguoi dung.
 
@@ -246,18 +294,18 @@
 
 **Mo ta**: Dang ky tai khoan moi
 
-**Permission**: Public
-**Role**: Tat ca
+**Permission**: Public **Role**: Tat ca
 
 **Request Body** (`RegisterRequest`):
 
 | Field      | Type   | Required | Description                  |
 | ---------- | ------ | -------- | ---------------------------- |
-| `email`    | String | Yes     | Email (dinh dang email)       |
-| `username` | String | Yes     | Username (4-50 ky tu)          |
-| `password` | String | Yes     | Mat khau (toi thieu 6 ky tu)  |
+| `email`    | String | Yes      | Email (dinh dang email)      |
+| `username` | String | Yes      | Username (4-50 ky tu)        |
+| `password` | String | Yes      | Mat khau (toi thieu 6 ky tu) |
 
 **Example Request**:
+
 ```json
 {
   "email": "newuser@example.com",
@@ -268,13 +316,14 @@
 
 **Response** (`ApiResponse<RegisterResponse>`):
 
-| Field      | Type   | Description     |
-| ---------- | ------ | --------------- |
+| Field      | Type   | Description    |
+| ---------- | ------ | -------------- |
 | `id`       | String | User ID (UUID) |
 | `email`    | String | Email          |
 | `username` | String | Username       |
 
 **Example Response**:
+
 ```json
 {
   "code": 201,
@@ -293,16 +342,16 @@
 
 **Mo ta**: Lam moi access token
 
-**Permission**: Public
-**Role**: Tat ca
+**Permission**: Public **Role**: Tat ca
 
 **Request Body** (`RefreshTokenRequest`):
 
-| Field          | Type   | Required | Description      |
-| -------------- | ------ | -------- | ---------------- |
-| `refreshToken` | String | Yes     | Refresh token    |
+| Field          | Type   | Required | Description   |
+| -------------- | ------ | -------- | ------------- |
+| `refreshToken` | String | Yes      | Refresh token |
 
 **Example Request**:
+
 ```json
 {
   "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -311,12 +360,13 @@
 
 **Response** (`ApiResponse<RefreshTokenResponse>`):
 
-| Field          | Type   | Description     |
-| -------------- | ------ | --------------- |
-| `accessToken`  | String | New access token |
+| Field          | Type   | Description       |
+| -------------- | ------ | ----------------- |
+| `accessToken`  | String | New access token  |
 | `refreshToken` | String | New refresh token |
 
 **Example Response**:
+
 ```json
 {
   "code": 200,
@@ -334,16 +384,16 @@
 
 **Mo ta**: Kiem tra tinh hop le cua token
 
-**Permission**: Public
-**Role**: Tat ca
+**Permission**: Public **Role**: Tat ca
 
 **Request Body** (`IntrospectRequest`):
 
-| Field  | Type   | Required | Description     |
-| ------ | ------ | -------- | --------------- |
-| `token` | String | Yes     | Token can kiem tra |
+| Field   | Type   | Required | Description        |
+| ------- | ------ | -------- | ------------------ |
+| `token` | String | Yes      | Token can kiem tra |
 
 **Example Request**:
+
 ```json
 {
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -352,11 +402,12 @@
 
 **Response** (`ApiResponse<IntrospectResponse>`):
 
-| Field   | Type    | Description              |
-| ------- | ------- | ------------------------ |
-| `valid` | boolean | Token co hop le khong     |
+| Field   | Type    | Description           |
+| ------- | ------- | --------------------- |
+| `valid` | boolean | Token co hop le khong |
 
 **Example Response**:
+
 ```json
 {
   "code": 200,
@@ -375,24 +426,25 @@
 
 **Mo ta**: Lay thong tin nguoi dung hien tai
 
-**Permission**: Authenticated
-**Role**: ADMIN, UPLOADER, USER
+**Permission**: Authenticated **Role**: ADMIN, UPLOADER, USER
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Response** (`ApiResponse<UserResponse>`):
 
-| Field       | Type       | Description      |
-| ----------- | ---------- | ---------------- |
-| `id`        | String     | User ID (UUID)   |
-| `email`     | String     | Email            |
-| `username`  | String     | Username         |
-| `avatarUrl` | String     | Avatar URL       |
-| `isActive`  | boolean    | Trang thai hoat dong |
-| `roles`     | Set<Role>  | Tap hop role     |
+| Field       | Type      | Description          |
+| ----------- | --------- | -------------------- |
+| `id`        | String    | User ID (UUID)       |
+| `email`     | String    | Email                |
+| `username`  | String    | Username             |
+| `avatarUrl` | String    | Avatar URL           |
+| `isActive`  | boolean   | Trang thai hoat dong |
+| `roles`     | Set<Role> | Tap hop role         |
 
 **Example Response**:
+
 ```json
 {
   "code": 200,
@@ -403,9 +455,7 @@
     "username": "johndoe",
     "avatarUrl": "https://example.com/avatar.jpg",
     "isActive": true,
-    "roles": [
-      {"id": 2, "name": "UPLOADER", "description": "Content uploader"}
-    ]
+    "roles": [{ "id": 2, "name": "UPLOADER", "description": "Content uploader" }]
   }
 }
 ```
@@ -416,21 +466,22 @@
 
 **Mo ta**: Cap nhat thong tin nguoi dung hien tai
 
-**Permission**: Authenticated
-**Role**: ADMIN, UPLOADER, USER
+**Permission**: Authenticated **Role**: ADMIN, UPLOADER, USER
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Request Body** (`UserUpdateRequest`):
 
-| Field       | Type   | Required | Description                |
-| ----------- | ------ | -------- | -------------------------- |
-| `username` | String | No      | Username (4-50 ky tu)       |
-| `avatarUrl` | String | No      | Avatar URL                  |
-| `email`    | String | No      | Email (dinh dang email)      |
+| Field    | Type   | Required | Description             |
+| -------- | ------ | -------- | ----------------------- |
+| `username` | String | No       | Username (4-50 ky tu)   |
+| `avatar` | MultipartFile | No       | Avatar             |
+| `email`  | String | No       | Email (dinh dang email) |
 
 **Example Request**:
+
 ```json
 {
   "username": "newname",
@@ -446,18 +497,18 @@
 
 **Mo ta**: Lay danh sach tat ca nguoi dung (Admin)
 
-**Permission**: `user:read`
-**Role**: ADMIN
+**Permission**: `user:read` **Role**: ADMIN
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Query Params**:
 
-| Field | Type    | Required | Default | Description           |
-| ----- | ------- | -------- | ------- | --------------------- |
-| `page`| Integer | No       | 1       | So trang              |
-| `size`| Integer | No       | 10      | So phan tu tren trang |
+| Field  | Type    | Required | Default | Description           |
+| ------ | ------- | -------- | ------- | --------------------- |
+| `page` | Integer | No       | 1       | So trang              |
+| `size` | Integer | No       | 10      | So phan tu tren trang |
 
 **Response** (`ApiResponse<PageResponse<UserResponse>>`): Xem cau truc UserResponse o tren
 
@@ -467,17 +518,17 @@
 
 **Mo ta**: Lay thong tin nguoi dung theo ID (Admin)
 
-**Permission**: `user:read`
-**Role**: ADMIN
+**Permission**: `user:read` **Role**: ADMIN
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Path Variables**:
 
-| Field    | Type   | Description     |
-| -------- | ------ | --------------- |
-| `userId` | String | User ID (UUID)  |
+| Field    | Type   | Description    |
+| -------- | ------ | -------------- |
+| `userId` | String | User ID (UUID) |
 
 **Response** (`ApiResponse<UserResponse>`): Xem cau truc UserResponse o tren
 
@@ -487,28 +538,29 @@
 
 **Mo ta**: Ban nguoi dung (Admin)
 
-**Permission**: `user:ban`
-**Role**: ADMIN
+**Permission**: `user:ban` **Role**: ADMIN
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Path Variables**:
 
-| Field | Type   | Description  |
-| ----- | ------ | ------------ |
-| `id`  | String | User ID      |
+| Field | Type   | Description |
+| ----- | ------ | ----------- |
+| `id`  | String | User ID     |
 
 **Request Body** (`UserBanRequest`):
 
-| Field          | Type         | Required | Description              |
-| -------------- | ------------ | -------- | ------------------------ |
-| `violationType`| ViolationType| No       | Loai vi pham             |
-| `reason`       | String       | Yes      | Ly do ban (toi da 1000 ky tu) |
+| Field           | Type          | Required | Description                   |
+| --------------- | ------------- | -------- | ----------------------------- |
+| `violationType` | ViolationType | No       | Loai vi pham                  |
+| `reason`        | String        | Yes      | Ly do ban (toi da 1000 ky tu) |
 
 **ViolationType enum values**: `COPYRIGHT`, `PORNOGRAPHY`, `VIOLENCE`, `SPAM`, `HARASSMENT`, `OTHER`
 
 **Example Request**:
+
 ```json
 {
   "violationType": "SPAM",
@@ -524,25 +576,26 @@
 
 **Mo ta**: Unban nguoi dung (Admin)
 
-**Permission**: `user:ban`
-**Role**: ADMIN
+**Permission**: `user:ban` **Role**: ADMIN
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Path Variables**:
 
-| Field | Type   | Description  |
-| ----- | ------ | ------------ |
-| `id`  | String | User ID      |
+| Field | Type   | Description |
+| ----- | ------ | ----------- |
+| `id`  | String | User ID     |
 
 **Request Body** (`UserUnbanRequest`):
 
-| Field   | Type   | Required | Description                 |
-| ------- | ------ | -------- | --------------------------- |
-| `reason`| String | Yes      | Ly do unban (toi da 1000 ky tu) |
+| Field    | Type   | Required | Description                     |
+| -------- | ------ | -------- | ------------------------------- |
+| `reason` | String | Yes      | Ly do unban (toi da 1000 ky tu) |
 
 **Example Request**:
+
 ```json
 {
   "reason": "User apologized and deleted spam content"
@@ -557,30 +610,32 @@
 
 **Mo ta**: Cap nhat roles cho nguoi dung (Admin)
 
-**Permission**: `user:manage_roles`
-**Role**: ADMIN
+**Permission**: `user:manage_roles` **Role**: ADMIN
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Path Variables**:
 
-| Field     | Type   | Description  |
-| --------- | ------ | ------------ |
-| `userId`  | String | User ID      |
+| Field    | Type   | Description |
+| -------- | ------ | ----------- |
+| `userId` | String | User ID     |
 
 **Request Body** (`UserUpdateRoleRequest`):
 
-| Field  | Type        | Required | Description                |
-| ------ | ----------- | -------- | -------------------------- |
-| `roles`| List<Integer>| Yes     | Danh sach role IDs          |
+| Field   | Type          | Required | Description        |
+| ------- | ------------- | -------- | ------------------ |
+| `roles` | List<Integer> | Yes      | Danh sach role IDs |
 
 **Role IDs**:
+
 - `1` = USER
 - `2` = UPLOADER
 - `3` = ADMIN
 
 **Example Request**:
+
 ```json
 {
   "roles": [1, 2]
@@ -597,33 +652,34 @@
 
 **Mo ta**: Lay danh sach truyen voi bo loc, sap xep va loc theo the loai
 
-**Permission**: Public
-**Role**: Tat ca
+**Permission**: Public **Role**: Tat ca
 
 **Query Params**:
 
-| Field   | Type    | Required | Default | Description              |
-| ------- | ------- | -------- | ------- | ----------------------- |
-| `page`  | Integer | No       | 1       | So trang               |
-| `size`  | Integer | No       | 10      | So phan tu tren trang   |
+| Field  | Type    | Required | Default | Description           |
+| ------ | ------- | -------- | ------- | --------------------- |
+| `page` | Integer | No       | 1       | So trang              |
+| `size` | Integer | No       | 10      | So phan tu tren trang |
 
 **Request Body** (`StoryFilter`):
 
-| Field        | Type           | Required | Default   | Description                                      |
-| ------------ | -------------- | -------- | --------- | ----------------------------------------------- |
-| `search`     | String         | No       | -         | Tu khoa tim kiem theo title hoac titleNoAccent |
-| `uploaderId` | String         | No       | -         | Loc theo uploader ID (UUID)                    |
-| `type`       | StoryType      | No       | -         | Loai truyen                                    |
-| `status`     | StoryStatus    | No       | -         | Trang thai truyen                              |
-| `isPublished`| Boolean        | No       | -         | Da duyet chua                                  |
-| `genres`     | List\<String\> | No       | -         | Loc theo the loai (genre slug), tra ve truyen co it nhat 1 genre trong danh sach |
-| `sortType`   | SortType       | No       | NEWEST    | Kieu sap xep                                   |
+| Field | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `search` | String | No | - | Tu khoa tim kiem theo title hoac titleNoAccent |
+| `uploaderId` | String | No | - | Loc theo uploader ID (UUID) |
+| `type` | StoryType | No | - | Loai truyen |
+| `status` | StoryStatus | No | - | Trang thai truyen |
+| `isPublished` | Boolean | No | - | Da duyet chua |
+| `genres` | List\<String\> | No | - | Loc theo the loai (genre slug), tra ve truyen co it nhat 1 genre trong danh sach |
+| `authors` | List\<String\> | No | - | Loc theo tac gia (author slug), tra ve truyen co it nhat 1 tac gia trong danh sach |
+| `sortType` | SortType | No | NEWEST | Kieu sap xep |
 
 **StoryType values**: `NOVEL`, `MANGA`
 
 **StoryStatus values**: `ONGOING`, `COMPLETED`, `HIATUS`, `DROPPED`
 
 **SortType values**:
+
 - `NEWEST` - Moi nhat (theo createdAt giam dan) - **default**
 - `UPDATED` - Moi cap nhat (theo updatedAt giam dan)
 - `VIEW` - Luot xem nhieu nhat (theo viewCount giam dan)
@@ -633,12 +689,14 @@
 - `OLDEST` - Cu nhat (theo createdAt tang dan)
 
 **Example Request** (loc truyen NOVEL, the loai Action hoac Fantasy, sap xep theo luot xem):
+
 ```
 GET /api/stories?page=1&size=20
 Body: { "type": "NOVEL", "genres": ["action", "fantasy"], "sortType": "VIEW" }
 ```
 
 **Example Request** (tim kiem truyen co tu "dragon", sap xep moi nhat):
+
 ```
 GET /api/stories
 Body: { "search": "dragon", "sortType": "NEWEST" }
@@ -646,21 +704,23 @@ Body: { "search": "dragon", "sortType": "NEWEST" }
 
 **Response** (`ApiResponse<PageResponse<StoryResponse>>`):
 
-| Field                | Type              | Description                                 |
-| -------------------- | ----------------- | ------------------------------------------- |
-| `id`                 | String            | Story ID (UUID)                             |
-| `uploader`           | UserResponse      | Thong tin nguoi upload                      |
-| `title`              | String            | Tieu de                                     |
-| `slug`               | String            | Slug URL                                    |
-| `description`        | String            | Mo ta                                      |
-| `coverImageUrl`      | String            | URL hinh bia                               |
-| `storyType`          | StoryType         | Loai truyen (NOVEL/MANGA)                  |
-| `status`             | StoryStatus       | Trang thai                                 |
-| `isPublished`        | boolean           | Da duyet chua                              |
-| `freeChapterLimit`   | Integer           | So chuong free (null = all free)            |
-| `viewCount`          | Long              | Luot xem                                   |
+| Field              | Type                   | Description                      |
+| ------------------ | ---------------------- | -------------------------------- |
+| `id`               | String                 | Story ID (UUID)                  |
+| `uploader`         | UserResponse           | Thong tin nguoi upload           |
+| `title`            | String                 | Tieu de                          |
+| `slug`             | String                 | Slug URL                         |
+| `description`      | String                 | Mo ta                            |
+| `coverImageUrl`    | String                 | URL hinh bia                     |
+| `storyType`        | StoryType              | Loai truyen (NOVEL/MANGA)        |
+| `status`           | StoryStatus            | Trang thai                       |
+| `isPublished`      | boolean                | Da duyet chua                    |
+| `freeChapterLimit` | Integer                | So chuong free (null = all free) |
+| `viewCount`        | Long                   | Luot xem                         |
+| `authors`          | List\<AuthorResponse\> | Danh sach tac gia                |
 
 **Example Response**:
+
 ```json
 {
   "code": 200,
@@ -685,7 +745,14 @@ Body: { "search": "dragon", "sortType": "NEWEST" }
         "status": "ONGOING",
         "isPublished": true,
         "freeChapterLimit": 5,
-        "viewCount": 1000
+        "viewCount": 1000,
+        "authors": [
+          {
+            "id": "author-uuid",
+            "name": "Nguyen Nhat Anh",
+            "slug": "nguyen-nhat-anh"
+          }
+        ]
       }
     ]
   }
@@ -698,14 +765,13 @@ Body: { "search": "dragon", "sortType": "NEWEST" }
 
 **Mo ta**: Lay thong tin truyen theo slug
 
-**Permission**: Public
-**Role**: Tat ca
+**Permission**: Public **Role**: Tat ca
 
 **Path Variables**:
 
-| Field | Type   | Description      |
-| ----- | ------ | ---------------- |
-| `slug`| String | Story slug URL   |
+| Field  | Type   | Description    |
+| ------ | ------ | -------------- |
+| `slug` | String | Story slug URL |
 
 **Response** (`ApiResponse<StoryResponse>`): Xem cau truc StoryResponse o tren
 
@@ -715,27 +781,28 @@ Body: { "search": "dragon", "sortType": "NEWEST" }
 
 **Mo ta**: Tao truyen moi (multipart/form-data)
 
-**Permission**: `story:create`
-**Role**: ADMIN, UPLOADER
+**Permission**: `story:create` **Role**: ADMIN, UPLOADER
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 - `Content-Type: multipart/form-data`
 
 **Request Body** (multipart/form-data):
 
-| Field              | Type          | Required | Description                          |
-| ------------------ | ------------- | -------- | ------------------------------------ |
-| `title`            | String        | Yes      | Tieu de truyen                       |
-| `description`      | String        | No       | Mo ta truyen                         |
-| `coverImageUrl`    | String        | No       | URL hinh bia                         |
-| `coverImageFile`   | MultipartFile | No       | File hinh bia (upload)               |
-| `storyType`        | StoryType     | Yes      | Loai truyen: NOVEL, MANGA            |
-| `status`           | StoryStatus   | No       | Trang thai (default: ONGOING)        |
-| `isPublished`      | boolean       | No       | Da duyet chua (default: false)      |
+| Field              | Type          | Required | Description                                  |
+| ------------------ | ------------- | -------- | -------------------------------------------- |
+| `title`            | String        | Yes      | Tieu de truyen                               |
+| `description`      | String        | No       | Mo ta truyen                                 |
+| `coverImageUrl`    | String        | No       | URL hinh bia                                 |
+| `coverImageFile`   | MultipartFile | No       | File hinh bia (upload)                       |
+| `storyType`        | StoryType     | Yes      | Loai truyen: NOVEL, MANGA                    |
+| `status`           | StoryStatus   | No       | Trang thai (default: ONGOING)                |
+| `isPublished`      | boolean       | No       | Da duyet chua (default: false)               |
 | `freeChapterLimit` | Integer       | No       | So chuong free (null = all, 0 = premium all) |
 
 **Example Request** (multipart):
+
 ```
 title: "New Story"
 description: "An exciting new story..."
@@ -753,31 +820,31 @@ freeChapterLimit: 5
 
 **Mo ta**: Cap nhat truyen
 
-**Permission**: `story:update_own` / `story:update_any`
-**Role**: ADMIN (update_any), UPLOADER (update_own - chi truyen cua minh)
+**Permission**: `story:update_own` / `story:update_any` **Role**: ADMIN (update_any), UPLOADER (update_own - chi truyen cua minh)
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Path Variables**:
 
-| Field | Type   | Description  |
-| ----- | ------ | ------------ |
-| `id`  | String | Story ID     |
+| Field | Type   | Description |
+| ----- | ------ | ----------- |
+| `id`  | String | Story ID    |
 
 **Request Body** (multipart/form-data):
 
-| Field              | Type          | Required | Description                          |
-| ------------------ | ------------- | -------- | ------------------------------------ |
-| `title`            | String        | No       | Tieu de truyen                       |
-| `description`      | String        | No       | Mo ta truyen                         |
-| `coverImageUrl`    | String        | No       | URL hinh bia                         |
-| `coverImageFile`   | MultipartFile | No       | File hinh bia (upload)               |
-| `storyType`        | StoryType     | No       | Loai truyen                          |
-| `status`           | StoryStatus   | No       | Trang thai                           |
-| `isPublished`      | boolean       | No       | Da duyet chua                        |
-| `freeChapterLimit` | Integer       | No       | So chuong free                       |
-| `viewCount`        | Long          | No       | Luot xem                             |
+| Field              | Type          | Required | Description            |
+| ------------------ | ------------- | -------- | ---------------------- |
+| `title`            | String        | No       | Tieu de truyen         |
+| `description`      | String        | No       | Mo ta truyen           |
+| `coverImageUrl`    | String        | No       | URL hinh bia           |
+| `coverImageFile`   | MultipartFile | No       | File hinh bia (upload) |
+| `storyType`        | StoryType     | No       | Loai truyen            |
+| `status`           | StoryStatus   | No       | Trang thai             |
+| `isPublished`      | boolean       | No       | Da duyet chua          |
+| `freeChapterLimit` | Integer       | No       | So chuong free         |
+| `viewCount`        | Long          | No       | Luot xem               |
 
 **Response** (`ApiResponse<StoryResponse>`): Xem cau truc StoryResponse o tren
 
@@ -787,25 +854,25 @@ freeChapterLimit: 5
 
 **Mo ta**: Xoa truyen
 
-**Permission**: `story:delete_own` / `story:delete_any`
-**Role**: ADMIN (delete_any), UPLOADER (delete_own - chi truyen cua minh)
+**Permission**: `story:delete_own` / `story:delete_any` **Role**: ADMIN (delete_any), UPLOADER (delete_own - chi truyen cua minh)
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Path Variables**:
 
-| Field | Type   | Description  |
-| ----- | ------ | ------------ |
-| `id`  | String | Story ID     |
+| Field | Type   | Description |
+| ----- | ------ | ----------- |
+| `id`  | String | Story ID    |
 
 **Response** (`ApiResponse<String>`):
 
-| Field | Type   | Description     |
-| ----- | ------ | --------------- |
-| code  | int    | 200             |
-| message| String| "Success"      |
-| data  | String | "Xoa truyen thanh cong" |
+| Field   | Type   | Description             |
+| ------- | ------ | ----------------------- |
+| code    | int    | 200                     |
+| message | String | "Success"               |
+| data    | String | "Xoa truyen thanh cong" |
 
 ---
 
@@ -813,25 +880,26 @@ freeChapterLimit: 5
 
 **Mo ta**: Tao yeu cau xuat ban truyen
 
-**Permission**: `story:create`
-**Role**: ADMIN, UPLOADER
+**Permission**: `story:create` **Role**: ADMIN, UPLOADER
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Path Variables**:
 
-| Field | Type   | Description  |
-| ----- | ------ | ------------ |
-| `id`  | String | Story ID     |
+| Field | Type   | Description |
+| ----- | ------ | ----------- |
+| `id`  | String | Story ID    |
 
 **Request Body** (`StoryPublishRequestCreateRequest`):
 
-| Field           | Type   | Required | Description    |
-| --------------- | ------ | -------- | -------------- |
-| `requesterNote` | String | No      | Ghi chu cua nguoi yeu cau |
+| Field           | Type   | Required | Description               |
+| --------------- | ------ | -------- | ------------------------- |
+| `requesterNote` | String | No       | Ghi chu cua nguoi yeu cau |
 
 **Example Request**:
+
 ```json
 {
   "requesterNote": "Truyen da hoan thien 100 chuong, mong duoc duyet"
@@ -840,14 +908,14 @@ freeChapterLimit: 5
 
 **Response** (`ApiResponse<StoryPublishRequestResponse>`):
 
-| Field           | Type                       | Description           |
-| --------------- | -------------------------- | --------------------- |
-| `id`            | String                     | Request ID (UUID)     |
-| `story`         | StoryResponse              | Thong tin truyen      |
-| `requesterNote` | String                     | Ghi chu nguoi yeu cau |
-| `reviewerNote`  | String                     | Ghi chu nguoi duyet   |
-| `reviewer`      | UserResponse               | Nguoi duyet           |
-| `status`        | StoryPublishRequestStatus  | Trang thai            |
+| Field           | Type                      | Description           |
+| --------------- | ------------------------- | --------------------- |
+| `id`            | String                    | Request ID (UUID)     |
+| `story`         | StoryResponse             | Thong tin truyen      |
+| `requesterNote` | String                    | Ghi chu nguoi yeu cau |
+| `reviewerNote`  | String                    | Ghi chu nguoi duyet   |
+| `reviewer`      | UserResponse              | Nguoi duyet           |
+| `status`        | StoryPublishRequestStatus | Trang thai            |
 
 **StoryPublishRequestStatus values**: `PENDING`, `APPROVED`, `REJECTED`
 
@@ -857,21 +925,21 @@ freeChapterLimit: 5
 
 **Mo ta**: Lay danh sach yeu cau xuat ban (Admin)
 
-**Permission**: ADMIN role
-**Role**: ADMIN
+**Permission**: ADMIN role **Role**: ADMIN
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Query Params**:
 
-| Field       | Type                       | Required | Default | Description       |
-| ----------- | -------------------------- | -------- | ------- | ----------------- |
-| `page`      | Integer                    | No       | 1       | So trang          |
-| `size`      | Integer                    | No       | 10      | So phan tu/trang  |
-| `storyId`   | String                     | No       | -       | Loc theo story ID |
-| `status`    | StoryPublishRequestStatus  | No       | -       | Trang thai        |
-| `uploaderId`| String                     | No       | -       | Loc theo uploader |
+| Field        | Type                      | Required | Default | Description       |
+| ------------ | ------------------------- | -------- | ------- | ----------------- |
+| `page`       | Integer                   | No       | 1       | So trang          |
+| `size`       | Integer                   | No       | 10      | So phan tu/trang  |
+| `storyId`    | String                    | No       | -       | Loc theo story ID |
+| `status`     | StoryPublishRequestStatus | No       | -       | Trang thai        |
+| `uploaderId` | String                    | No       | -       | Loc theo uploader |
 
 **Response** (`ApiResponse<PageResponse<StoryPublishRequestResponse>>`): Xem cau truc o tren
 
@@ -881,20 +949,20 @@ freeChapterLimit: 5
 
 **Mo ta**: Lay danh sach yeu cau xuat ban cua minh
 
-**Permission**: `story:update_own`
-**Role**: UPLOADER
+**Permission**: `story:update_own` **Role**: UPLOADER
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Query Params**:
 
-| Field     | Type                       | Required | Default | Description     |
-| --------- | -------------------------- | -------- | ------- | --------------- |
-| `page`    | Integer                    | No       | 1       | So trang        |
-| `size`    | Integer                    | No       | 10      | So phan tu/trang|
-| `storyId` | String                     | No       | -       | Loc theo story  |
-| `status`  | StoryPublishRequestStatus  | No       | -       | Trang thai      |
+| Field     | Type                      | Required | Default | Description      |
+| --------- | ------------------------- | -------- | ------- | ---------------- |
+| `page`    | Integer                   | No       | 1       | So trang         |
+| `size`    | Integer                   | No       | 10      | So phan tu/trang |
+| `storyId` | String                    | No       | -       | Loc theo story   |
+| `status`  | StoryPublishRequestStatus | No       | -       | Trang thai       |
 
 **Response** (`ApiResponse<PageResponse<StoryPublishRequestResponse>>`): Xem cau truc o tren
 
@@ -904,25 +972,26 @@ freeChapterLimit: 5
 
 **Mo ta**: Phe duyet yeu cau xuat ban (Admin)
 
-**Permission**: ADMIN role
-**Role**: ADMIN
+**Permission**: ADMIN role **Role**: ADMIN
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Path Variables**:
 
-| Field | Type   | Description     |
-| ----- | ------ | --------------- |
-| `id`  | String | Request ID      |
+| Field | Type   | Description |
+| ----- | ------ | ----------- |
+| `id`  | String | Request ID  |
 
 **Request Body** (`StoryPublishRequestReviewRequest`):
 
-| Field          | Type   | Required | Description      |
-| -------------- | ------ | -------- | ---------------- |
-| `reviewerNote` | String | No      | Ghi chu nguoi duyet |
+| Field          | Type   | Required | Description         |
+| -------------- | ------ | -------- | ------------------- |
+| `reviewerNote` | String | No       | Ghi chu nguoi duyet |
 
 **Example Request**:
+
 ```json
 {
   "reviewerNote": "Truyen da duyet, chuc mung!"
@@ -937,25 +1006,26 @@ freeChapterLimit: 5
 
 **Mo ta**: Tu choi yeu cau xuat ban (Admin)
 
-**Permission**: ADMIN role
-**Role**: ADMIN
+**Permission**: ADMIN role **Role**: ADMIN
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Path Variables**:
 
-| Field | Type   | Description     |
-| ----- | ------ | --------------- |
-| `id`  | String | Request ID      |
+| Field | Type   | Description |
+| ----- | ------ | ----------- |
+| `id`  | String | Request ID  |
 
 **Request Body** (`StoryPublishRequestReviewRequest`):
 
-| Field          | Type   | Required | Description      |
-| -------------- | ------ | -------- | ---------------- |
-| `reviewerNote` | String | No      | Ghi chu nguoi tu choi |
+| Field          | Type   | Required | Description           |
+| -------------- | ------ | -------- | --------------------- |
+| `reviewerNote` | String | No       | Ghi chu nguoi tu choi |
 
 **Example Request**:
+
 ```json
 {
   "reviewerNote": "Truyen chua dat yeu cau, vui long chinh sua"
@@ -970,17 +1040,17 @@ freeChapterLimit: 5
 
 **Mo ta**: Xoa yeu cau xuat ban
 
-**Permission**: `story:delete_own` / `story:delete_any`
-**Role**: ADMIN (delete_any), UPLOADER (delete_own - chi request cua minh)
+**Permission**: `story:delete_own` / `story:delete_any` **Role**: ADMIN (delete_any), UPLOADER (delete_own - chi request cua minh)
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Path Variables**:
 
-| Field | Type   | Description     |
-| ----- | ------ | --------------- |
-| `id`  | String | Request ID      |
+| Field | Type   | Description |
+| ----- | ------ | ----------- |
+| `id`  | String | Request ID  |
 
 **Response** (`ApiResponse<String>`): Xem cau truc o tren
 
@@ -990,26 +1060,27 @@ freeChapterLimit: 5
 
 **Mo ta**: Ban truyen (Admin)
 
-**Permission**: ADMIN role
-**Role**: ADMIN
+**Permission**: ADMIN role **Role**: ADMIN
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Path Variables**:
 
-| Field | Type   | Description  |
-| ----- | ------ | ------------ |
-| `id`  | String | Story ID     |
+| Field | Type   | Description |
+| ----- | ------ | ----------- |
+| `id`  | String | Story ID    |
 
 **Request Body** (`StoryBanRequest`):
 
-| Field          | Type         | Required | Description              |
-| -------------- | ------------ | -------- | ------------------------ |
-| `violationType`| ViolationType| No       | Loai vi pham             |
-| `reason`       | String       | Yes      | Ly do ban (toi da 1000 ky tu) |
+| Field           | Type          | Required | Description                   |
+| --------------- | ------------- | -------- | ----------------------------- |
+| `violationType` | ViolationType | No       | Loai vi pham                  |
+| `reason`        | String        | Yes      | Ly do ban (toi da 1000 ky tu) |
 
 **Example Request**:
+
 ```json
 {
   "violationType": "COPYRIGHT",
@@ -1025,25 +1096,26 @@ freeChapterLimit: 5
 
 **Mo ta**: Unban truyen (Admin)
 
-**Permission**: ADMIN role
-**Role**: ADMIN
+**Permission**: ADMIN role **Role**: ADMIN
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Path Variables**:
 
-| Field | Type   | Description  |
-| ----- | ------ | ------------ |
-| `id`  | String | Story ID     |
+| Field | Type   | Description |
+| ----- | ------ | ----------- |
+| `id`  | String | Story ID    |
 
 **Request Body** (`StoryUnbanRequest`):
 
-| Field   | Type   | Required | Description                 |
-| ------- | ------ | -------- | --------------------------- |
-| `reason`| String | Yes      | Ly do unban (toi da 1000 ky tu) |
+| Field    | Type   | Required | Description                     |
+| -------- | ------ | -------- | ------------------------------- |
+| `reason` | String | Yes      | Ly do unban (toi da 1000 ky tu) |
 
 **Example Request**:
+
 ```json
 {
   "reason": "Noi dung da duoc xu ly, cho phep xuat ban lai"
@@ -1060,31 +1132,31 @@ freeChapterLimit: 5
 
 **Mo ta**: Lay danh sach the loai
 
-**Permission**: Public
-**Role**: Tat ca
+**Permission**: Public **Role**: Tat ca
 
 **Query Params**:
 
-| Field   | Type   | Required | Description          |
-| ------- | ------ | -------- | -------------------- |
-| `search`| String | No       | Tim kiem theo ten    |
+| Field    | Type   | Required | Description       |
+| -------- | ------ | -------- | ----------------- |
+| `search` | String | No       | Tim kiem theo ten |
 
 **Response** (`ApiResponse<List<GenreResponse>>`):
 
-| Field            | Type    | Description              |
-| ---------------- | ------- | ------------------------ |
-| `id`             | Integer | Genre ID                 |
-| `name`           | String  | Ten the loai            |
-| `storyQuantity`   | Integer | So luong truyen (default: 0) |
+| Field           | Type    | Description                  |
+| --------------- | ------- | ---------------------------- |
+| `id`            | Integer | Genre ID                     |
+| `name`          | String  | Ten the loai                 |
+| `storyQuantity` | Integer | So luong truyen (default: 0) |
 
 **Example Response**:
+
 ```json
 {
   "code": 200,
   "message": "Success",
   "data": [
-    {"id": 1, "name": "Action", "storyQuantity": 50},
-    {"id": 2, "name": "Romance", "storyQuantity": 30}
+    { "id": 1, "name": "Action", "storyQuantity": 50 },
+    { "id": 2, "name": "Romance", "storyQuantity": 30 }
   ]
 }
 ```
@@ -1095,19 +1167,20 @@ freeChapterLimit: 5
 
 **Mo ta**: Tao the loai moi (Admin)
 
-**Permission**: ADMIN role
-**Role**: ADMIN
+**Permission**: ADMIN role **Role**: ADMIN
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Request Body** (`GenreRequest`):
 
-| Field | Type   | Required | Description     |
-| ----- | ------ | -------- | --------------- |
-| `name`| String | Yes      | Ten the loai    |
+| Field  | Type   | Required | Description  |
+| ------ | ------ | -------- | ------------ |
+| `name` | String | Yes      | Ten the loai |
 
 **Example Request**:
+
 ```json
 {
   "name": "Fantasy"
@@ -1122,23 +1195,23 @@ freeChapterLimit: 5
 
 **Mo ta**: Cap nhat the loai (Admin)
 
-**Permission**: ADMIN role
-**Role**: ADMIN
+**Permission**: ADMIN role **Role**: ADMIN
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Path Variables**:
 
-| Field | Type    | Description  |
-| ----- | ------- | ------------ |
-| `id`  | Integer | Genre ID     |
+| Field | Type    | Description |
+| ----- | ------- | ----------- |
+| `id`  | Integer | Genre ID    |
 
 **Request Body** (`GenreRequest`):
 
-| Field | Type   | Required | Description     |
-| ----- | ------ | -------- | --------------- |
-| `name`| String | Yes      | Ten the loai moi |
+| Field  | Type   | Required | Description      |
+| ------ | ------ | -------- | ---------------- |
+| `name` | String | Yes      | Ten the loai moi |
 
 **Response** (`ApiResponse<GenreResponse>`): Xem cau truc o tren
 
@@ -1148,17 +1221,17 @@ freeChapterLimit: 5
 
 **Mo ta**: Xoa the loai (Admin)
 
-**Permission**: ADMIN role
-**Role**: ADMIN
+**Permission**: ADMIN role **Role**: ADMIN
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Path Variables**:
 
-| Field | Type    | Description  |
-| ----- | ------- | ------------ |
-| `id`  | Integer | Genre ID     |
+| Field | Type    | Description |
+| ----- | ------- | ----------- |
+| `id`  | Integer | Genre ID    |
 
 **Response** (`ApiResponse<String>`): Xem cau truc chung
 
@@ -1170,38 +1243,38 @@ freeChapterLimit: 5
 
 **Mo ta**: Lay danh sach chuong theo slug truyen
 
-**Permission**: Public
-**Role**: Tat ca
+**Permission**: Public **Role**: Tat ca
 
 **Path Variables**:
 
-| Field | Type   | Description      |
-| ----- | ------ | ---------------- |
-| `slug`| String | Story slug URL   |
+| Field  | Type   | Description    |
+| ------ | ------ | -------------- |
+| `slug` | String | Story slug URL |
 
 **Query Params**:
 
-| Field   | Type    | Required | Default | Description          |
-| ------- | ------- | -------- | ------- | -------------------- |
-| `page`  | Integer | No       | 1       | So trang             |
-| `size`  | Integer | No       | 10      | So phan tu tren trang|
-| `search`| String  | No       | -       | Tim kiem            |
+| Field    | Type    | Required | Default | Description           |
+| -------- | ------- | -------- | ------- | --------------------- |
+| `page`   | Integer | No       | 1       | So trang              |
+| `size`   | Integer | No       | 10      | So phan tu tren trang |
+| `search` | String  | No       | -       | Tim kiem              |
 
 **Response** (`ApiResponse<PageResponse<ChapterResponse>>`):
 
-| Field            | Type                    | Description              |
-| ---------------- | ----------------------- | ------------------------ |
-| `id`             | String                  | Chapter ID (UUID)        |
-| `story`          | StoryResponse           | Thong tin truyen         |
-| `chapterNumber`   | BigDecimal              | So chuong (1, 1.5, 2...) |
-| `title`          | String                  | Tieu de chuong          |
-| `isPublished`    | boolean                 | Da xuat ban chua        |
-| `viewCount`      | Long                    | Luot xem                |
-| `content`        | String                  | Noi dung (cho novel)     |
-| `pageCount`      | Integer                 | So trang (cho manga)    |
-| `pages`          | List<ChapterPageResponse>| Danh sach trang        |
+| Field           | Type                      | Description              |
+| --------------- | ------------------------- | ------------------------ |
+| `id`            | String                    | Chapter ID (UUID)        |
+| `story`         | StoryResponse             | Thong tin truyen         |
+| `chapterNumber` | BigDecimal                | So chuong (1, 1.5, 2...) |
+| `title`         | String                    | Tieu de chuong           |
+| `isPublished`   | boolean                   | Da xuat ban chua         |
+| `viewCount`     | Long                      | Luot xem                 |
+| `content`       | String                    | Noi dung (cho novel)     |
+| `pageCount`     | Integer                   | So trang (cho manga)     |
+| `pages`         | List<ChapterPageResponse> | Danh sach trang          |
 
 **Example Response**:
+
 ```json
 {
   "code": 200,
@@ -1214,16 +1287,14 @@ freeChapterLimit: 5
     "data": [
       {
         "id": "550e8400-e29b-41d4-a716-446655440001",
-        "story": {"id": "...", "title": "The Great Story"},
+        "story": { "id": "...", "title": "The Great Story" },
         "chapterNumber": 1.0,
         "title": "Chapter 1: The Beginning",
         "isPublished": true,
         "viewCount": 100,
         "content": null,
         "pageCount": 15,
-        "pages": [
-          {"id": "...", "pageNumber": 1, "imageUrl": "..."}
-        ]
+        "pages": [{ "id": "...", "pageNumber": 1, "imageUrl": "..." }]
       }
     ]
   }
@@ -1236,10 +1307,10 @@ freeChapterLimit: 5
 
 **Mo ta**: Lay thong tin chuong theo ID
 
-**Permission**: Public (co gioi han dua vao story settings)
-**Role**: Tat ca
+**Permission**: Public (co gioi han dua vao story settings) **Role**: Tat ca
 
 **Logic xem noi dung**:
+
 - **ADMIN**: Luon duoc doc
 - **UPLOADER**: Doc premium neu la truyen cua minh
 - **USER**: Doc neu trong gioi han free hoac co subscription active
@@ -1247,9 +1318,9 @@ freeChapterLimit: 5
 
 **Path Variables**:
 
-| Field | Type   | Description   |
-| ----- | ------ | ------------- |
-| `id`  | String | Chapter ID    |
+| Field | Type   | Description |
+| ----- | ------ | ----------- |
+| `id`  | String | Chapter ID  |
 
 **Response** (`ApiResponse<ChapterResponse>`): Xem cau truc o tren
 
@@ -1259,27 +1330,28 @@ freeChapterLimit: 5
 
 **Mo ta**: Tao chuong moi cho truyen
 
-**Permission**: `chapter:create`
-**Role**: ADMIN, UPLOADER
+**Permission**: `chapter:create` **Role**: ADMIN, UPLOADER
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Path Variables**:
 
-| Field | Type   | Description  |
-| ----- | ------ | ------------ |
-| `id`  | String | Story ID     |
+| Field | Type   | Description |
+| ----- | ------ | ----------- |
+| `id`  | String | Story ID    |
 
 **Request Body** (`ChapterCreateRequest`):
 
-| Field           | Type      | Required | Default | Description            |
-| --------------- | --------- | -------- | ------- | ---------------------- |
-| `chapterNumber` | BigDecimal| No       | -       | So chuong (1, 1.5, 2...)|
-| `title`        | String    | No       | -       | Tieu de chuong         |
-| `isPublished`  | boolean   | No       | false   | Da xuat ban chua       |
+| Field           | Type       | Required | Default | Description              |
+| --------------- | ---------- | -------- | ------- | ------------------------ |
+| `chapterNumber` | BigDecimal | No       | -       | So chuong (1, 1.5, 2...) |
+| `title`         | String     | No       | -       | Tieu de chuong           |
+| `isPublished`   | boolean    | No       | false   | Da xuat ban chua         |
 
 **Example Request**:
+
 ```json
 {
   "chapterNumber": 1.5,
@@ -1296,25 +1368,25 @@ freeChapterLimit: 5
 
 **Mo ta**: Cap nhat chuong
 
-**Permission**: `chapter:update_own`
-**Role**: ADMIN, UPLOADER (chi chuong thuoc truyen cua minh)
+**Permission**: `chapter:update_own` **Role**: ADMIN, UPLOADER (chi chuong thuoc truyen cua minh)
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Path Variables**:
 
-| Field | Type   | Description   |
-| ----- | ------ | ------------- |
-| `id`  | String | Chapter ID    |
+| Field | Type   | Description |
+| ----- | ------ | ----------- |
+| `id`  | String | Chapter ID  |
 
 **Request Body** (`ChapterUpdateRequest`):
 
-| Field           | Type      | Required | Description            |
-| --------------- | --------- | -------- | ---------------------- |
-| `chapterNumber` | BigDecimal| No       | So chuong moi          |
-| `title`        | String    | No       | Tieu de chuong moi     |
-| `isPublished`  | boolean   | No       | Trang thai xuat ban    |
+| Field           | Type       | Required | Description         |
+| --------------- | ---------- | -------- | ------------------- |
+| `chapterNumber` | BigDecimal | No       | So chuong moi       |
+| `title`         | String     | No       | Tieu de chuong moi  |
+| `isPublished`   | boolean    | No       | Trang thai xuat ban |
 
 **Response** (`ApiResponse<ChapterResponse>`): Xem cau truc o tren
 
@@ -1324,25 +1396,26 @@ freeChapterLimit: 5
 
 **Mo ta**: Cap nhat noi dung chu (cho novel)
 
-**Permission**: `chapter:update_own`
-**Role**: ADMIN, UPLOADER (chi chuong thuoc truyen cua minh)
+**Permission**: `chapter:update_own` **Role**: ADMIN, UPLOADER (chi chuong thuoc truyen cua minh)
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Path Variables**:
 
-| Field | Type   | Description   |
-| ----- | ------ | ------------- |
-| `id`  | String | Chapter ID    |
+| Field | Type   | Description |
+| ----- | ------ | ----------- |
+| `id`  | String | Chapter ID  |
 
 **Request Body** (`ChapterContentUpdateRequest`):
 
-| Field    | Type   | Required | Description        |
-| -------- | ------ | -------- | ------------------ |
-| `content`| String | No       | Noi dung chuong moi |
+| Field     | Type   | Required | Description         |
+| --------- | ------ | -------- | ------------------- |
+| `content` | String | No       | Noi dung chuong moi |
 
 **Example Request**:
+
 ```json
 {
   "content": "Day la noi dung chuong 1...\n\nTiep tuc..."
@@ -1357,20 +1430,21 @@ freeChapterLimit: 5
 
 **Mo ta**: Cap nhat trang thai xuat ban nhieu chuong cung luc
 
-**Permission**: `chapter:update_own`
-**Role**: ADMIN, UPLOADER
+**Permission**: `chapter:update_own` **Role**: ADMIN, UPLOADER
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Request Body** (`ChapterUpdatePublishStatusRequest`):
 
-| Field            | Type        | Required | Default | Description              |
-| ---------------- | ----------- | -------- | ------- | ------------------------ |
-| `chapterIdList`  | List<String>| Yes      | -       | Danh sach chapter IDs    |
-| `publishStatus`  | Boolean     | No       | true    | Trang thai xuat ban      |
+| Field           | Type         | Required | Default | Description           |
+| --------------- | ------------ | -------- | ------- | --------------------- |
+| `chapterIdList` | List<String> | Yes      | -       | Danh sach chapter IDs |
+| `publishStatus` | Boolean      | No       | true    | Trang thai xuat ban   |
 
 **Example Request**:
+
 ```json
 {
   "chapterIdList": ["id1", "id2", "id3"],
@@ -1386,17 +1460,17 @@ freeChapterLimit: 5
 
 **Mo ta**: Xoa chuong
 
-**Permission**: `chapter:delete_own`
-**Role**: ADMIN, UPLOADER (chi chuong thuoc truyen cua minh)
+**Permission**: `chapter:delete_own` **Role**: ADMIN, UPLOADER (chi chuong thuoc truyen cua minh)
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Path Variables**:
 
-| Field | Type   | Description   |
-| ----- | ------ | ------------- |
-| `id`  | String | Chapter ID    |
+| Field | Type   | Description |
+| ----- | ------ | ----------- |
+| `id`  | String | Chapter ID  |
 
 **Response** (`ApiResponse<String>`): Xem cau truc chung
 
@@ -1406,24 +1480,24 @@ freeChapterLimit: 5
 
 **Mo ta**: Ban chuong (Admin)
 
-**Permission**: ADMIN role
-**Role**: ADMIN
+**Permission**: ADMIN role **Role**: ADMIN
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Path Variables**:
 
-| Field | Type   | Description   |
-| ----- | ------ | ------------- |
-| `id`  | String | Chapter ID    |
+| Field | Type   | Description |
+| ----- | ------ | ----------- |
+| `id`  | String | Chapter ID  |
 
 **Request Body** (`ChapterBanRequest`):
 
-| Field          | Type         | Required | Description              |
-| -------------- | ------------ | -------- | ------------------------ |
-| `violationType`| ViolationType| No       | Loai vi pham             |
-| `reason`       | String       | Yes      | Ly do ban (toi da 1000 ky tu) |
+| Field           | Type          | Required | Description                   |
+| --------------- | ------------- | -------- | ----------------------------- |
+| `violationType` | ViolationType | No       | Loai vi pham                  |
+| `reason`        | String        | Yes      | Ly do ban (toi da 1000 ky tu) |
 
 **Response** (`ApiResponse<ChapterResponse>`): Xem cau truc ChapterResponse o tren
 
@@ -1433,23 +1507,23 @@ freeChapterLimit: 5
 
 **Mo ta**: Unban chuong (Admin)
 
-**Permission**: ADMIN role
-**Role**: ADMIN
+**Permission**: ADMIN role **Role**: ADMIN
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Path Variables**:
 
-| Field | Type   | Description   |
-| ----- | ------ | ------------- |
-| `id`  | String | Chapter ID    |
+| Field | Type   | Description |
+| ----- | ------ | ----------- |
+| `id`  | String | Chapter ID  |
 
 **Request Body** (`ChapterUnbanRequest`):
 
-| Field   | Type   | Required | Description                 |
-| ------- | ------ | -------- | --------------------------- |
-| `reason`| String | Yes      | Ly do unban (toi da 1000 ky tu) |
+| Field    | Type   | Required | Description                     |
+| -------- | ------ | -------- | ------------------------------- |
+| `reason` | String | Yes      | Ly do unban (toi da 1000 ky tu) |
 
 **Response** (`ApiResponse<ChapterResponse>`): Xem cau truc ChapterResponse o tren
 
@@ -1461,38 +1535,39 @@ freeChapterLimit: 5
 
 **Mo ta**: Lay danh sach trang cua chuong (manga)
 
-**Permission**: Public (co gioi han neu chapter bi khoa premium)
-**Role**: Tat ca (co dieu kien)
+**Permission**: Public (co gioi han neu chapter bi khoa premium) **Role**: Tat ca (co dieu kien)
 
 **Logic xem trang**:
+
 - **ADMIN**: Luon duoc doc
 - **UPLOADER**: Doc neu la truyen cua minh
 - **USER**: Doc neu trong gioi han free hoac co subscription active
 
 **Path Variables**:
 
-| Field | Type   | Description   |
-| ----- | ------ | ------------- |
-| `id`  | String | Chapter ID    |
+| Field | Type   | Description |
+| ----- | ------ | ----------- |
+| `id`  | String | Chapter ID  |
 
 **Response** (`ApiResponse<List<ChapterPageResponse>>`):
 
-| Field        | Type    | Description          |
-| ------------ | ------- | -------------------- |
-| `id`         | String  | Page ID (UUID)       |
-| `pageNumber` | Integer | So trang             |
-| `imageUrl`   | String  | URL hinh trang       |
-| `width`      | Integer | Chieu rong hinh      |
-| `height`     | Integer | Chieu cao hinh       |
+| Field        | Type    | Description     |
+| ------------ | ------- | --------------- |
+| `id`         | String  | Page ID (UUID)  |
+| `pageNumber` | Integer | So trang        |
+| `imageUrl`   | String  | URL hinh trang  |
+| `width`      | Integer | Chieu rong hinh |
+| `height`     | Integer | Chieu cao hinh  |
 
 **Example Response**:
+
 ```json
 {
   "code": 200,
   "message": "Success",
   "data": [
-    {"id": "page1", "pageNumber": 1, "imageUrl": "https://...", "width": 800, "height": 1200},
-    {"id": "page2", "pageNumber": 2, "imageUrl": "https://...", "width": 800, "height": 1200}
+    { "id": "page1", "pageNumber": 1, "imageUrl": "https://...", "width": 800, "height": 1200 },
+    { "id": "page2", "pageNumber": 2, "imageUrl": "https://...", "width": 800, "height": 1200 }
   ]
 }
 ```
@@ -1503,20 +1578,20 @@ freeChapterLimit: 5
 
 **Mo ta**: Tao trang cho chuong (upload hinh)
 
-**Permission**: `chapter:create`
-**Role**: ADMIN, UPLOADER
+**Permission**: `chapter:create` **Role**: ADMIN, UPLOADER
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 - `Content-Type: multipart/form-data`
 
 **Request Body** (multipart/form-data):
 
-| Field                 | Type                     | Required | Description              |
-| --------------------- | ------------------------ | -------- | ------------------------ |
-| `chapterPageRequests` | List<ChapterPageRequest> | Yes      | Thong tin cac trang      |
-| `files`               | List<MultipartFile>       | No       | File hinh upload         |
-| `chapterId`           | String                    | Yes      | Chapter ID               |
+| Field                 | Type                     | Required | Description         |
+| --------------------- | ------------------------ | -------- | ------------------- |
+| `chapterPageRequests` | List<ChapterPageRequest> | Yes      | Thong tin cac trang |
+| `files`               | List<MultipartFile>      | No       | File hinh upload    |
+| `chapterId`           | String                   | Yes      | Chapter ID          |
 
 **ChapterPageRequest structure**:
 
@@ -1528,6 +1603,7 @@ freeChapterLimit: 5
 | `isNewPage`  | Boolean | No       | La trang moi      |
 
 **Example Request** (multipart):
+
 ```
 chapterId: "chapter-uuid-123"
 chapterPageRequests: [{"pageNumber": 1, "isNewPage": true}, {"pageNumber": 2, "isNewPage": true}]
@@ -1542,10 +1618,10 @@ files: [file1.jpg, file2.jpg]
 
 **Mo ta**: Cap nhat trang chuong
 
-**Permission**: `chapter:update_own`
-**Role**: ADMIN, UPLOADER
+**Permission**: `chapter:update_own` **Role**: ADMIN, UPLOADER
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 - `Content-Type: multipart/form-data`
 
@@ -1559,17 +1635,17 @@ files: [file1.jpg, file2.jpg]
 
 **Mo ta**: Xoa tat ca trang cua chuong
 
-**Permission**: `chapter:delete_own`
-**Role**: ADMIN, UPLOADER (chi chuong thuoc truyen cua minh)
+**Permission**: `chapter:delete_own` **Role**: ADMIN, UPLOADER (chi chuong thuoc truyen cua minh)
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Path Variables**:
 
-| Field | Type   | Description   |
-| ----- | ------ | ------------- |
-| `id`  | String | Chapter ID    |
+| Field | Type   | Description |
+| ----- | ------ | ----------- |
+| `id`  | String | Chapter ID  |
 
 **Response** (`ApiResponse<String>`): Xem cau truc chung
 
@@ -1581,33 +1657,34 @@ files: [file1.jpg, file2.jpg]
 
 **Mo ta**: Lay bookmark theo story ID
 
-**Permission**: Authenticated
-**Role**: ADMIN, UPLOADER, USER
+**Permission**: Authenticated **Role**: ADMIN, UPLOADER, USER
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Query Params**:
 
-| Field    | Type   | Required | Description  |
-| -------- | ------ | -------- | ------------ |
-| `storyId`| String | Yes     | Story ID     |
+| Field     | Type   | Required | Description |
+| --------- | ------ | -------- | ----------- |
+| `storyId` | String | Yes      | Story ID    |
 
 **Response** (`ApiResponse<BookmarkResponse>`):
 
-| Field   | Type | Description          |
-| ------- | ---- | -------------------- |
-| `user`  | User | Entity nguoi dung    |
-| `story` | Story| Entity truyen        |
+| Field   | Type  | Description       |
+| ------- | ----- | ----------------- |
+| `user`  | User  | Entity nguoi dung |
+| `story` | Story | Entity truyen     |
 
 **Example Response**:
+
 ```json
 {
   "code": 200,
   "message": "Success",
   "data": {
-    "user": {"id": "...", "username": "johndoe"},
-    "story": {"id": "...", "title": "The Great Story"}
+    "user": { "id": "...", "username": "johndoe" },
+    "story": { "id": "...", "title": "The Great Story" }
   }
 }
 ```
@@ -1618,17 +1695,17 @@ files: [file1.jpg, file2.jpg]
 
 **Mo ta**: Tao bookmark moi
 
-**Permission**: Authenticated
-**Role**: ADMIN, UPLOADER, USER
+**Permission**: Authenticated **Role**: ADMIN, UPLOADER, USER
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Query Params**:
 
-| Field    | Type   | Required | Description  |
-| -------- | ------ | -------- | ------------ |
-| `storyId`| String | Yes     | Story ID     |
+| Field     | Type   | Required | Description |
+| --------- | ------ | -------- | ----------- |
+| `storyId` | String | Yes      | Story ID    |
 
 **Response** (`ApiResponse<BookmarkResponse>`): Xem cau truc o tren
 
@@ -1638,17 +1715,17 @@ files: [file1.jpg, file2.jpg]
 
 **Mo ta**: Xoa bookmark
 
-**Permission**: Authenticated
-**Role**: ADMIN, UPLOADER, USER
+**Permission**: Authenticated **Role**: ADMIN, UPLOADER, USER
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Query Params**:
 
-| Field    | Type   | Required | Description  |
-| -------- | ------ | -------- | ------------ |
-| `storyId`| String | Yes     | Story ID     |
+| Field     | Type   | Required | Description |
+| --------- | ------ | -------- | ----------- |
+| `storyId` | String | Yes      | Story ID    |
 
 **Response** (`ApiResponse<String>`): Xem cau truc chung
 
@@ -1660,33 +1737,33 @@ files: [file1.jpg, file2.jpg]
 
 **Mo ta**: Lay danh sach binh luan theo chuong
 
-**Permission**: Public
-**Role**: Tat ca
+**Permission**: Public **Role**: Tat ca
 
 **Path Variables**:
 
-| Field | Type   | Description        |
-| ----- | ------ | ------------------ |
-| `id`  | String | Chapter ID (UUID)  |
+| Field | Type   | Description       |
+| ----- | ------ | ----------------- |
+| `id`  | String | Chapter ID (UUID) |
 
 **Query Params**:
 
-| Field | Type    | Required | Default | Description          |
-| ----- | ------- | -------- | ------- | -------------------- |
-| `page`| Integer | No       | 1       | So trang             |
-| `size`| Integer | No       | 10      | So phan tu tren trang|
+| Field  | Type    | Required | Default | Description           |
+| ------ | ------- | -------- | ------- | --------------------- |
+| `page` | Integer | No       | 1       | So trang              |
+| `size` | Integer | No       | 10      | So phan tu tren trang |
 
 **Response** (`ApiResponse<PageResponse<CommentResponse>>`):
 
-| Field     | Type                     | Description         |
-| --------- | ------------------------ | ------------------- |
-| `id`      | String                   | Comment ID (UUID)   |
-| `type`    | CommentType              | Loai binh luan (STORY/CHAPTER)|
-| `content` | String                   | Noi dung binh luan  |
-| `author`  | UserResponse             | Thong tin tac gia   |
-| `replies` | List<CommentResponse>    | Danh sach tra loi   |
+| Field     | Type                  | Description                    |
+| --------- | --------------------- | ------------------------------ |
+| `id`      | String                | Comment ID (UUID)              |
+| `type`    | CommentType           | Loai binh luan (STORY/CHAPTER) |
+| `content` | String                | Noi dung binh luan             |
+| `author`  | UserResponse          | Thong tin tac gia              |
+| `replies` | List<CommentResponse> | Danh sach tra loi              |
 
 **Example Response**:
+
 ```json
 {
   "code": 200,
@@ -1701,13 +1778,13 @@ files: [file1.jpg, file2.jpg]
         "id": "comment-uuid",
         "type": "CHAPTER",
         "content": "Chuong nay hay qua!",
-        "author": {"id": "...", "username": "reader1"},
+        "author": { "id": "...", "username": "reader1" },
         "replies": [
           {
             "id": "reply-uuid",
             "type": "CHAPTER",
             "content": "Dong y!",
-            "author": {"id": "...", "username": "reader2"},
+            "author": { "id": "...", "username": "reader2" },
             "replies": []
           }
         ]
@@ -1723,21 +1800,20 @@ files: [file1.jpg, file2.jpg]
 
 **Mo ta**: Lay danh sach binh luan theo truyen (khong co chapterId - binh luan tong quan ve truyen)
 
-**Permission**: Public
-**Role**: Tat ca
+**Permission**: Public **Role**: Tat ca
 
 **Path Variables**:
 
-| Field | Type   | Description       |
-| ----- | ------ | ----------------- |
-| `id`  | String | Story ID (UUID)  |
+| Field | Type   | Description     |
+| ----- | ------ | --------------- |
+| `id`  | String | Story ID (UUID) |
 
 **Query Params**:
 
-| Field | Type    | Required | Default | Description          |
-| ----- | ------- | -------- | ------- | -------------------- |
-| `page`| Integer | No       | 1       | So trang             |
-| `size`| Integer | No       | 10      | So phan tu tren trang|
+| Field  | Type    | Required | Default | Description           |
+| ------ | ------- | -------- | ------- | --------------------- |
+| `page` | Integer | No       | 1       | So trang              |
+| `size` | Integer | No       | 10      | So phan tu tren trang |
 
 **Response** (`ApiResponse<PageResponse<CommentResponse>>`): Xem cau truc o tren
 
@@ -1747,27 +1823,28 @@ files: [file1.jpg, file2.jpg]
 
 **Mo ta**: Tao binh luan moi (cho truyen hoac chuong)
 
-**Permission**: `comment:create`
-**Role**: ADMIN, UPLOADER, USER
+**Permission**: `comment:create` **Role**: ADMIN, UPLOADER, USER
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Request Body** (`CommentCreateRequest`):
 
-| Field      | Type        | Required | Description                          |
-| ---------- | ----------- | -------- | ------------------------------------ |
-| `type`     | CommentType | Yes     | Loai binh luan: `STORY` hoac `CHAPTER` |
-| `storyId`  | String      | Yes*    | Story ID (UUID) - bat buoc neu type=STORY |
-| `chapterId`| String      | Yes*    | Chapter ID (UUID) - bat buoc neu type=CHAPTER |
-| `content`  | String      | Yes     | Noi dung binh luan (toi da 2000 ky tu) |
-| `parentId` | String      | No      | Parent comment ID (neu la tra loi)   |
+| Field       | Type        | Required | Description                                   |
+| ----------- | ----------- | -------- | --------------------------------------------- |
+| `type`      | CommentType | Yes      | Loai binh luan: `STORY` hoac `CHAPTER`        |
+| `storyId`   | String      | Yes\*    | Story ID (UUID) - bat buoc neu type=STORY     |
+| `chapterId` | String      | Yes\*    | Chapter ID (UUID) - bat buoc neu type=CHAPTER |
+| `content`   | String      | Yes      | Noi dung binh luan (toi da 2000 ky tu)        |
+| `parentId`  | String      | No       | Parent comment ID (neu la tra loi)            |
 
 > **Luu y**: `storyId` hoac `chapterId` phu thuoc vao `type`. Neu `type=STORY` thi bat buoc `storyId`. Neu `type=CHAPTER` thi bat buoc `chapterId`.
 
 **CommentType enum values**: `STORY`, `CHAPTER`
 
 **Example Request** (binh luan chuong):
+
 ```json
 {
   "type": "CHAPTER",
@@ -1778,6 +1855,7 @@ files: [file1.jpg, file2.jpg]
 ```
 
 **Example Request** (tra loi binh luan):
+
 ```json
 {
   "type": "CHAPTER",
@@ -1788,6 +1866,7 @@ files: [file1.jpg, file2.jpg]
 ```
 
 **Example Request** (binh luan truyen - khong thuoc chuong cu the):
+
 ```json
 {
   "type": "STORY",
@@ -1799,15 +1878,16 @@ files: [file1.jpg, file2.jpg]
 
 **Response** (`ApiResponse<CommentResponse>`):
 
-| Field     | Type                     | Description         |
-| --------- | ------------------------ | ------------------- |
-| `id`      | String                   | Comment ID (UUID)   |
-| `type`    | CommentType              | Loai binh luan      |
-| `content` | String                   | Noi dung binh luan  |
-| `author`  | UserResponse             | Thong tin tac gia   |
-| `replies` | List<CommentResponse>    | Danh sach tra loi   |
+| Field     | Type                  | Description        |
+| --------- | --------------------- | ------------------ |
+| `id`      | String                | Comment ID (UUID)  |
+| `type`    | CommentType           | Loai binh luan     |
+| `content` | String                | Noi dung binh luan |
+| `author`  | UserResponse          | Thong tin tac gia  |
+| `replies` | List<CommentResponse> | Danh sach tra loi  |
 
 **Example Response**:
+
 ```json
 {
   "code": 201,
@@ -1832,23 +1912,23 @@ files: [file1.jpg, file2.jpg]
 
 **Mo ta**: Cap nhat binh luan cua minh
 
-**Permission**: `comment:create` (chi binh luan cua minh)
-**Role**: ADMIN, UPLOADER, USER (chi binh luan cua minh)
+**Permission**: `comment:create` (chi binh luan cua minh) **Role**: ADMIN, UPLOADER, USER (chi binh luan cua minh)
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Path Variables**:
 
-| Field | Type   | Description      |
-| ----- | ------ | ---------------- |
+| Field | Type   | Description       |
+| ----- | ------ | ----------------- |
 | `id`  | String | Comment ID (UUID) |
 
 **Request Body** (`CommentUpdateRequest`):
 
-| Field    | Type   | Required | Description                   |
-| -------- | ------ | -------- | ----------------------------- |
-| `content`| String | Yes     | Noi dung binh luan moi (toi da 2000 ky tu) |
+| Field     | Type   | Required | Description                                |
+| --------- | ------ | -------- | ------------------------------------------ |
+| `content` | String | Yes      | Noi dung binh luan moi (toi da 2000 ky tu) |
 
 **Response** (`ApiResponse<CommentResponse>`): Xem cau truc o tren
 
@@ -1858,16 +1938,16 @@ files: [file1.jpg, file2.jpg]
 
 **Mo ta**: Xoa binh luan
 
-**Permission**: `comment:delete_own` / `comment:delete_any`
-**Role**: ADMIN (delete_any), UPLOADER/USER (delete_own - chi binh luan cua minh)
+**Permission**: `comment:delete_own` / `comment:delete_any` **Role**: ADMIN (delete_any), UPLOADER/USER (delete_own - chi binh luan cua minh)
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Path Variables**:
 
-| Field | Type   | Description      |
-| ----- | ------ | ---------------- |
+| Field | Type   | Description       |
+| ----- | ------ | ----------------- |
 | `id`  | String | Comment ID (UUID) |
 
 **Response** (`ApiResponse<String>`): Xem cau truc chung
@@ -1880,37 +1960,38 @@ files: [file1.jpg, file2.jpg]
 
 **Mo ta**: Lay chuong doc gan nhat trong mot truyen (de quay tro lai doc tiep)
 
-**Permission**: Public (guest + user)
-**Role**: Tat ca
+**Permission**: Public (guest + user) **Role**: Tat ca
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Optional - cho authenticated user)
 - `Session-Id` (Optional - cho guest, bat buoc neu khong co token)
 
 **Path Variables**:
 
-| Field    | Type   | Description      |
-| -------- | ------ | ---------------- |
-| `storyId`| String | Story ID (UUID) |
+| Field     | Type   | Description     |
+| --------- | ------ | --------------- |
+| `storyId` | String | Story ID (UUID) |
 
 **Response** (`ApiResponse<ReadingHistoryResponse>`):
 
-| Field       | Type             | Description                   |
-| ----------- | ---------------- | ----------------------------- |
-| `id`        | String           | History ID (UUID)             |
-| `story`     | StoryResponse    | Entity truyen                 |
-| `chapter`   | ChapterResponse  | Entity chuong doc gan nhat    |
-| `lastReadAt`| LocalDateTime    | Thoi gian doc gan nhat        |
+| Field        | Type            | Description                |
+| ------------ | --------------- | -------------------------- |
+| `id`         | String          | History ID (UUID)          |
+| `story`      | StoryResponse   | Entity truyen              |
+| `chapter`    | ChapterResponse | Entity chuong doc gan nhat |
+| `lastReadAt` | LocalDateTime   | Thoi gian doc gan nhat     |
 
 **Example Response**:
+
 ```json
 {
   "code": 200,
   "message": "Success",
   "data": {
     "id": "history-uuid",
-    "story": {"id": "story-uuid", "title": "The Great Story", "slug": "the-great-story"},
-    "chapter": {"id": "chapter-uuid", "chapterNumber": 5, "title": "Chapter 5: The Journey"},
+    "story": { "id": "story-uuid", "title": "The Great Story", "slug": "the-great-story" },
+    "chapter": { "id": "chapter-uuid", "chapterNumber": 5, "title": "Chapter 5: The Journey" },
     "lastReadAt": "2024-01-15T10:30:00"
   }
 }
@@ -1924,35 +2005,38 @@ files: [file1.jpg, file2.jpg]
 
 **Mo ta**: Lay danh sach lich su doc cua nguoi dung/guest hien tai
 
-**Permission**: Public (guest + user)
-**Role**: Tat ca
+**Permission**: Public (guest + user) **Role**: Tat ca
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Optional - cho authenticated user)
 - `Session-Id` (Optional - cho guest, bat buoc neu khong co token)
 
 **Query Params**:
 
-| Field      | Type                      | Required | Default | Description                      |
-| ---------- | ------------------------- | -------- | ------- | -------------------------------- |
-| `page`     | Integer                   | No       | 1       | So trang                         |
-| `size`     | Integer                   | No       | 10      | So phan tu tren trang            |
-| `type`     | ReadingHistoryFilterType  | No       | ALL     | Loc theo loai: ALL, STORY, CHAPTER |
-| `fromDate` | LocalDate (yyyy-MM-dd)    | No       | -       | Loc tu ngay                      |
-| `toDate`   | LocalDate (yyyy-MM-dd)    | No       | -       | Loc den ngay                     |
+| Field      | Type                     | Required | Default | Description                        |
+| ---------- | ------------------------ | -------- | ------- | ---------------------------------- |
+| `page`     | Integer                  | No       | 1       | So trang                           |
+| `size`     | Integer                  | No       | 10      | So phan tu tren trang              |
+| `type`     | ReadingHistoryFilterType | No       | ALL     | Loc theo loai: ALL, STORY, CHAPTER |
+| `fromDate` | LocalDate (yyyy-MM-dd)   | No       | -       | Loc tu ngay                        |
+| `toDate`   | LocalDate (yyyy-MM-dd)   | No       | -       | Loc den ngay                       |
 
 **ReadingHistoryFilterType values**:
+
 - `ALL` - Tat ca lich su
 - `STORY` - Chi lich su theo truyen (nhom theo story, lay chuong doc gan nhat moi nhat)
 - `CHAPTER` - Chi lich su theo chuong (chi tiet tung chuong da doc)
 
 **Example Request** (lay lich su doc theo truyen):
+
 ```
 GET /api/reading-histories?type=STORY&page=1&size=10
 Headers: Session-Id: guest-session-uuid
 ```
 
 **Example Request** (lay lich su doc chi tiet theo chuong, co loc ngay):
+
 ```
 GET /api/reading-histories?type=CHAPTER&fromDate=2024-01-01&toDate=2024-01-31
 Headers: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -1960,14 +2044,15 @@ Headers: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 **Response** (`ApiResponse<PageResponse<ReadingHistoryResponse>>`):
 
-| Field       | Type             | Description                   |
-| ----------- | ---------------- | ----------------------------- |
-| `id`        | String           | History ID (UUID)             |
-| `story`     | StoryResponse    | Entity truyen                 |
-| `chapter`   | ChapterResponse  | Entity chuong                 |
-| `lastReadAt`| LocalDateTime    | Thoi gian doc gan nhat        |
+| Field        | Type            | Description            |
+| ------------ | --------------- | ---------------------- |
+| `id`         | String          | History ID (UUID)      |
+| `story`      | StoryResponse   | Entity truyen          |
+| `chapter`    | ChapterResponse | Entity chuong          |
+| `lastReadAt` | LocalDateTime   | Thoi gian doc gan nhat |
 
 **Example Response** (type=STORY):
+
 ```json
 {
   "code": 200,
@@ -1980,14 +2065,14 @@ Headers: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
     "data": [
       {
         "id": "history-uuid-1",
-        "story": {"id": "story-1", "title": "The Great Story"},
-        "chapter": {"id": "chapter-5", "chapterNumber": 5, "title": "Chapter 5"},
+        "story": { "id": "story-1", "title": "The Great Story" },
+        "chapter": { "id": "chapter-5", "chapterNumber": 5, "title": "Chapter 5" },
         "lastReadAt": "2024-01-15T10:30:00"
       },
       {
         "id": "history-uuid-2",
-        "story": {"id": "story-2", "title": "Another Story"},
-        "chapter": {"id": "chapter-10", "chapterNumber": 10, "title": "Chapter 10"},
+        "story": { "id": "story-2", "title": "Another Story" },
+        "chapter": { "id": "chapter-10", "chapterNumber": 10, "title": "Chapter 10" },
         "lastReadAt": "2024-01-14T08:00:00"
       }
     ]
@@ -1996,6 +2081,7 @@ Headers: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 **Example Response** (type=CHAPTER):
+
 ```json
 {
   "code": 200,
@@ -2008,14 +2094,14 @@ Headers: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
     "data": [
       {
         "id": "history-uuid-1",
-        "story": {"id": "story-1", "title": "The Great Story"},
-        "chapter": {"id": "chapter-5", "chapterNumber": 5, "title": "Chapter 5"},
+        "story": { "id": "story-1", "title": "The Great Story" },
+        "chapter": { "id": "chapter-5", "chapterNumber": 5, "title": "Chapter 5" },
         "lastReadAt": "2024-01-15T10:30:00"
       },
       {
         "id": "history-uuid-2",
-        "story": {"id": "story-1", "title": "The Great Story"},
-        "chapter": {"id": "chapter-4", "chapterNumber": 4, "title": "Chapter 4"},
+        "story": { "id": "story-1", "title": "The Great Story" },
+        "chapter": { "id": "chapter-4", "chapterNumber": 4, "title": "Chapter 4" },
         "lastReadAt": "2024-01-14T09:00:00"
       }
     ]
@@ -2029,24 +2115,25 @@ Headers: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 **Mo ta**: Tao/Cap nhat lich su doc (guest + user)
 
-**Permission**: Public (guest + user)
-**Role**: Tat ca
+**Permission**: Public (guest + user) **Role**: Tat ca
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Optional - cho authenticated user)
 - `Session-Id` (Optional - cho guest, bat buoc neu khong co token)
 
 **Request Body** (`ReadingHistoryRequest`):
 
-| Field      | Type        | Required | Description                              |
-| ---------- | ----------- | -------- | ---------------------------------------- |
-| `chapterId`| String      | Yes     | Chapter ID (UUID)                        |
-| `storyId`  | String      | Yes     | Story ID (UUID)                          |
-| `type`     | HistoryType | Yes     | Loai: `STORY` (doc truyen) hoac `CHAPTER` (doc chuong) |
+| Field       | Type        | Required | Description                                            |
+| ----------- | ----------- | -------- | ------------------------------------------------------ |
+| `chapterId` | String      | Yes      | Chapter ID (UUID)                                      |
+| `storyId`   | String      | Yes      | Story ID (UUID)                                        |
+| `type`      | HistoryType | Yes      | Loai: `STORY` (doc truyen) hoac `CHAPTER` (doc chuong) |
 
 **HistoryType enum values**: `STORY`, `CHAPTER`
 
 **Example Request** (doc truyen - quay tro lai tu dau):
+
 ```json
 {
   "storyId": "550e8400-e29b-41d4-a716-446655440000",
@@ -2056,6 +2143,7 @@ Headers: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 **Example Request** (doc chuong cu the):
+
 ```json
 {
   "storyId": "550e8400-e29b-41d4-a716-446655440000",
@@ -2066,28 +2154,30 @@ Headers: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 **Response** (`ApiResponse<ReadingHistoryResponse>`):
 
-| Field       | Type             | Description                   |
-| ----------- | ---------------- | ----------------------------- |
-| `id`        | String           | History ID (UUID)             |
-| `story`     | StoryResponse    | Entity truyen                 |
-| `chapter`   | ChapterResponse  | Entity chuong                 |
-| `lastReadAt`| LocalDateTime    | Thoi gian doc                 |
+| Field        | Type            | Description       |
+| ------------ | --------------- | ----------------- |
+| `id`         | String          | History ID (UUID) |
+| `story`      | StoryResponse   | Entity truyen     |
+| `chapter`    | ChapterResponse | Entity chuong     |
+| `lastReadAt` | LocalDateTime   | Thoi gian doc     |
 
 **Example Response**:
+
 ```json
 {
   "code": 201,
   "message": "Success",
   "data": {
     "id": "history-uuid",
-    "story": {"id": "story-uuid", "title": "The Great Story"},
-    "chapter": {"id": "chapter-uuid", "chapterNumber": 5, "title": "Chapter 5"},
+    "story": { "id": "story-uuid", "title": "The Great Story" },
+    "chapter": { "id": "chapter-uuid", "chapterNumber": 5, "title": "Chapter 5" },
     "lastReadAt": "2024-01-15T10:30:00"
   }
 }
 ```
 
 **Luu y**:
+
 - Neu da co lich su doc cho `chapterId` nay, `lastReadAt` se duoc cap nhat.
 - Neu chua co, se tao moi mot ban ghi lich su.
 - Header `Session-Id` duoc su dung de nhan dien guest, neu khong co token.
@@ -2098,10 +2188,10 @@ Headers: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 **Mo ta**: Xoa toan bo lich su doc cua nguoi dung/guest hien tai
 
-**Permission**: Public (guest + user)
-**Role**: Tat ca
+**Permission**: Public (guest + user) **Role**: Tat ca
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Optional - cho authenticated user)
 - `Session-Id` (Optional - cho guest, bat buoc neu khong co token)
 
@@ -2115,10 +2205,10 @@ Headers: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 **Mo ta**: Lay danh sach audit log (lich su hanh dong)
 
-**Permission**: Authenticated
-**Role**: ADMIN, UPLOADER, USER
+**Permission**: Authenticated **Role**: ADMIN, UPLOADER, USER
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Request Body** (`AuditLogPageRequest`) - JSON body:
@@ -2126,8 +2216,8 @@ Headers: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 | Field        | Type            | Required | Default | Description              |
 | ------------ | --------------- | -------- | ------- | ------------------------ |
 | `page`       | Integer         | No       | 1       | So trang                 |
-| `size`       | Integer         | No       | 10      | So phan tu tren trang   |
-| `actorId`    | String          | No       | -       | Loc theo nguoi thuc hien|
+| `size`       | Integer         | No       | 10      | So phan tu tren trang    |
+| `actorId`    | String          | No       | -       | Loc theo nguoi thuc hien |
 | `action`     | AuditAction     | No       | -       | Loai hanh dong           |
 | `objectType` | AuditObjectType | No       | -       | Loai doi tuong           |
 | `objectId`   | String          | No       | -       | ID cua doi tuong         |
@@ -2139,6 +2229,7 @@ Headers: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 **AuditObjectType values**: `USER`, `STORY`, `CHAPTER`, `COMMENT`, `PUBLISH_REQUEST`, `GENRE`, `TAG`, `ROLE`, `SYSTEM`
 
 **Example Request**:
+
 ```json
 {
   "page": 1,
@@ -2152,23 +2243,24 @@ Headers: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 **Response** (`ApiResponse<PageResponse<AuditLogResponse>>`):
 
-| Field          | Type            | Description                |
-| -------------- | --------------- | -------------------------- |
-| `id`           | String          | Log ID (UUID)              |
-| `actorId`      | String          | ID nguoi thuc hien         |
-| `actorUsername`| String          | Username nguoi thuc hien    |
-| `actorRole`    | String          | Role nguoi thuc hien       |
-| `action`       | AuditAction     | Loai hanh dong             |
-| `objectType`   | AuditObjectType | Loai doi tuong            |
-| `objectId`     | String          | ID doi tuong               |
-| `description`  | String          | Mo ta hanh dong            |
-| `oldValue`     | String          | Gia tri cu (JSON)          |
-| `newValue`     | String          | Gia tri moi (JSON)         |
-| `ipAddress`    | String          | Dia chi IP                 |
-| `userAgent`    | String          | User Agent                 |
-| `createdAt`    | LocalDateTime   | Thoi gian tao              |
+| Field           | Type            | Description              |
+| --------------- | --------------- | ------------------------ |
+| `id`            | String          | Log ID (UUID)            |
+| `actorId`       | String          | ID nguoi thuc hien       |
+| `actorUsername` | String          | Username nguoi thuc hien |
+| `actorRole`     | String          | Role nguoi thuc hien     |
+| `action`        | AuditAction     | Loai hanh dong           |
+| `objectType`    | AuditObjectType | Loai doi tuong           |
+| `objectId`      | String          | ID doi tuong             |
+| `description`   | String          | Mo ta hanh dong          |
+| `oldValue`      | String          | Gia tri cu (JSON)        |
+| `newValue`      | String          | Gia tri moi (JSON)       |
+| `ipAddress`     | String          | Dia chi IP               |
+| `userAgent`     | String          | User Agent               |
+| `createdAt`     | LocalDateTime   | Thoi gian tao            |
 
 **Example Response**:
+
 ```json
 {
   "code": 200,
@@ -2207,28 +2299,29 @@ Headers: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 **Mo ta**: Lay danh sach hanh dong kiem duyet (lich su ban/unban)
 
-**Permission**: Authenticated
-**Role**: ADMIN, UPLOADER, USER
+**Permission**: Authenticated **Role**: ADMIN, UPLOADER, USER
 
 **Headers**:
+
 - `Authorization: Bearer {token}` (Required)
 
 **Request Body** (`ModerationActionPageRequest`) - JSON body:
 
-| Field          | Type                  | Required | Default | Description             |
-| -------------- | --------------------- | -------- | ------- | ----------------------- |
-| `page`         | Integer               | No       | 1       | So trang                |
-| `size`         | Integer               | No       | 10      | So phan tu tren trang   |
-| `objectId`     | String                | No       | -       | ID doi tuong            |
-| `objectType`   | ModerationObjectType  | No       | -       | Loai doi tuong          |
-| `actionType`   | ModerationActionType  | No       | -       | Loai hanh dong          |
-| `violationType`| ViolationType        | No       | -       | Loai vi pham            |
+| Field           | Type                 | Required | Default | Description           |
+| --------------- | -------------------- | -------- | ------- | --------------------- |
+| `page`          | Integer              | No       | 1       | So trang              |
+| `size`          | Integer              | No       | 10      | So phan tu tren trang |
+| `objectId`      | String               | No       | -       | ID doi tuong          |
+| `objectType`    | ModerationObjectType | No       | -       | Loai doi tuong        |
+| `actionType`    | ModerationActionType | No       | -       | Loai hanh dong        |
+| `violationType` | ViolationType        | No       | -       | Loai vi pham          |
 
 **ModerationObjectType values**: `STORY`, `CHAPTER`, `COMMENT`, `USER`
 
 **ModerationActionType values**: `BAN`, `UNBAN`
 
 **Example Request**:
+
 ```json
 {
   "page": 1,
@@ -2240,19 +2333,20 @@ Headers: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 **Response** (`ApiResponse<PageResponse<ModerationActionResponse>>`):
 
-| Field          | Type                  | Description              |
-| -------------- | --------------------- | ------------------------ |
-| `id`           | String                | Action ID (UUID)         |
-| `objectId`     | String                | ID doi tuong bi kiem duyet |
-| `objectType`   | ModerationObjectType  | Loai doi tuong           |
-| `actionType`   | ModerationActionType  | Loai hanh dong (BAN/UNBAN)|
-| `violationType`| ViolationType        | Loai vi pham            |
-| `reason`       | String                | Ly do                    |
-| `adminId`      | String                | ID admin thuc hien       |
-| `adminUsername`| String                | Username admin thuc hien |
-| `createdAt`     | LocalDateTime         | Thoi gian tao            |
+| Field           | Type                 | Description                |
+| --------------- | -------------------- | -------------------------- |
+| `id`            | String               | Action ID (UUID)           |
+| `objectId`      | String               | ID doi tuong bi kiem duyet |
+| `objectType`    | ModerationObjectType | Loai doi tuong             |
+| `actionType`    | ModerationActionType | Loai hanh dong (BAN/UNBAN) |
+| `violationType` | ViolationType        | Loai vi pham               |
+| `reason`        | String               | Ly do                      |
+| `adminId`       | String               | ID admin thuc hien         |
+| `adminUsername` | String               | Username admin thuc hien   |
+| `createdAt`     | LocalDateTime        | Thoi gian tao              |
 
 **Example Response**:
+
 ```json
 {
   "code": 200,
@@ -2281,37 +2375,636 @@ Headers: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ---
 
+## PAYMENT MODULE
+
+### POST `/api/payment/create`
+
+**Mo ta**: Tao yeu cau thanh toan VNPay
+
+**Permission**: Authenticated **Role**: ADMIN, UPLOADER, USER
+
+**Headers**:
+
+- `Authorization: Bearer {token}` (Required)
+
+**Request Body** (`CreatePaymentRequest`):
+
+| Field       | Type   | Required | Description                                              |
+| ----------- | ------ | -------- | -------------------------------------------------------- |
+| `planId`    | String | Yes      | Subscription plan code (VD: "PREMIUM_1M")                |
+| `orderInfo` | String | No       | Thong tin don hang (mac dinh: "Thanh toan goi + txnRef") |
+
+**Example Request**:
+
+```json
+{
+  "planId": "PREMIUM_1M",
+  "orderInfo": "Mua goi Premium 1 thang"
+}
+```
+
+**Response** (`ApiResponse<CreatePaymentResponse>`):
+
+| Field        | Type             | Description             |
+| ------------ | ---------------- | ----------------------- |
+| `txnRef`     | String           | Ma giao dich VNPay      |
+| `paymentUrl` | String           | URL redirect sang VNPay |
+| `amount`     | Long             | So tien (VND)           |
+| `plan`       | SubscriptionPlan | Thong tin goi da chon   |
+
+**Example Response**:
+
+```json
+{
+  "code": 200,
+  "message": "Success",
+  "data": {
+    "txnRef": "2507231445000001",
+    "paymentUrl": "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?...",
+    "amount": 50000,
+    "plan": {
+      "code": "PREMIUM_1M",
+      "name": "Premium 1 Tháng",
+      "price": 50000,
+      "durationDays": 30
+    }
+  }
+}
+```
+
+---
+
+### GET `/api/payment/vnpay-return`
+
+**Mo ta**: Nhan ket qua tra ve tu VNPay (browser redirect)
+
+**Permission**: Public **Role**: Tat ca
+
+**Query Params**:
+
+- Tat ca cac tham so VNPay tra ve (vnp_Amount, vnp_ResponseCode, vnp_TxnRef, vnp_SecureHash, ...)
+
+**Response** (`ApiResponse<PaymentCallbackResult>`):
+
+| Field            | Type    | Description           |
+| ---------------- | ------- | --------------------- |
+| `txnRef`         | String  | Ma giao dich          |
+| `success`        | boolean | Thanh toan thanh cong |
+| `responseCode`   | String  | Ma phan hoi VNPay     |
+| `validSignature` | boolean | Chu ky hop le         |
+
+**Example Response**:
+
+```json
+{
+  "code": 200,
+  "message": "Success",
+  "data": {
+    "txnRef": "2507231445000001",
+    "success": true,
+    "responseCode": "00",
+    "validSignature": true
+  }
+}
+```
+
+> **Luu y**: Day chi la URL tra ve de hien thi ket qua UI, khong dung de cap nhat database.
+
+---
+
+### GET `/api/payment/vnpay-ipn`
+
+**Mo ta**: Nhan thong bao thanh toan tu VNPay (server-to-server)
+
+**Permission**: Public (VNPay callback) **Role**: Tat ca
+
+**Query Params**:
+
+- Tat ca cac tham so VNPay (vnp_Amount, vnp_ResponseCode, vnp_TxnRef, vnp_SecureHash, ...)
+
+**Response** (`ApiResponse<Map<String, String>>`):
+
+| Field     | Type   | Description                                   |
+| --------- | ------ | --------------------------------------------- |
+| `RspCode` | String | Ma phan hoi: "00" = thanh cong, != "00" = loi |
+| `Message` | String | Thong bao                                     |
+
+**VNPay Response Codes**:
+
+- `00` - Giao dich thanh cong
+- `07` - Trich tien thanh cong, nhung loi chua kich hoat
+- `09` - The chua dang ky dich vu
+- `10` - Mat khoa thanh toan
+- `97` - Chu ky khong hop le
+- `99` - Loi khac
+
+---
+
+### GET `/api/payment/transactions`
+
+**Mo ta**: Lay lich su giao dich cua nguoi dung hien tai
+
+**Permission**: Authenticated **Role**: ADMIN, UPLOADER, USER
+
+**Headers**:
+
+- `Authorization: Bearer {token}` (Required)
+
+**Response** (`ApiResponse<List<TransactionResponse>>`):
+
+| Field              | Type              | Description           |
+| ------------------ | ----------------- | --------------------- |
+| `id`               | String            | Transaction ID (UUID) |
+| `vnpTxnRef`        | String            | Ma giao dich VNPay    |
+| `subscriptionPlan` | SubscriptionPlan  | Goi da mua            |
+| `amountVnd`        | Long              | So tien (VND)         |
+| `status`           | TransactionStatus | Trang thai giao dich  |
+| `vnpBankCode`      | String            | Ma ngan hang          |
+| `vnpTransactionNo` | String            | So hieu giao dich NH  |
+| `createdAt`        | LocalDateTime     | Thoi gian tao         |
+| `completedAt`      | LocalDateTime     | Thoi gian hoan thanh  |
+
+**TransactionStatus values**: `PENDING`, `SUCCESS`, `FAILED`, `CANCELLED`
+
+**Example Response**:
+
+```json
+{
+  "code": 200,
+  "message": "Success",
+  "data": [
+    {
+      "id": "txn-uuid",
+      "vnpTxnRef": "2507231445000001",
+      "subscriptionPlan": {
+        "code": "PREMIUM_1M",
+        "name": "Premium 1 Tháng",
+        "price": 50000,
+        "durationDays": 30
+      },
+      "amountVnd": 50000,
+      "status": "SUCCESS",
+      "vnpBankCode": "NCB",
+      "vnpTransactionNo": "12345678",
+      "createdAt": "2025-07-23T14:45:00",
+      "completedAt": "2025-07-23T14:47:00"
+    }
+  ]
+}
+```
+
+---
+
+## SUBSCRIPTION PLAN MODULE
+
+### GET `/api/subscription-plan`
+
+**Mo ta**: Lay danh sach goi subscription
+
+**Permission**: Public **Role**: Tat ca
+
+**Query Params**:
+
+| Field      | Type    | Required | Default | Description                |
+| ---------- | ------- | -------- | ------- | -------------------------- |
+| `isActive` | Boolean | Yes      | -       | Loc theo trang thai active |
+
+**Response** (`ApiResponse<List<SubscriptionPlanResponse>>`):
+
+| Field          | Type    | Description               |
+| -------------- | ------- | ------------------------- |
+| `code`         | String  | Ma goi (VD: "PREMIUM_1M") |
+| `name`         | String  | Ten goi                   |
+| `description`  | String  | Mo ta                     |
+| `price`        | Long    | Gia (VND)                 |
+| `durationDays` | Integer | So ngay su dung           |
+| `isActive`     | Boolean | Con hoat dong khong       |
+| `sortOrder`    | Byte    | Thu tu hien thi           |
+
+**Example Response**:
+
+```json
+{
+  "code": 200,
+  "message": "Success",
+  "data": [
+    {
+      "code": "PREMIUM_1M",
+      "name": "Premium 1 Tháng",
+      "description": "Gói Premium 1 tháng - Truy cập tất cả nội dung premium",
+      "price": 50000,
+      "durationDays": 30,
+      "isActive": true,
+      "sortOrder": 1
+    },
+    {
+      "code": "PREMIUM_3M",
+      "name": "Premium 3 Tháng",
+      "description": "Gói Premium 3 tháng - Tiết kiệm 10%",
+      "price": 135000,
+      "durationDays": 90,
+      "isActive": true,
+      "sortOrder": 2
+    }
+  ]
+}
+```
+
+---
+
+### GET `/api/subscription-plan/{code}`
+
+**Mo ta**: Lay thong tin goi subscription theo code
+
+**Permission**: Public **Role**: Tat ca
+
+**Path Variables**:
+
+| Field  | Type   | Description                               |
+| ------ | ------ | ----------------------------------------- |
+| `code` | String | Subscription plan code (VD: "PREMIUM_1M") |
+
+**Response** (`ApiResponse<SubscriptionPlanResponse>`): Xem cau truc o tren
+
+**Example Response**:
+
+```json
+{
+  "code": 200,
+  "message": "Success",
+  "data": {
+    "code": "PREMIUM_1M",
+    "name": "Premium 1 Tháng",
+    "description": "Gói Premium 1 tháng - Truy cập tất cả nội dung premium",
+    "price": 50000,
+    "durationDays": 30,
+    "isActive": true,
+    "sortOrder": 1
+  }
+}
+```
+
+---
+
+### POST `/api/subscription-plan`
+
+**Mo ta**: Tao goi subscription moi (Admin)
+
+**Permission**: ADMIN role **Role**: ADMIN
+
+**Headers**:
+
+- `Authorization: Bearer {token}` (Required)
+
+**Request Body** (`SubscriptionPlanRequest`):
+
+| Field          | Type    | Required | Description                  |
+| -------------- | ------- | -------- | ---------------------------- |
+| `code`         | String  | Yes      | Ma goi (VD: "PREMIUM_1M")    |
+| `name`         | String  | Yes      | Ten goi                      |
+| `description`  | String  | No       | Mo ta                        |
+| `price`        | Long    | Yes      | Gia (VND)                    |
+| `durationDays` | Integer | Yes      | So ngay su dung              |
+| `isActive`     | Boolean | No       | Active (default: true)       |
+| `sortOrder`    | Byte    | No       | Thu tu hien thi (default: 1) |
+
+**Example Request**:
+
+```json
+{
+  "code": "PREMIUM_1M",
+  "name": "Premium 1 Tháng",
+  "description": "Gói Premium 1 tháng - Truy cập tất cả nội dung premium",
+  "price": 50000,
+  "durationDays": 30,
+  "isActive": true,
+  "sortOrder": 1
+}
+```
+
+**Response** (`ApiResponse<SubscriptionPlanResponse>`): Xem cau truc o tren
+
+---
+
+### PATCH `/api/subscription-plan/{code}`
+
+**Mo ta**: Cap nhat goi subscription (Admin)
+
+**Permission**: ADMIN role **Role**: ADMIN
+
+**Headers**:
+
+- `Authorization: Bearer {token}` (Required)
+
+**Path Variables**:
+
+| Field  | Type   | Description            |
+| ------ | ------ | ---------------------- |
+| `code` | String | Subscription plan code |
+
+**Request Body** (`SubscriptionPlanRequest`): Xem POST o tren (tat ca fields deu optional)
+
+**Example Request**:
+
+```json
+{
+  "name": "Premium 1 Tháng - Updated",
+  "price": 55000,
+  "isActive": true
+}
+```
+
+**Response** (`ApiResponse<SubscriptionPlanResponse>`): Xem cau truc o tren
+
+---
+
+### DELETE `/api/subscription-plan/{code}`
+
+**Mo ta**: Xoa goi subscription (Admin)
+
+**Permission**: ADMIN role **Role**: ADMIN
+
+**Headers**:
+
+- `Authorization: Bearer {token}` (Required)
+
+**Path Variables**:
+
+| Field  | Type   | Description            |
+| ------ | ------ | ---------------------- |
+| `code` | String | Subscription plan code |
+
+**Response** (`ApiResponse<String>`): Xem cau truc chung
+
+---
+
+### GET `/api/subscription/me`
+
+**Mo ta**: Lay thong tin subscription của bản thân
+
+**Permission**: Public **Role**: Tat ca
+
+**Path Variables**:
+
+| Field  | Type   | Description                               |
+| ------ | ------ | ----------------------------------------- |
+| `code` | String | Subscription plan code (VD: "PREMIUM_1M") |
+
+## **Response** (`ApiResponse<SubscriptionResponse>`): Xem cau truc o tren
+
+## AUTHOR MODULE
+
+### GET `/api/authors`
+
+**Mo ta**: Lay danh sach tac gia voi phan trang va tim kiem
+
+**Permission**: Public **Role**: Tat ca
+
+**Query Params**:
+
+| Field    | Type    | Required | Default | Description           |
+| -------- | ------- | -------- | ------- | --------------------- |
+| `page`   | Integer | No       | 1       | So trang              |
+| `size`   | Integer | No       | 10      | So phan tu tren trang |
+| `search` | String  | No       | -       | Tim kiem theo ten     |
+
+**Response** (`ApiResponse<PageResponse<AuthorResponse>>`):
+
+| Field       | Type         | Description                  |
+| ----------- | ------------ | ---------------------------- |
+| `id`        | String       | Author ID (UUID)             |
+| `name`      | String       | Ten tac gia                  |
+| `slug`      | String       | Slug URL                     |
+| `bio`       | String       | Tieu su                      |
+| `avatarUrl` | String       | URL avatar                   |
+| `country`   | String       | Quoc gia                     |
+| `user`      | UserResponse | Thong tin tai khoan (neu co) |
+
+**Example Response**:
+
+```json
+{
+  "code": 200,
+  "message": "Success",
+  "data": {
+    "currentPage": 1,
+    "pageSize": 10,
+    "totalPages": 5,
+    "totalElements": 50,
+    "data": [
+      {
+        "id": "author-uuid",
+        "name": "Nguyen Nhat Anh",
+        "slug": "nguyen-nhat-anh",
+        "bio": "Tac gia noi tieng...",
+        "avatarUrl": "https://example.com/avatar.jpg",
+        "country": "Vietnam",
+        "user": { "id": "user-uuid", "username": "nnanh" }
+      }
+    ]
+  }
+}
+```
+
+---
+
+### GET `/api/authors/{slug}`
+
+**Mo ta**: Lay thong tin tac gia theo slug
+
+**Permission**: Public **Role**: Tat ca
+
+**Path Variables**:
+
+| Field  | Type   | Description     |
+| ------ | ------ | --------------- |
+| `slug` | String | Author slug URL |
+
+**Response** (`ApiResponse<AuthorResponse>`): Xem cau truc o tren
+
+---
+
+### POST `/api/authors`
+
+**Mo ta**: Tao tac gia moi (multipart/form-data)
+
+**Permission**: `author:create` **Role**: ADMIN, UPLOADER
+
+**Headers**:
+
+- `Authorization: Bearer {token}` (Required)
+- `Content-Type: multipart/form-data`
+
+**Request Body** (multipart/form-data):
+
+| Field        | Type          | Required | Description                        |
+| ------------ | ------------- | -------- | ---------------------------------- |
+| `name`       | String        | Yes      | Ten tac gia                        |
+| `bio`        | String        | No       | Tieu su                            |
+| `avatarFile` | MultipartFile | No       | File avatar upload                 |
+| `avatarUrl`  | String        | No       | URL avatar                         |
+| `country`    | String        | No       | Quoc gia                           |
+| `userId`     | String        | No       | User ID (neu tac gia co tai khoan) |
+
+**Example Request** (multipart):
+
+```
+name: "Nguyen Nhat Anh"
+bio: "Tac gia noi tieng Viet Nam"
+country: "Vietnam"
+userId: "user-uuid-123"
+```
+
+**Response** (`ApiResponse<AuthorResponse>`): Xem cau truc o tren
+
+---
+
+### PATCH `/api/authors/{id}`
+
+**Mo ta**: Cap nhat thong tin tac gia (multipart/form-data)
+
+**Permission**: `author:update` **Role**: ADMIN, UPLOADER
+
+**Headers**:
+
+- `Authorization: Bearer {token}` (Required)
+- `Content-Type: multipart/form-data`
+
+**Path Variables**:
+
+| Field | Type   | Description      |
+| ----- | ------ | ---------------- |
+| `id`  | String | Author ID (UUID) |
+
+**Request Body** (multipart/form-data): Xem POST o tren (tat ca fields deu optional)
+
+**Response** (`ApiResponse<AuthorResponse>`): Xem cau truc o tren
+
+---
+
+### DELETE `/api/authors/{id}`
+
+**Mo ta**: Xoa tac gia
+
+**Permission**: `author:delete` **Role**: ADMIN, UPLOADER
+
+**Headers**:
+
+- `Authorization: Bearer {token}` (Required)
+
+**Path Variables**:
+
+| Field | Type   | Description      |
+| ----- | ------ | ---------------- |
+| `id`  | String | Author ID (UUID) |
+
+**Response** (`ApiResponse<String>`): Xem cau truc chung
+
+---
+
+### PUT `/api/authors/story/{storyId}`
+
+**Mo ta**: Cap nhat danh sach tac gia cho truyen (ghi de)
+
+**Permission**: `story:update_own` / `story:update_any` **Role**: ADMIN (update_any), UPLOADER (update_own - chi truyen cua minh)
+
+**Headers**:
+
+- `Authorization: Bearer {token}` (Required)
+
+**Path Variables**:
+
+| Field     | Type   | Description     |
+| --------- | ------ | --------------- |
+| `storyId` | String | Story ID (UUID) |
+
+**Request Body** (`List<StoryAuthorUpdateRequest>`):
+
+| Field      | Type       | Required | Description                                         |
+| ---------- | ---------- | -------- | --------------------------------------------------- |
+| `authorId` | String     | Yes      | Author ID                                           |
+| `role`     | AuthorRole | Yes      | Vai tro: AUTHOR, CO_AUTHOR, ILLUSTRATOR, TRANSLATOR |
+
+**AuthorRole enum values**:
+
+- `AUTHOR` - Tac gia chinh
+- `CO_AUTHOR` - Dong tac gia
+- `ILLUSTRATOR` - Hoa si
+- `TRANSLATOR` - Dich gia
+
+**Example Request**:
+
+```json
+[
+  {
+    "authorId": "author-uuid-1",
+    "role": "AUTHOR"
+  },
+  {
+    "authorId": "author-uuid-2",
+    "role": "ILLUSTRATOR"
+  }
+]
+```
+
+**Response** (`ApiResponse<String>`): Xem cau truc chung
+
+> **Luu y**: API nay se xoa tat ca cac tac gia hien tai cua truyen va them lai danh sach moi.
+
+---
+
 # ENUM VALUES
 
 ## StoryType
+
 - `NOVEL` - Truyen van
 - `MANGA` - Truyen tranh (bao gom COMICS, MANHWA, MANHUA)
 
 ## StoryStatus
+
 - `ONGOING` - Dang tien hanh
 - `COMPLETED` - Hoan thanh
 - `HIATUS` - Tam ngung
 - `DROPPED` - Da bo
 
 ## StoryPublishRequestStatus
+
 - `PENDING` - Dang cho duyet
 - `APPROVED` - Da duyet
 - `REJECTED` - Tu choi
 
+## TransactionStatus
+
+- `PENDING` - Dang cho thanh toan
+- `SUCCESS` - Thanh toan thanh cong
+- `FAILED` - Thanh toan that bai
+- `CANCELLED` - Da huy
+
+## AuthorRole
+
+- `AUTHOR` - Tac gia chinh
+- `CO_AUTHOR` - Dong tac gia
+- `ILLUSTRATOR` - Hoa si
+- `TRANSLATOR` - Dich gia
+
 ## CommentType
+
 - `STORY` - Binh luan ve truyen (khong thuoc chuong cu the)
 - `CHAPTER` - Binh luan ve chuong cu the
 
 ## HistoryType
+
 - `STORY` - Ghi nhan viec doc truyen (quay tro lai doc tu dau)
 - `CHAPTER` - Ghi nhan viec doc chuong cu the
 
 ## ReadingHistoryFilterType
+
 - `ALL` - Tat ca lich su doc
 - `STORY` - Chi lich su theo truyen (nhom theo story)
 - `CHAPTER` - Chi tiet lich su theo chuong da doc
 
 ## SortType
+
 - `NEWEST` - Moi nhat (theo createdAt giam dan)
 - `OLDEST` - Cu nhat (theo createdAt tang dan)
 - `UPDATED` - Moi cap nhat (theo updatedAt giam dan)
@@ -2321,6 +3014,7 @@ Headers: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 - `ALPHABET_DESC` - Theo bang chu cai Z -> A
 
 ## ViolationType
+
 - `COPYRIGHT` - Vi pham ban quyen
 - `PORNOGRAPHY` - Noi dung khiem nham
 - `VIOLENCE` - Noi dung buc dac
@@ -2329,6 +3023,7 @@ Headers: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 - `OTHER` - Khac
 
 ## Roles
+
 - `1` = USER - Nguoi dung thong thuong
 - `2` = UPLOADER - Nguoi dang noi dung
 - `3` = ADMIN - Quan tri vien
@@ -2340,7 +3035,7 @@ Headers: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ## Dieu kien ◐ (Co dieu kien)
 
 | Endpoint | UPLOADER | USER |
-| -------- | -------- | ---- |
+| --- | --- | --- |
 | `PATCH /api/stories/{id}` | Chi sua truyen do minh upload | - |
 | `DELETE /api/stories/{id}` | Chi xoa truyen do minh upload | - |
 | `GET /api/chapters/{id}` | Doc premium neu la bo cua minh; free neu trong gioi han | Doc neu trong gioi han free hoac co subscription active |
@@ -2349,7 +3044,8 @@ Headers: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 | `DELETE /api/chapter/{id}` | Chi xoa chuong thuoc bo cua minh | - |
 | `PATCH /api/comments/{id}` | Chi sua comment do minh viet | Chi sua comment do minh viet |
 | `DELETE /api/comments/{id}` | Chi xoa comment do minh viet | Chi xoa comment do minh viet |
+| `PUT /api/authors/story/{storyId}` | Chi cap nhat truyen do minh upload | - |
 
 ---
 
-_TruyenOnline API Documentation | v5.1 | Updated: July 2026_
+_TruyenOnline API Documentation | v5.2 | Updated: July 2026_

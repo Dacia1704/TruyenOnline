@@ -8,10 +8,11 @@ import com.dacia1704.truyenonline.module.chapter.entity.ChapterPage;
 import com.dacia1704.truyenonline.module.chapter.mapper.ChapterPageMapper;
 import com.dacia1704.truyenonline.module.chapter.repository.ChapterPageRepository;
 import com.dacia1704.truyenonline.module.chapter.repository.ChapterRepository;
+import com.dacia1704.truyenonline.module.media.service.MediaFileService;
 import com.dacia1704.truyenonline.shared.exception.AppException;
 import com.dacia1704.truyenonline.shared.exception.ErrorCode;
-import com.dacia1704.truyenonline.shared.service.CloudinaryService;
-import com.dacia1704.truyenonline.shared.storage.CloudinaryUploadResult;
+import com.dacia1704.truyenonline.module.media.service.CloudinaryService;
+import com.dacia1704.truyenonline.module.media.dto.response.CloudinaryUploadResult;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
@@ -34,6 +35,7 @@ public class ChapterPageService {
     ChapterPageRepository chapterPageRepository;
     ChapterRepository chapterRepository;
     ChapterPageMapper chapterPageMapper;
+    MediaFileService mediaFileService;
     String folderPath = "truyenonline/stories/%s/chapters/%s";
 
     public List<ChapterPageResponse> createChapterPage(ChapterPageListRequest request)
@@ -51,14 +53,14 @@ public class ChapterPageService {
             throw new AppException(ErrorCode.INVALID_REQUEST);
         }
 
-        List<CloudinaryUploadResult> uploadResults =
-                cloudinaryService.uploadImagesAsync(files, path);
+        List<CloudinaryUploadResult> uploadResults = cloudinaryService.uploadImagesAsync(files, path);
 
         List<ChapterPage> chapterPages = new ArrayList<>();
 
         for (int i = 0; i < pageRequests.size(); i++) {
             ChapterPageRequest pageRequest = pageRequests.get(i);
             CloudinaryUploadResult result = uploadResults.get(i);
+            mediaFileService.createMediaFile(result);
 
             ChapterPage chapterPage = chapterPageMapper.toChapter(pageRequest);
             chapterPage.setChapter(chapter);
@@ -77,9 +79,7 @@ public class ChapterPageService {
                 .toList();
     }
 
-    public List<ChapterPageResponse> updateChapterPage(ChapterPageListRequest request)
-            throws IOException {
-
+    public List<ChapterPageResponse> updateChapterPage(ChapterPageListRequest request) throws IOException {
         Chapter chapter = chapterRepository
                 .findById(request.getChapterId())
                 .orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND));
@@ -110,21 +110,15 @@ public class ChapterPageService {
         for (ChapterPageRequest pageReq : request.getChapterPageRequests()) {
 
             ChapterPage chapterPage = pageMap.get(pageReq.getId());
-
-            if (chapterPage == null) {
-                continue;
-            }
-
+            if (chapterPage == null) continue;
             chapterPage.setPageNumber(pageReq.getPageNumber());
 
             if (Boolean.TRUE.equals(pageReq.getIsNewPage())) {
 
-                if (uploadIndex >= uploadResults.size()) {
-                    throw new AppException(ErrorCode.INVALID_REQUEST);
-                }
+                if (uploadIndex >= uploadResults.size()) throw new AppException(ErrorCode.INVALID_REQUEST);
 
                 CloudinaryUploadResult result = uploadResults.get(uploadIndex++);
-
+                mediaFileService.createMediaFile(result);
                 chapterPage.setCloudinaryId(result.getPublicId());
                 chapterPage.setImageUrl(result.getSecureUrl());
                 chapterPage.setHeight(result.getHeight());
@@ -159,7 +153,7 @@ public class ChapterPageService {
     public void deleteChapterPageByChapter(String chapterId) throws IOException {
         List<ChapterPage> chapterPages = chapterPageRepository.findByChapterId(chapterId);
         for (ChapterPage chapterPage : chapterPages) {
-            cloudinaryService.deleteImage(chapterPage.getImageUrl());
+            mediaFileService.decreaseReference(chapterPage.getImageUrl());
         }
 
         chapterPageRepository.deleteByChapterId(chapterId);

@@ -5,7 +5,10 @@ import com.dacia1704.truyenonline.module.interaction.entity.Bookmark;
 import com.dacia1704.truyenonline.module.user.entity.User; // Import Entity User của bạn
 import com.dacia1704.truyenonline.shared.entity.BaseEntity;
 import jakarta.persistence.*;
+
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -91,4 +94,16 @@ public class Story extends BaseEntity {
 
     @OneToMany(mappedBy = "story")
     Set<Bookmark> bookmarks = new HashSet<>();
+
+    @OneToMany(mappedBy = "story", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("sortOrder ASC")
+    @Builder.Default
+    private List<StoryAuthor> storyAuthors = new ArrayList<>();
+
+    // Helper method — lấy danh sách Author từ StoryAuthor
+    public List<Author> getAuthors() {
+        return storyAuthors.stream()
+                .map(StoryAuthor::getAuthor)
+                .toList();
+    }
 }

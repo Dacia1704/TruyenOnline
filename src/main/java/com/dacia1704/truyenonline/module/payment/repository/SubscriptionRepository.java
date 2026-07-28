@@ -20,4 +20,6 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Stri
         LIMIT 1
     """)
     Optional<Subscription> findActiveByUser(String userId, LocalDateTime now);
+
+    Optional<Subscription> findFirstByUserIdOrderByCreatedAtDesc(String userId);
 }

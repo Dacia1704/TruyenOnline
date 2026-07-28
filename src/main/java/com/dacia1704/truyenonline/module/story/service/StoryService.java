@@ -8,14 +8,17 @@ import com.dacia1704.truyenonline.module.administration.entity.ModerationActionT
 import com.dacia1704.truyenonline.module.administration.entity.ModerationObjectType;
 import com.dacia1704.truyenonline.module.administration.service.AuditLogService;
 import com.dacia1704.truyenonline.module.administration.service.ModerationActionService;
+import com.dacia1704.truyenonline.module.media.service.MediaFileService;
 import com.dacia1704.truyenonline.module.story.dto.request.*;
 import com.dacia1704.truyenonline.module.story.dto.response.StoryPublishRequestResponse;
 import com.dacia1704.truyenonline.module.story.dto.response.StoryResponse;
-import com.dacia1704.truyenonline.module.story.entity.Story;
-import com.dacia1704.truyenonline.module.story.entity.StoryPublishRequest;
-import com.dacia1704.truyenonline.module.story.entity.StoryPublishRequestStatus;
+import com.dacia1704.truyenonline.module.story.entity.*;
+import com.dacia1704.truyenonline.module.story.mapper.AuthorMapper;
+import com.dacia1704.truyenonline.module.story.mapper.StoryAuthorMapper;
 import com.dacia1704.truyenonline.module.story.mapper.StoryMapper;
 import com.dacia1704.truyenonline.module.story.mapper.StoryPublishRequestMapper;
+import com.dacia1704.truyenonline.module.story.repository.AuthorRepository;
+import com.dacia1704.truyenonline.module.story.repository.StoryAuthorRepository;
 import com.dacia1704.truyenonline.module.story.repository.StoryPublishRequestRepository;
 import com.dacia1704.truyenonline.module.story.repository.StoryRepository;
 import com.dacia1704.truyenonline.module.story.repository.specification.StoryPublishRequestSpecification;
@@ -26,8 +29,8 @@ import com.dacia1704.truyenonline.module.user.service.UserService;
 import com.dacia1704.truyenonline.shared.exception.AppException;
 import com.dacia1704.truyenonline.shared.exception.ErrorCode;
 import com.dacia1704.truyenonline.shared.response.PageResponse;
-import com.dacia1704.truyenonline.shared.service.CloudinaryService;
-import com.dacia1704.truyenonline.shared.storage.CloudinaryUploadResult;
+import com.dacia1704.truyenonline.module.media.service.CloudinaryService;
+import com.dacia1704.truyenonline.module.media.dto.response.CloudinaryUploadResult;
 import com.dacia1704.truyenonline.shared.utils.StringUtils;
 
 import java.io.IOException;
@@ -63,6 +66,12 @@ public class StoryService {
     ModerationActionService moderationActionService;
     AuditLogService auditLogService;
     ObjectMapper objectMapper;
+    AuthorMapper authorMapper;
+    StoryAuthorRepository storyAuthorRepository;
+    AuthorRepository authorRepository;
+    AuthorService authorService;
+    StoryAuthorMapper storyAuthorMapper;
+    MediaFileService mediaFileService;
 
     String folderPath = "truyenonline/stories/%s";
 
@@ -75,8 +84,16 @@ public class StoryService {
         Specification<Story> spec = StorySpecification.filterStories(filters);
 
         Page<Story> storyPage = storyRepository.findAll(spec, pageable);
-        List<StoryResponse> storyResponses =
-                storyPage.getContent().stream().map(storyMapper::toStoryResponse).toList();
+
+        List<StoryResponse> storyResponses = storyPage.getContent().stream().map(story -> {
+            StoryResponse response = storyMapper.toStoryResponse(story);
+            if (story.getAuthors() != null) {
+                response.setAuthors(story.getStoryAuthors().stream().map(storyAuthorMapper::toStoryAuthorResponse).toList());
+            }
+
+            return response;
+        }).toList();
+
         return PageResponse.<StoryResponse>builder()
                 .currentPage(page)
                 .pageSize(storyPage.getSize())
@@ -91,7 +108,19 @@ public class StoryService {
                 storyRepository
                         .findBySlug(slug)
                         .orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
-        return storyMapper.toStoryResponse(story);
+
+        StoryResponse response = storyMapper.toStoryResponse(story);
+
+        // Lấy danh sách tác giả từ helper method của entity Story và map sang DTO
+        if (story.getAuthors() != null) {
+            response.setAuthors(
+                    story.getStoryAuthors().stream()
+                            .map(storyAuthorMapper::toStoryAuthorResponse)
+                            .toList()
+            );
+        }
+
+        return response;
     }
 
     public StoryResponse createStory(StoryCreateRequest request) throws IOException {
@@ -102,12 +131,18 @@ public class StoryService {
         if (request.getCoverImageFile() != null && !request.getCoverImageFile().isEmpty()) {
             String path = String.format(folderPath, story.getId());
             CloudinaryUploadResult fileUploadResult = cloudinaryService.uploadImage(request.getCoverImageFile(), path);
+            mediaFileService.createMediaFile(fileUploadResult);
             story.setCoverImageUrl(fileUploadResult.getSecureUrl());
         }
 
         story.setSlug(generateSlug(request.getTitle()));
         story.setTitleNoAccent(StringUtils.removeAccent(request.getTitle()));
         story = storyRepository.save(story);
+
+        if(!request.getAuthors().isEmpty()) {
+            return  authorService.updateStoryAuthors(story.getId(),request.getAuthors());
+        }
+
         return storyMapper.toStoryResponse(story);
     }
 
@@ -120,6 +155,7 @@ public class StoryService {
         if(request.getCoverImageFile().isEmpty()) {
             String path = String.format(folderPath, story.getId());
             CloudinaryUploadResult fileUploadResult = cloudinaryService.uploadImage(request.getCoverImageFile(), path);
+            mediaFileService.createMediaFile(fileUploadResult);
             story.setCoverImageUrl(fileUploadResult.getSecureUrl());
 
         }
@@ -128,6 +164,11 @@ public class StoryService {
         story.setSlug(generateSlug(request.getTitle()));
         story.setTitleNoAccent(StringUtils.removeAccent(request.getTitle()));
         story = storyRepository.save(story);
+
+        if(!request.getAuthors().isEmpty()) {
+            return  authorService.updateStoryAuthors(story.getId(),request.getAuthors());
+        }
+
         return storyMapper.toStoryResponse(story);
     }
 

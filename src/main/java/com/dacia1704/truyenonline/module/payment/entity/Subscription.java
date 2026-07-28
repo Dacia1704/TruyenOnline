@@ -32,10 +32,6 @@ public class Subscription extends BaseEntity {
     User user;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "plan", nullable = false)
-    SubscriptionPlan plan;
-
-    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     SubscriptionStatus status;
 
@@ -44,4 +40,13 @@ public class Subscription extends BaseEntity {
 
     @Column(name = "expires_at", nullable = false)
     LocalDateTime expiresAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "plan",
+            referencedColumnName = "code",
+            foreignKey = @ForeignKey(name = "fk_sub_plan")
+    )
+    private SubscriptionPlan plan;
+
 }

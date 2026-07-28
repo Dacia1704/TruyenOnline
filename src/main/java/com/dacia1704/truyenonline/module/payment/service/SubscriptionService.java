@@ -1,12 +1,17 @@
 package com.dacia1704.truyenonline.module.payment.service;
 
+import com.dacia1704.truyenonline.module.payment.dto.response.SubscriptionResponse;
 import com.dacia1704.truyenonline.module.payment.entity.Subscription;
 import com.dacia1704.truyenonline.module.payment.entity.SubscriptionPlan;
 import com.dacia1704.truyenonline.module.payment.entity.SubscriptionStatus;
+import com.dacia1704.truyenonline.module.payment.mapper.SubscriptionMapper;
 import com.dacia1704.truyenonline.module.payment.repository.SubscriptionRepository;
 import com.dacia1704.truyenonline.module.user.entity.User;
+import com.dacia1704.truyenonline.shared.exception.AppException;
+import com.dacia1704.truyenonline.shared.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,30 +25,19 @@ import java.util.Optional;
 public class SubscriptionService {
 
     private final SubscriptionRepository subscriptionRepository;
-
-    // Số ngày tương ứng với từng gói
-    private static final Map<SubscriptionPlan, Integer> PLAN_DAYS = Map.of(
-            SubscriptionPlan.PREMIUM_1M,  30,
-            SubscriptionPlan.PREMIUM_3M,  90,
-            SubscriptionPlan.PREMIUM_1Y, 365
-    );
-
+    private final SubscriptionMapper subscriptionMapper;
     // ----------------------------------------------------------------
     // Kích hoạt subscription sau khi thanh toán thành công
     // Nếu user đang có gói chưa hết hạn → gia hạn thêm
     // ----------------------------------------------------------------
     @Transactional
     public Subscription activateSubscription(User user, SubscriptionPlan plan) {
-        Integer days = PLAN_DAYS.get(plan);
-        if (days == null) {
-            throw new IllegalArgumentException("Gói không hợp lệ: " + plan);
-        }
+        Integer days = plan.getDurationDays();
+        if (days == null) throw new AppException(ErrorCode.INVALID_PLAN);
 
         LocalDateTime now = LocalDateTime.now();
-
         // Kiểm tra gói hiện tại còn hạn không
-        Optional<Subscription> existingOpt = subscriptionRepository
-                .findActiveByUser(user.getId(), now);
+        Optional<Subscription> existingOpt = subscriptionRepository.findActiveByUser(user.getId(), now);
 
         LocalDateTime startedAt;
         LocalDateTime expiresAt;
@@ -88,5 +82,14 @@ public class SubscriptionService {
         return subscriptionRepository
                 .findActiveByUser(userId, LocalDateTime.now())
                 .isPresent();
+    }
+
+    public SubscriptionResponse getMySubscription() {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        return subscriptionRepository
+                .findFirstByUserIdOrderByCreatedAtDesc(userId)
+                .map(subscriptionMapper::toSubscriptionResponse)
+                .orElse(null);
     }
 }

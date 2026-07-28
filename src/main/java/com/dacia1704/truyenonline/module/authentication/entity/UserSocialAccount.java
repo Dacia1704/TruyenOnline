@@ -1,5 +1,6 @@
-package com.dacia1704.truyenonline.module.user.entity;
+package com.dacia1704.truyenonline.module.authentication.entity;
 
+import com.dacia1704.truyenonline.module.user.entity.User;
 import com.dacia1704.truyenonline.shared.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;

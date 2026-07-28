@@ -8,12 +8,19 @@ public enum ErrorCode {
     // Auth & User
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "Người dùng không tồn tại"),
     USER_EXISTED(HttpStatus.BAD_REQUEST, "Tên đăng nhập hoặc email đã tồn tại"),
+    EMAIL_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "Email đã tồn tại"),
+    EMAIL_NOT_VERIFIED(HttpStatus.BAD_REQUEST, "Email google chưa được xác minh"),
     UNAUTHENTICATED(HttpStatus.UNAUTHORIZED, "Bạn cần đăng nhập để thực hiện thao tác này"),
     NOT_ACTIVE(HttpStatus.FORBIDDEN, "Tài khoản của bạn đã bị khóa hoặc chưa được kích hoạt."),
     UNAUTHORIZED(HttpStatus.FORBIDDEN, "Bạn không có quyền truy cập"),
     ROLE_NOT_FOUND(HttpStatus.NOT_FOUND, "Role không tồn tại"),
+    GOOGLE_TOKEN_IS_INVALID(HttpStatus.BAD_REQUEST, "Đăng nhập bằng google bị lỗi"),
     REQUEST_NOT_FOUND(HttpStatus.NOT_FOUND, "Yêu cầu không tồn tại"),
     CHAPTER_NOT_FOUND(HttpStatus.NOT_FOUND, "Chapter không tồn tại"),
+    AUTHOR_NOT_FOUND(HttpStatus.NOT_FOUND, "Tác giả không tồn tại"),
+    SUBSCRIPTION_PLAN_NOT_FOUND(HttpStatus.NOT_FOUND, "Gói không tồn tại"),
+    SUBSCRIPTION_NOT_FOUND(HttpStatus.NOT_FOUND, "Bạn chưa đăng kí"),
+    SUBSCRIPTION_PLAN_CODE_EXISTS(HttpStatus.BAD_REQUEST, "Mã gói đã tồn tại"),
     STORY_PUBLISH_REQUEST_NOT_FOUND(HttpStatus.NOT_FOUND, "Yêu cầu xuất bản truyện không tồn tại"),
     GENRE_NOT_FOUND(HttpStatus.NOT_FOUND, "Thể loại không tồn tại"),
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "Bình luận không tồn tại"),
@@ -33,6 +40,14 @@ public enum ErrorCode {
     USER_NOT_GET_BANNED(HttpStatus.BAD_REQUEST, "Tài khoản này hiện đang không bị tạm khóa."),
     COMMENT_NOT_GET_BANNED(HttpStatus.BAD_REQUEST, "Bình luận này hiện đang không bị ẩn do vi phạm."),
     INVALID_PLAN(HttpStatus.BAD_REQUEST, "Gói bạn chọn không hợp lệ"),
+    FAILED_TO_SEND_EMAIL(HttpStatus.BAD_REQUEST, "Failed to send email."),
+    INVALID_TOKEN(HttpStatus.BAD_REQUEST, "Token không khả dụng"),
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error"),
+    REFRESH_TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "Phiên đăng nhập không còn hợp lệ. Vui lòng đăng nhập lại."),
+    REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."),
+    MEDIA_FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy file ảnh"),
+
+
 
     NO_PERMISSION(HttpStatus.FORBIDDEN, "Bạn không có quyền thực hiện hành động này"),
 

@@ -2,9 +2,12 @@ package com.dacia1704.truyenonline.module.authentication.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -23,4 +26,6 @@ public class RegisterRequest {
     @NotBlank(message = "Mật khẩu không được để trống")
     @Size(min = 6, message = "Mật khẩu phải có ít nhất 6 ký tự")
     String password;
+
+    Boolean isUploader = false;
 }

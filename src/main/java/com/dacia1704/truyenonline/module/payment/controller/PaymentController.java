@@ -1,4 +1,4 @@
-package com.truyenonline.module.payment.controller;
+package com.dacia1704.truyenonline.module.payment.controller;
 
 import com.dacia1704.truyenonline.module.payment.dto.request.CreatePaymentRequest;
 import com.dacia1704.truyenonline.module.payment.dto.response.CreatePaymentResponse;

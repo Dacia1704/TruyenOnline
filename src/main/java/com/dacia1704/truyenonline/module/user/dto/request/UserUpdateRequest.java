@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @AllArgsConstructor
@@ -14,7 +15,7 @@ public class UserUpdateRequest {
     @Size(min = 4, max = 50, message = "Tên đăng nhập phải từ 4 đến 50 ký tự")
     String username;
 
-    String avatarUrl;
+    MultipartFile avatar;
 
     @Email(message = "Email không đúng định dạng")
     String email;

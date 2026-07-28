@@ -8,6 +8,7 @@ import com.dacia1704.truyenonline.module.payment.dto.response.TransactionRespons
 import com.dacia1704.truyenonline.module.payment.entity.SubscriptionPlan;
 import com.dacia1704.truyenonline.module.payment.entity.Transaction;
 import com.dacia1704.truyenonline.module.payment.entity.TransactionStatus;
+import com.dacia1704.truyenonline.module.payment.repository.SubscriptionPlanRepository;
 import com.dacia1704.truyenonline.module.payment.repository.TransactionRepository;
 import com.dacia1704.truyenonline.module.payment.utils.VNPayUtil;
 import com.dacia1704.truyenonline.module.user.entity.User;
@@ -35,18 +36,12 @@ import java.util.TreeMap;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class PaymentService {
 
-    private final VNPayConfig vnPayConfig;
-    private final TransactionRepository transactionRepository;
-    private final SubscriptionService subscriptionService;
-    private final ObjectMapper objectMapper;
-    private final UserRepository userRepository;
-
-    // Bảng giá (VND)
-    private static final Map<SubscriptionPlan, Long> PLAN_PRICES = Map.of(
-            SubscriptionPlan.PREMIUM_1M,  49000L,
-            SubscriptionPlan.PREMIUM_3M, 129000L,
-            SubscriptionPlan.PREMIUM_1Y, 399000L
-    );
+    VNPayConfig vnPayConfig;
+    TransactionRepository transactionRepository;
+    SubscriptionService subscriptionService;
+    ObjectMapper objectMapper;
+    UserRepository userRepository;
+    SubscriptionPlanRepository subscriptionPlanRepository;
 
     // ----------------------------------------------------------------
     // Bước 1: Tạo giao dịch PENDING + build URL redirect sang VNPay
@@ -60,8 +55,8 @@ public class PaymentService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
 
-        SubscriptionPlan plan = request.getPlan();
-        Long amountVND = PLAN_PRICES.get(plan);
+        SubscriptionPlan plan = subscriptionPlanRepository.findById(request.getPlanId()).orElseThrow(() -> new AppException(ErrorCode.SUBSCRIPTION_PLAN_NOT_FOUND));
+        Long amountVND = plan.getPrice();
 
         if (amountVND == null) {
             throw new AppException(ErrorCode.INVALID_PLAN);
@@ -122,7 +117,7 @@ public class PaymentService {
     @Transactional
     public Map<String, String> handleIPN(Map<String, String> params) {
         Map<String, String> response = new HashMap<>();
-
+        log.info("VNPay IPN params: {}", params);
         try {
             // 1. Tách hash ra khỏi params trước khi verify
             String receivedHash = params.remove("vnp_SecureHash");

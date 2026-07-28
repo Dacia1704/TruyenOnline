@@ -1,6 +1,7 @@
 package com.dacia1704.truyenonline.module.user.entity;
 
 import com.dacia1704.truyenonline.module.administration.entity.ModerationAction;
+import com.dacia1704.truyenonline.module.authentication.entity.UserSocialAccount;
 import com.dacia1704.truyenonline.shared.entity.BaseEntity;
 import jakarta.persistence.*;
 import java.util.HashSet;

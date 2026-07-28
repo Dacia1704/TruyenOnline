@@ -1,4 +1,4 @@
-package com.dacia1704.truyenonline.shared.storage;
+package com.dacia1704.truyenonline.module.media.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;

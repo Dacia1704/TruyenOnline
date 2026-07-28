@@ -7,6 +7,8 @@ import com.dacia1704.truyenonline.module.user.entity.User;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -34,4 +36,6 @@ public class StoryResponse {
     Integer freeChapterLimit;
 
     Long viewCount;
+
+    List<StoryAuthorResponse> authors;
 }

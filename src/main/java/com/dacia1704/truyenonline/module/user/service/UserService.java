@@ -8,12 +8,13 @@ import com.dacia1704.truyenonline.module.administration.entity.ModerationActionT
 import com.dacia1704.truyenonline.module.administration.entity.ModerationObjectType;
 import com.dacia1704.truyenonline.module.administration.service.AuditLogService;
 import com.dacia1704.truyenonline.module.administration.service.ModerationActionService;
-import com.dacia1704.truyenonline.module.chapter.dto.request.ChapterBanRequest;
-import com.dacia1704.truyenonline.module.chapter.dto.response.ChapterResponse;
-import com.dacia1704.truyenonline.module.chapter.entity.Chapter;
+import com.dacia1704.truyenonline.module.authentication.entity.RefreshToken;
+import com.dacia1704.truyenonline.module.authentication.repository.RefreshTokenRepository;
+import com.dacia1704.truyenonline.module.media.service.MediaFileService;
 import com.dacia1704.truyenonline.module.user.dto.request.*;
 import com.dacia1704.truyenonline.module.user.dto.response.UserResponse;
 import com.dacia1704.truyenonline.module.user.entity.Role;
+import com.dacia1704.truyenonline.module.user.entity.RoleName;
 import com.dacia1704.truyenonline.module.user.entity.User;
 import com.dacia1704.truyenonline.module.user.mapper.UserMapper;
 import com.dacia1704.truyenonline.module.user.repository.RoleRepository;
@@ -21,9 +22,15 @@ import com.dacia1704.truyenonline.module.user.repository.UserRepository;
 import com.dacia1704.truyenonline.shared.exception.AppException;
 import com.dacia1704.truyenonline.shared.exception.ErrorCode;
 import com.dacia1704.truyenonline.shared.response.PageResponse;
+
+import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import com.dacia1704.truyenonline.module.media.service.CloudinaryService;
+import com.dacia1704.truyenonline.module.media.dto.response.CloudinaryUploadResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AccessLevel;
@@ -50,6 +57,11 @@ public class UserService {
     ModerationActionService moderationActionService;
     AuditLogService auditLogService;
     ObjectMapper objectMapper;
+    CloudinaryService cloudinaryService;
+    RefreshTokenRepository refreshTokenRepository;
+    MediaFileService mediaFileService;
+
+    String folderPath = "truyenonline/users/%s";
 
     public UserResponse createUser(UserCreateRequest request) {
         User user = userMapper.toUser(request);
@@ -60,12 +72,17 @@ public class UserService {
         return userMapper.toUserResponse(user);
     }
 
-    public UserResponse updateUser(String userId, UserUpdateRequest request) {
-        User user =
-                userRepository
-                        .findById(userId)
-                        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+    public UserResponse updateUser(String userId, UserUpdateRequest request) throws IOException {
+        User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         userMapper.updateUser(user, request);
+
+        if (request.getAvatar()!= null && !request.getAvatar().isEmpty()) {
+            String path = String.format(folderPath, user.getId());
+            CloudinaryUploadResult fileUploadResult = cloudinaryService.uploadImage(request.getAvatar(), path);
+            mediaFileService.createMediaFile(fileUploadResult);
+            user.setAvatarUrl(fileUploadResult.getSecureUrl());
+        }
+
         user = userRepository.save(user);
         return userMapper.toUserResponse(user);
     }
@@ -83,14 +100,32 @@ public class UserService {
         return userMapper.toUserResponse(user);
     }
 
-    public UserResponse updateMyInfo(UserUpdateRequest request) {
+    public UserResponse updateMyInfo(UserUpdateRequest request) throws IOException {
         var context = SecurityContextHolder.getContext();
         String userId = context.getAuthentication().getName();
         return updateUser(userId, request);
     }
 
+    public UserResponse upgradeToUploader() {
+        var context = SecurityContextHolder.getContext();
+        String userId = context.getAuthentication().getName();
+        User user =
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        Role uploaderRole = roleRepository.findByName(RoleName.UPLOADER.toString()).orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
+        user.setRoles(Set.of(uploaderRole));
+        user = userRepository.save(user);
+        return userMapper.toUserResponse(user);
+    }
+
     public void deleteUser(String userId) {
-        userRepository.deleteById(userId);
+        User user =
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        user.setActive(false);
     }
 
     public UserResponse banUser(String userId, UserBanRequest request) {
@@ -136,6 +171,9 @@ public class UserService {
         );
 
         user = userRepository.save(user);
+
+        List<RefreshToken> refreshTokens = refreshTokenRepository.findAllByUser_Id(user.getId());
+        refreshTokens.forEach(refreshToken -> refreshToken.setRevokedAt(LocalDateTime.now()));
 
         return userMapper.toUserResponse(user);
     }
@@ -227,8 +265,6 @@ public class UserService {
     public User getCurrentUser() {
         var context = SecurityContextHolder.getContext();
         String userId = context.getAuthentication().getName();
-        return userRepository
-                        .findById(userId)
-                        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        return userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     }
 }

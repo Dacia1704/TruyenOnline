@@ -32,10 +32,6 @@ public class Transaction extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     User user;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "subscription_plan", nullable = false)
-    SubscriptionPlan subscriptionPlan;
-
     @Column(name = "vnp_txn_ref", nullable = false, unique = true, length = 100)
     String vnpTxnRef;
 
@@ -69,4 +65,12 @@ public class Transaction extends BaseEntity {
 
     @Column(name = "completed_at")
     LocalDateTime completedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "subscription_plan",
+            referencedColumnName = "code",
+            foreignKey = @ForeignKey(name = "fk_txn_plan")
+    )
+    private SubscriptionPlan subscriptionPlan;
 }

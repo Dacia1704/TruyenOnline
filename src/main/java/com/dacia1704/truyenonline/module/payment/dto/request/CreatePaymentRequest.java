@@ -12,8 +12,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CreatePaymentRequest {
 
-    @NotNull(message = "Vui lòng chọn gói")
-    private SubscriptionPlan plan;
+    private String planId;
 
     private String orderInfo;
 }

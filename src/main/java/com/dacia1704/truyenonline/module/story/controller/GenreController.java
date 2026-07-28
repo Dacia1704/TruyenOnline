@@ -20,7 +20,7 @@ public class GenreController {
     GenreService genreService;
 
     @GetMapping("")
-    public ApiResponse<List<GenreResponse>> getGenres(@RequestParam() String search) {
+    public ApiResponse<List<GenreResponse>> getGenres(@RequestParam(required = false) String search) {
         List<GenreResponse> result = genreService.getGenres(search);
         return ApiResponse.success(result);
     }

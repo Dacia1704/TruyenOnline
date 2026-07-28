@@ -2,8 +2,10 @@ package com.dacia1704.truyenonline.module.story.repository.specification;
 
 import com.dacia1704.truyenonline.module.interaction.entity.Bookmark;
 import com.dacia1704.truyenonline.module.story.dto.request.StoryFilter;
+import com.dacia1704.truyenonline.module.story.entity.Author;
 import com.dacia1704.truyenonline.module.story.entity.Genre;
 import com.dacia1704.truyenonline.module.story.entity.Story;
+import com.dacia1704.truyenonline.module.story.entity.StoryAuthor;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
@@ -54,6 +56,16 @@ public class StorySpecification {
 
                 predicates.add(genreJoin.get("slug").in(filters.getGenres()));
 
+                query.distinct(true);
+            }
+
+            if (filters.getAuthors() != null && !filters.getAuthors().isEmpty()) {
+                Join<Story, StoryAuthor> storyAuthorJoin = root.join("storyAuthors");
+                Join<StoryAuthor, Author> authorJoin = storyAuthorJoin.join("author");
+
+                predicates.add(authorJoin.get("slug").in(filters.getAuthors()));
+
+                // Chống lặp kết quả nếu truyện có nhiều tác giả match điều kiện
                 query.distinct(true);
             }
 

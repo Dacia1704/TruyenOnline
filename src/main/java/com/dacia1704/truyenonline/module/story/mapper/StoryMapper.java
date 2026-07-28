@@ -8,7 +8,12 @@ import com.dacia1704.truyenonline.module.user.dto.response.UserResponse;
 import com.dacia1704.truyenonline.module.user.entity.User;
 import org.mapstruct.*;
 
-@Mapper(componentModel = "spring")
+@Mapper(
+        componentModel = "spring",
+        uses = {
+                StoryAuthorMapper.class
+        }
+)
 public interface StoryMapper {
     Story toStory(StoryResponse request);
 
