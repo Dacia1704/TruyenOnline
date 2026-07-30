@@ -145,7 +145,8 @@ public class AuthorService {
         }).toList();
 
         storyAuthors = storyAuthorRepository.saveAll(storyAuthors);
-        story.setStoryAuthors(storyAuthors);
+        story.getStoryAuthors().clear();
+        story.getStoryAuthors().addAll(storyAuthors);
         return storyMapper.toStoryResponse(story);
     }
 

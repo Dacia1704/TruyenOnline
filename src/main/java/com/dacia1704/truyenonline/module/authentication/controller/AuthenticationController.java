@@ -1,11 +1,9 @@
 package com.dacia1704.truyenonline.module.authentication.controller;
 
 import com.dacia1704.truyenonline.module.authentication.dto.request.*;
-import com.dacia1704.truyenonline.module.authentication.dto.response.IntrospectResponse;
-import com.dacia1704.truyenonline.module.authentication.dto.response.LoginResponse;
-import com.dacia1704.truyenonline.module.authentication.dto.response.RefreshTokenResponse;
-import com.dacia1704.truyenonline.module.authentication.dto.response.RegisterResponse;
+import com.dacia1704.truyenonline.module.authentication.dto.response.*;
 import com.dacia1704.truyenonline.module.authentication.service.AuthenticationService;
+import com.dacia1704.truyenonline.module.authentication.service.UserSocialAccountService;
 import com.dacia1704.truyenonline.shared.response.ApiResponse;
 import com.nimbusds.openid.connect.sdk.AuthenticationResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,12 +13,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthenticationController {
     AuthenticationService authenticationService;
+    UserSocialAccountService userSocialAccountService;
 
     @PostMapping("/login")
     ApiResponse<LoginResponse> login(
@@ -36,7 +37,7 @@ public class AuthenticationController {
             @RequestHeader(value = "Device-Id", required = false) String deviceId,
             @RequestHeader(value = "Session-Id", required = false) String sessionId,
             @RequestBody @Valid GoogleLoginRequest request) {
-        return ApiResponse.success(authenticationService.loginWithGoogle(servletRequest,deviceId,sessionId, request.getIdToken()));
+        return ApiResponse.success(userSocialAccountService.loginWithGoogle(servletRequest,deviceId,sessionId, request.getIdToken()));
     }
 
     @PostMapping("/refresh")
@@ -78,5 +79,22 @@ public class AuthenticationController {
     public ApiResponse<String> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
         authenticationService.resetPassword(request);
         return ApiResponse.success("Đổi mật khẩu thành công");
+    }
+
+    @PostMapping("/link/google")
+    public ApiResponse<String> linkGoogle(@RequestBody @Valid LinkGoogleRequest request) {
+        userSocialAccountService.linkGoogle(request);
+        return ApiResponse.success("Liên kết Google thành công");
+    }
+
+    @DeleteMapping("/link/google")
+    public ApiResponse<String> unlinkGoogle() {
+        userSocialAccountService.unlinkGoogle();
+        return ApiResponse.success("Hủy liên kết Google thành công");
+    }
+
+    @GetMapping("/providers")
+    public ApiResponse<List<SocialAccountResponse>> getMyProviders() {
+        return ApiResponse.success(userSocialAccountService.getMyProviders());
     }
 }

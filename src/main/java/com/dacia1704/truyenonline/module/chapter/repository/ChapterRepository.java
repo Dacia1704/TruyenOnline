@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 public interface ChapterRepository
         extends JpaRepository<Chapter, String>, JpaSpecificationExecutor<Chapter> {
-
+    long countByStory_Id(String storyId);
 }

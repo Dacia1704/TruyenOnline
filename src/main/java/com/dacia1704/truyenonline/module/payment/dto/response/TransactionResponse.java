@@ -1,7 +1,7 @@
 package com.dacia1704.truyenonline.module.payment.dto.response;
 
-import com.dacia1704.truyenonline.module.payment.entity.SubscriptionPlan;
 import com.dacia1704.truyenonline.module.payment.entity.TransactionStatus;
+import com.dacia1704.truyenonline.module.user.dto.response.UserResponse;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -15,7 +15,8 @@ import java.time.LocalDateTime;
 public class TransactionResponse {
     String id;
     String vnpTxnRef;
-    SubscriptionPlan subscriptionPlan;
+    SubscriptionPlanResponse subscriptionPlan;
+    UserResponse user;
     Long amountVnd;        // Đã chia 100, hiển thị được luôn
     TransactionStatus status;
     String vnpBankCode;

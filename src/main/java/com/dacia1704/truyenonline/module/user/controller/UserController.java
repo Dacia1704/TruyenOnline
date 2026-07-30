@@ -1,16 +1,16 @@
 package com.dacia1704.truyenonline.module.user.controller;
 
+import com.dacia1704.truyenonline.module.authentication.dto.request.LoginRequest;
 import com.dacia1704.truyenonline.module.story.dto.request.StoryBanRequest;
 import com.dacia1704.truyenonline.module.story.dto.request.StoryUnbanRequest;
 import com.dacia1704.truyenonline.module.story.dto.response.StoryResponse;
-import com.dacia1704.truyenonline.module.user.dto.request.UserBanRequest;
-import com.dacia1704.truyenonline.module.user.dto.request.UserUnbanRequest;
-import com.dacia1704.truyenonline.module.user.dto.request.UserUpdateRequest;
-import com.dacia1704.truyenonline.module.user.dto.request.UserUpdateRoleRequest;
+import com.dacia1704.truyenonline.module.user.dto.request.*;
 import com.dacia1704.truyenonline.module.user.dto.response.UserResponse;
+import com.dacia1704.truyenonline.module.user.dto.response.UserUpgradeToUploaderResponse;
 import com.dacia1704.truyenonline.module.user.service.UserService;
 import com.dacia1704.truyenonline.shared.response.ApiResponse;
 import com.dacia1704.truyenonline.shared.response.PageResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -40,8 +40,11 @@ public class UserController {
     }
 
     @PatchMapping("/me/upgrade-to-uploader")
-    ApiResponse<UserResponse> upgradeToUploader() {
-        return ApiResponse.success(userService.upgradeToUploader());
+    ApiResponse<UserUpgradeToUploaderResponse> upgradeToUploader(
+            HttpServletRequest servletRequest,
+            @RequestHeader(value = "Device-Id", required = false) String deviceId
+    ) {
+        return ApiResponse.success(userService.upgradeToUploader(servletRequest, deviceId));
     }
 
     // Admin

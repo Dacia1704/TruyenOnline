@@ -1,13 +1,18 @@
 package com.dacia1704.truyenonline.module.payment.service;
 
 import com.dacia1704.truyenonline.config.VNPayConfig;
+import com.dacia1704.truyenonline.module.administration.entity.AuditAction;
+import com.dacia1704.truyenonline.module.administration.entity.AuditObjectType;
+import com.dacia1704.truyenonline.module.administration.service.AuditLogService;
 import com.dacia1704.truyenonline.module.payment.dto.request.CreatePaymentRequest;
 import com.dacia1704.truyenonline.module.payment.dto.response.CreatePaymentResponse;
 import com.dacia1704.truyenonline.module.payment.dto.response.PaymentCallbackResult;
 import com.dacia1704.truyenonline.module.payment.dto.response.TransactionResponse;
+import com.dacia1704.truyenonline.module.payment.entity.Subscription;
 import com.dacia1704.truyenonline.module.payment.entity.SubscriptionPlan;
 import com.dacia1704.truyenonline.module.payment.entity.Transaction;
 import com.dacia1704.truyenonline.module.payment.entity.TransactionStatus;
+import com.dacia1704.truyenonline.module.payment.mapper.TransactionMapper;
 import com.dacia1704.truyenonline.module.payment.repository.SubscriptionPlanRepository;
 import com.dacia1704.truyenonline.module.payment.repository.TransactionRepository;
 import com.dacia1704.truyenonline.module.payment.utils.VNPayUtil;
@@ -15,11 +20,16 @@ import com.dacia1704.truyenonline.module.user.entity.User;
 import com.dacia1704.truyenonline.module.user.repository.UserRepository;
 import com.dacia1704.truyenonline.shared.exception.AppException;
 import com.dacia1704.truyenonline.shared.exception.ErrorCode;
+import com.dacia1704.truyenonline.shared.response.PageResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +52,8 @@ public class PaymentService {
     ObjectMapper objectMapper;
     UserRepository userRepository;
     SubscriptionPlanRepository subscriptionPlanRepository;
+    TransactionMapper transactionMapper;
+    AuditLogService auditLogService;
 
     // ----------------------------------------------------------------
     // Bước 1: Tạo giao dịch PENDING + build URL redirect sang VNPay
@@ -190,20 +202,20 @@ public class PaymentService {
                 transactionRepository.save(transaction);
 
                 // Kích hoạt gói Premium
-                subscriptionService.activateSubscription(
-                        transaction.getUser(),
-                        transaction.getSubscriptionPlan());
+                Subscription subscription = subscriptionService.activateSubscription(transaction.getUser(), transaction.getSubscriptionPlan());
 
-                log.info("VNPay IPN: thanh toán thành công txnRef={}, user={}",
-                        txnRef, transaction.getUser().getId());
+                auditLogService.log(AuditAction.SUCCESS, AuditObjectType.TRANSACTION, transaction.getId(), null, transaction, null);
+
+                log.info("VNPay IPN: thanh toán thành công txnRef={}, user={}", txnRef, transaction.getUser().getId());
 
             } else {
                 // Thanh toán thất bại
                 transaction.setStatus(TransactionStatus.FAILED);
                 transactionRepository.save(transaction);
 
-                log.warn("VNPay IPN: thanh toán thất bại txnRef={}, rspCode={}",
-                        txnRef, rspCode);
+                auditLogService.log(AuditAction.FAIL, AuditObjectType.TRANSACTION, transaction.getId(), null, transaction, null);
+
+                log.warn("VNPay IPN: thanh toán thất bại txnRef={}, rspCode={}", txnRef, rspCode);
             }
 
             response.put("RspCode", "00");
@@ -221,8 +233,7 @@ public class PaymentService {
     // ----------------------------------------------------------------
     // Private: Build URL thanh toán VNPay
     // ----------------------------------------------------------------
-    private String buildVNPayUrl(String txnRef, long amountVND,
-                                 String orderInfo, String clientIp) {
+    private String buildVNPayUrl(String txnRef, long amountVND, String orderInfo, String clientIp) {
 
         String createDate = VNPayUtil.formatDate(LocalDateTime.now());
         String expireDate = VNPayUtil.formatDate(LocalDateTime.now().plusMinutes(15));
@@ -259,17 +270,28 @@ public class PaymentService {
         return transactionRepository
                 .findByUserIdOrderByCreatedAtDesc(userId)
                 .stream()
-                .map(tx -> TransactionResponse.builder()
-                        .id(tx.getId())
-                        .vnpTxnRef(tx.getVnpTxnRef())
-                        .subscriptionPlan(tx.getSubscriptionPlan())
-                        .amountVnd(VNPayUtil.fromVNPayAmount(tx.getVnpAmount()))
-                        .status(tx.getStatus())
-                        .vnpBankCode(tx.getVnpBankCode())
-                        .vnpTransactionNo(tx.getVnpTransactionNo())
-                        .createdAt(tx.getCreatedAt())
-                        .completedAt(tx.getCompletedAt())
-                        .build())
+                .map(transactionMapper::toTransactionResponse)
                 .toList();
     }
+
+    public PageResponse<TransactionResponse> getTransactions(int page, int size, String userId) {
+        int pageNo = (page > 0) ? page - 1 : 0;
+        Pageable pageable = PageRequest.of(pageNo, size, Sort.by("createdAt").descending());
+        Page<Transaction> transactionPage;
+        if (userId != null) {
+            transactionPage = transactionRepository.findAllByUserId(userId, pageable);
+        } else {
+            transactionPage = transactionRepository.findAll(pageable);
+        }
+        List<TransactionResponse> transactionResponses =
+                transactionPage.getContent().stream().map(transactionMapper::toTransactionResponse).toList();
+        return PageResponse.<TransactionResponse>builder()
+                .currentPage(page)
+                .pageSize(transactionPage.getSize())
+                .totalPages(transactionPage.getTotalPages())
+                .totalElements(transactionPage.getTotalElements())
+                .data(transactionResponses)
+                .build();
+    }
+
 }

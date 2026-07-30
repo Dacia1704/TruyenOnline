@@ -20,5 +20,9 @@ import org.mapstruct.ReportingPolicy;
         }
 )
 public interface StoryAuthorMapper {
+    @Mapping(target = "author", source = "author")
+    @Mapping(target = "story", source = "story")
+    @Mapping(target = "role", source = "role")
+    @Mapping(target = "sortOrder", source = "sortOrder")
     StoryAuthorResponse toStoryAuthorResponse(StoryAuthor storyAuthor);
 }

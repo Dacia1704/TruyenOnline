@@ -46,10 +46,18 @@ public enum ErrorCode {
     REFRESH_TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "Phiên đăng nhập không còn hợp lệ. Vui lòng đăng nhập lại."),
     REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."),
     MEDIA_FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy file ảnh"),
-
-
-
+    GOOGLE_ACCOUNT_EMAIL_NOT_MATCH(HttpStatus.BAD_REQUEST, "Tài khoản email google không khớp với email đã đăng kí tài khoản"),
+    SOCIAL_ACCOUNT_ALREADY_LINKED(HttpStatus.BAD_REQUEST, "Tài khoản google đã được liên kết"),
+    SOCIAL_ACCOUNT_NOT_FOUND(HttpStatus.NOT_FOUND, "Tài khoản liên kết không tồn tại"),
+    DONOT_HAVE_LOCAL_ACCOUNT_SO_CANNOT_UNLINK_LAST_PROVIDER(HttpStatus.BAD_REQUEST, "Bạn không đăng kí tài khoản thường nên không thể xóa tài khoản liên kết cuối cùng"),
+    NEED_AT_LEAST_A_CHAPTER_TO_PUBLISH(HttpStatus.BAD_REQUEST, "Cần ít nhất 1 chapter để yêu xầu xuất bản"),
+    BANNER_NOT_FOUND(HttpStatus.NOT_FOUND, "Banner không tồn tại"),
     NO_PERMISSION(HttpStatus.FORBIDDEN, "Bạn không có quyền thực hiện hành động này"),
+    UPLOAD_IMAGE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Upload ảnh thất bại."),
+    MODERATION_ACTION_NOT_FOUND(HttpStatus.NOT_FOUND, "Hành động không được tìm thấy"),
+    BAN_APPEAL_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "Khiếu nại đã tồn tại"),
+    BAN_APPEAL_ALREADY_RESOLVED(HttpStatus.BAD_REQUEST, "Khiếu nại đã tồn tại và chưa được xử lý"),
+    BAN_APPEAL_NOT_FOUND(HttpStatus.NOT_FOUND, "Khiếu nại không được tìm thấy"),
 
     // Story & Chapter
     STORY_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy bộ truyện này"),

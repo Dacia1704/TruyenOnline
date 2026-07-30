@@ -26,5 +26,7 @@ public enum AuditAction {
     CHANGE_ROLE,
     CHANGE_PASSWORD,
     CHANGE_EMAIL,
-    RESET_PASSWORD
+    RESET_PASSWORD,
+    SUCCESS,
+    FAIL
 }

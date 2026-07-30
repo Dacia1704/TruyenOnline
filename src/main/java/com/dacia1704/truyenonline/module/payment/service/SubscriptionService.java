@@ -1,5 +1,9 @@
 package com.dacia1704.truyenonline.module.payment.service;
 
+import com.dacia1704.truyenonline.module.administration.entity.AuditAction;
+import com.dacia1704.truyenonline.module.administration.entity.AuditLog;
+import com.dacia1704.truyenonline.module.administration.entity.AuditObjectType;
+import com.dacia1704.truyenonline.module.administration.service.AuditLogService;
 import com.dacia1704.truyenonline.module.payment.dto.response.SubscriptionResponse;
 import com.dacia1704.truyenonline.module.payment.entity.Subscription;
 import com.dacia1704.truyenonline.module.payment.entity.SubscriptionPlan;
@@ -26,6 +30,7 @@ public class SubscriptionService {
 
     private final SubscriptionRepository subscriptionRepository;
     private final SubscriptionMapper subscriptionMapper;
+    private final AuditLogService auditLogService;
     // ----------------------------------------------------------------
     // Kích hoạt subscription sau khi thanh toán thành công
     // Nếu user đang có gói chưa hết hạn → gia hạn thêm
@@ -71,7 +76,9 @@ public class SubscriptionService {
                 .expiresAt(expiresAt)
                 .build();
 
-        return subscriptionRepository.save(subscription);
+        subscription =  subscriptionRepository.save(subscription);
+        auditLogService.log(AuditAction.CREATE, AuditObjectType.SUBSCRIPTION, subscription.getId(), null, subscription, null);
+        return subscription;
     }
 
     // ----------------------------------------------------------------

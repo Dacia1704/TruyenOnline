@@ -8,6 +8,7 @@ import com.dacia1704.truyenonline.module.administration.entity.ModerationActionT
 import com.dacia1704.truyenonline.module.administration.entity.ModerationObjectType;
 import com.dacia1704.truyenonline.module.administration.service.AuditLogService;
 import com.dacia1704.truyenonline.module.administration.service.ModerationActionService;
+import com.dacia1704.truyenonline.module.chapter.repository.ChapterRepository;
 import com.dacia1704.truyenonline.module.media.service.MediaFileService;
 import com.dacia1704.truyenonline.module.story.dto.request.*;
 import com.dacia1704.truyenonline.module.story.dto.response.StoryPublishRequestResponse;
@@ -72,6 +73,7 @@ public class StoryService {
     AuthorService authorService;
     StoryAuthorMapper storyAuthorMapper;
     MediaFileService mediaFileService;
+    ChapterRepository chapterRepository;
 
     String folderPath = "truyenonline/stories/%s";
 
@@ -139,9 +141,11 @@ public class StoryService {
         story.setTitleNoAccent(StringUtils.removeAccent(request.getTitle()));
         story = storyRepository.save(story);
 
-        if(!request.getAuthors().isEmpty()) {
-            return  authorService.updateStoryAuthors(story.getId(),request.getAuthors());
+        if (request.getAuthors() != null && !request.getAuthors().isEmpty()) {
+            return authorService.updateStoryAuthors(story.getId(), request.getAuthors());
         }
+
+        auditLogService.log(AuditAction.CREATE, AuditObjectType.STORY, story.getId(), null, story, null);
 
         return storyMapper.toStoryResponse(story);
     }
@@ -151,13 +155,15 @@ public class StoryService {
                 storyRepository
                         .findById(storyId)
                         .orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
-
-        if(request.getCoverImageFile().isEmpty()) {
+        Story oldValue = objectMapper.convertValue(story, Story.class);
+        if(!request.getCoverImageUrl().isEmpty() && !request.getCoverImageFile().isEmpty() && !story.getCoverImageUrl().isEmpty()) {
+            mediaFileService.decreaseReference(story.getCoverImageUrl());
+        }
+        if(!request.getCoverImageFile().isEmpty()) {
             String path = String.format(folderPath, story.getId());
             CloudinaryUploadResult fileUploadResult = cloudinaryService.uploadImage(request.getCoverImageFile(), path);
             mediaFileService.createMediaFile(fileUploadResult);
             story.setCoverImageUrl(fileUploadResult.getSecureUrl());
-
         }
 
         storyMapper.updateStory(story, request);
@@ -168,16 +174,22 @@ public class StoryService {
         if(!request.getAuthors().isEmpty()) {
             return  authorService.updateStoryAuthors(story.getId(),request.getAuthors());
         }
-
+        auditLogService.log(AuditAction.UPDATE, AuditObjectType.STORY, storyId, oldValue, story, null);
         return storyMapper.toStoryResponse(story);
     }
 
     public void deleteStory(String id) {
+        Story story = storyRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
+        mediaFileService.decreaseReference(story.getCoverImageUrl());
         storyRepository.deleteById(id);
+        auditLogService.log(AuditAction.DELETE, AuditObjectType.STORY, id, story, null, null);
     }
 
     public void deletePublishRequest(String id) {
+        StoryPublishRequest storyPublishRequest = storyPublishRequestRepository.findById(id)
+                        .orElseThrow(() -> new AppException(ErrorCode.STORY_PUBLISH_REQUEST_NOT_FOUND));
         storyPublishRequestRepository.deleteById(id);
+        auditLogService.log(AuditAction.DELETE, AuditObjectType.PUBLISH_REQUEST, id, storyPublishRequest, null, null);
     }
 
     public StoryPublishRequestResponse requestPublish(
@@ -202,12 +214,19 @@ public class StoryService {
             throw new AppException(ErrorCode.STORY_PUBLISH_REQUEST_PENDING);
         }
 
+        if(chapterRepository.countByStory_Id(storyId) >=1 ) {
+            throw new AppException(ErrorCode.NEED_AT_LEAST_A_CHAPTER_TO_PUBLISH);
+        }
+
+
         StoryPublishRequest storyPublishRequest = new StoryPublishRequest();
         storyPublishRequest.setRequesterNote(request.getRequesterNote());
         storyPublishRequest.setStory(story);
         storyPublishRequest.setStatus(StoryPublishRequestStatus.PENDING);
 
         storyPublishRequest = storyPublishRequestRepository.save(storyPublishRequest);
+        auditLogService.log(AuditAction.CREATE, AuditObjectType.PUBLISH_REQUEST, storyPublishRequest.getId(), null, storyPublishRequest, null);
+
         return storyPublishRequestMapper.toStoryPublishRequestResponse(storyPublishRequest);
     }
 
@@ -218,9 +237,8 @@ public class StoryService {
                 storyPublishRequestRepository
                         .findById(publishRequestId)
                         .orElseThrow(() -> new AppException(ErrorCode.REQUEST_NOT_FOUND));
-
-        StoryPublishRequest publishRequest = storyPublishRequestRepository.findById(publishRequestId).orElseThrow(() -> new AppException(ErrorCode.STORY_PUBLISH_REQUEST_NOT_FOUND));
-        if (publishRequest.getStatus() != StoryPublishRequestStatus.PENDING) {
+        StoryPublishRequest oldValue = objectMapper.convertValue(storyPublishRequest, StoryPublishRequest.class);
+        if (storyPublishRequest.getStatus() != StoryPublishRequestStatus.PENDING) {
             throw new AppException(ErrorCode.STORY_PUBLISH_REQUEST_CONFIRMED);
         }
 
@@ -232,6 +250,7 @@ public class StoryService {
         Story story = storyPublishRequest.getStory();
         story.setPublished(true);
         storyRepository.save(story);
+        auditLogService.log(AuditAction.APPROVE, AuditObjectType.PUBLISH_REQUEST, storyPublishRequest.getId(), oldValue, storyPublishRequest, null);
 
         return storyPublishRequestMapper.toStoryPublishRequestResponse(storyPublishRequest);
     }
@@ -248,14 +267,16 @@ public class StoryService {
                 storyPublishRequestRepository
                         .findById(publishRequestId)
                         .orElseThrow(() -> new AppException(ErrorCode.REQUEST_NOT_FOUND));
-        StoryPublishRequest publishRequest = storyPublishRequestRepository.findById(publishRequestId).orElseThrow(() -> new AppException(ErrorCode.STORY_PUBLISH_REQUEST_NOT_FOUND));
-        if (publishRequest.getStatus() != StoryPublishRequestStatus.PENDING) {
+        StoryPublishRequest oldValue = objectMapper.convertValue(storyPublishRequest, StoryPublishRequest.class);
+        if (storyPublishRequest.getStatus() != StoryPublishRequestStatus.PENDING) {
             throw new AppException(ErrorCode.STORY_PUBLISH_REQUEST_CONFIRMED);
         }
         storyPublishRequest.setReviewerNote(request.getReviewerNote());
         storyPublishRequest.setReviewer(user);
         storyPublishRequest.setStatus(StoryPublishRequestStatus.REJECTED);
         storyPublishRequest = storyPublishRequestRepository.save(storyPublishRequest);
+        auditLogService.log(AuditAction.REJECT, AuditObjectType.PUBLISH_REQUEST, storyPublishRequest.getId(), oldValue, storyPublishRequest, null);
+
         return storyPublishRequestMapper.toStoryPublishRequestResponse(storyPublishRequest);
     }
 
@@ -310,27 +331,11 @@ public class StoryService {
     }
 
     public StoryResponse banStory(String storyId, StoryBanRequest request) {
-
-        Story story = storyRepository.findById(storyId)
-                .orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
-
-        if (story.isBanned()) {
-            throw new AppException(ErrorCode.STORY_ALREADY_BANNED);
-        }
-
-        String oldValue;
-        String newValue;
-
-        try {
-            oldValue = objectMapper.writeValueAsString(story);
-
-            story.setBanned(true);
-
-            newValue = objectMapper.writeValueAsString(story);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot serialize story", e);
-        }
-
+        Story story = storyRepository.findById(storyId).orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
+        if (story.isBanned()) throw new AppException(ErrorCode.STORY_ALREADY_BANNED);
+        Story oldValue = objectMapper.convertValue(story, Story.class);
+        story.setBanned(true);
+        story = storyRepository.save(story);
         moderationActionService.createModerationAction(
                 ModerationActionCreateRequest.builder()
                         .objectId(storyId)
@@ -340,44 +345,15 @@ public class StoryService {
                         .reason(request.getReason())
                         .build()
         );
-
-        auditLogService.createAuditLog(
-                AuditLogCreateRequest.builder()
-                        .action(AuditAction.BAN)
-                        .objectType(AuditObjectType.STORY)
-                        .objectId(storyId)
-                        .description(request.getReason())
-                        .oldValue(oldValue)
-                        .newValue(newValue)
-                        .build()
-        );
-
-        story = storyRepository.save(story);
-
+        auditLogService.log(AuditAction.BAN, AuditObjectType.STORY,storyId,oldValue,story, request.getReason());
         return storyMapper.toStoryResponse(story);
     }
     public StoryResponse unbanStory(String storyId, StoryUnbanRequest request) {
-
-        Story story = storyRepository.findById(storyId)
-                .orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
-
-        if (!story.isBanned()) {
-            throw new AppException(ErrorCode.STORY_NOT_GET_BANNED);
-        }
-
-        String oldValue;
-        String newValue;
-
-        try {
-            oldValue = objectMapper.writeValueAsString(story);
-
-            story.setBanned(false);
-
-            newValue = objectMapper.writeValueAsString(story);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot serialize story", e);
-        }
-
+        Story story = storyRepository.findById(storyId).orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
+        if (!story.isBanned()) throw new AppException(ErrorCode.STORY_NOT_GET_BANNED);
+        Story oldValue = objectMapper.convertValue(story, Story.class);
+        story.setBanned(false);
+        story = storyRepository.save(story);
         moderationActionService.createModerationAction(
                 ModerationActionCreateRequest.builder()
                         .objectId(storyId)
@@ -386,20 +362,7 @@ public class StoryService {
                         .reason(request.getReason())
                         .build()
         );
-
-        auditLogService.createAuditLog(
-                AuditLogCreateRequest.builder()
-                        .action(AuditAction.UNBAN)
-                        .objectType(AuditObjectType.STORY)
-                        .objectId(storyId)
-                        .description(request.getReason())
-                        .oldValue(oldValue)
-                        .newValue(newValue)
-                        .build()
-        );
-
-        story = storyRepository.save(story);
-
+        auditLogService.log(AuditAction.UNBAN, AuditObjectType.STORY,storyId,oldValue,story, request.getReason());
         return storyMapper.toStoryResponse(story);
     }
 
@@ -408,8 +371,7 @@ public class StoryService {
         String titleNoAccent = StringUtils.removeAccent(title);
 
         // 2. Dọn dẹp ký tự đặc biệt, thay khoảng trắng thành gạch ngang
-        String baseSlug =
-                titleNoAccent.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-|-$", "");
+        String baseSlug = titleNoAccent.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-|-$", "");
         String finalSlug = baseSlug;
         int counter = 1;
         while (storyRepository.existsBySlug(finalSlug)) {

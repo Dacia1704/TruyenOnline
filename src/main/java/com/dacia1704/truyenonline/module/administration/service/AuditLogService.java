@@ -6,7 +6,9 @@ import com.dacia1704.truyenonline.module.administration.dto.request.ModerationAc
 import com.dacia1704.truyenonline.module.administration.dto.request.ModerationActionPageRequest;
 import com.dacia1704.truyenonline.module.administration.dto.response.AuditLogResponse;
 import com.dacia1704.truyenonline.module.administration.dto.response.ModerationActionResponse;
+import com.dacia1704.truyenonline.module.administration.entity.AuditAction;
 import com.dacia1704.truyenonline.module.administration.entity.AuditLog;
+import com.dacia1704.truyenonline.module.administration.entity.AuditObjectType;
 import com.dacia1704.truyenonline.module.administration.entity.ModerationAction;
 import com.dacia1704.truyenonline.module.administration.mapper.AuditLogMapper;
 import com.dacia1704.truyenonline.module.administration.mapper.ModerationActionMapper;
@@ -21,6 +23,8 @@ import com.dacia1704.truyenonline.module.user.service.UserService;
 import com.dacia1704.truyenonline.shared.exception.AppException;
 import com.dacia1704.truyenonline.shared.exception.ErrorCode;
 import com.dacia1704.truyenonline.shared.response.PageResponse;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -44,6 +48,7 @@ public class AuditLogService {
     AuditLogMapper auditLogMapper;
     AuditLogRepository auditLogRepository;
     UserRepository userRepository;
+    ObjectMapper objectMapper;
 
     public PageResponse<AuditLogResponse> getAuditLogs(
             AuditLogPageRequest request) {
@@ -107,5 +112,29 @@ public class AuditLogService {
         auditLog = auditLogRepository.save(auditLog);
 
         return auditLogMapper.toResponse(auditLog);
+    }
+
+    public void log(
+            AuditAction action,
+            AuditObjectType objectType,
+            String objectId,
+            Object oldValue,
+            Object newValue,
+            String description
+    ) {
+        try {
+            createAuditLog(
+                    AuditLogCreateRequest.builder()
+                            .action(action)
+                            .objectType(objectType)
+                            .objectId(objectId)
+                            .description(description)
+                            .oldValue(oldValue == null ? null : objectMapper.writeValueAsString(oldValue))
+                            .newValue(newValue == null ? null : objectMapper.writeValueAsString(newValue))
+                            .build()
+            );
+        } catch (JsonProcessingException e) {
+            throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
     }
 }

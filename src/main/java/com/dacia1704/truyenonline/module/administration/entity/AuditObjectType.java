@@ -18,5 +18,11 @@ public enum AuditObjectType {
 
     ROLE,
 
-    SYSTEM
+    SYSTEM,
+
+    TRANSACTION,
+
+    SUBSCRIPTION,
+
+    SUBSCRIPTION_PLAN
 }

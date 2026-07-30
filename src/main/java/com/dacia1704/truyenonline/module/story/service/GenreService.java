@@ -1,5 +1,8 @@
 package com.dacia1704.truyenonline.module.story.service;
 
+import com.dacia1704.truyenonline.module.administration.entity.AuditAction;
+import com.dacia1704.truyenonline.module.administration.entity.AuditObjectType;
+import com.dacia1704.truyenonline.module.administration.service.AuditLogService;
 import com.dacia1704.truyenonline.module.story.dto.request.GenreRequest;
 import com.dacia1704.truyenonline.module.story.dto.response.GenreResponse;
 import com.dacia1704.truyenonline.module.story.entity.Genre;
@@ -10,6 +13,8 @@ import com.dacia1704.truyenonline.shared.exception.AppException;
 import com.dacia1704.truyenonline.shared.exception.ErrorCode;
 import com.dacia1704.truyenonline.shared.utils.StringUtils;
 import java.util.List;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -24,6 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class GenreService {
     GenreRepository genreRepository;
     GenreMapper genreMapper;
+    AuditLogService auditLogService;
+    ObjectMapper objectMapper;
 
     public List<GenreResponse> getGenres(String search) {
         Specification<Genre> spec = GenreSpecification.filterGenres(search);
@@ -36,6 +43,8 @@ public class GenreService {
         genre.setSlug(generateSlug(request.getName()));
         genre.setNameNoAccent(StringUtils.removeAccent(request.getName()));
         genre = genreRepository.save(genre);
+        auditLogService.log(AuditAction.CREATE, AuditObjectType.GENRE,genre.getId().toString(),null,genre, null);
+
         return genreMapper.toGenreResponse(genre);
     }
 
@@ -44,15 +53,24 @@ public class GenreService {
                 genreRepository
                         .findById(id)
                         .orElseThrow(() -> new AppException(ErrorCode.GENRE_NOT_FOUND));
+        Genre oldValue = objectMapper.convertValue(genre, Genre.class);
+
         genreMapper.updateGenre(genre, request);
         genre.setSlug(generateSlug(request.getName()));
         genre.setNameNoAccent(StringUtils.removeAccent(request.getName()));
         genre = genreRepository.save(genre);
+        auditLogService.log(AuditAction.UPDATE, AuditObjectType.GENRE,genre.getId().toString(),oldValue,genre, null);
+
         return genreMapper.toGenreResponse(genre);
     }
 
     public void deleteGenre(String id) {
+        Genre genre =
+                genreRepository
+                        .findById(id)
+                        .orElseThrow(() -> new AppException(ErrorCode.GENRE_NOT_FOUND));
         genreRepository.deleteById(id);
+        auditLogService.log(AuditAction.DELETE, AuditObjectType.GENRE,genre.getId().toString(),genre,null, null);
     }
 
     private String generateSlug(String name) {

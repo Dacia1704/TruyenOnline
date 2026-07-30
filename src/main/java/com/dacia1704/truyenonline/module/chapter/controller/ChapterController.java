@@ -30,8 +30,7 @@ public class ChapterController {
             @RequestParam(defaultValue = "10") int size,
             @PathVariable("slug") String slug,
             @RequestParam() String search) {
-        PageResponse<ChapterResponse> result =
-                chapterService.getChaptersBySlug(page, size, slug, search);
+        PageResponse<ChapterResponse> result = chapterService.getChaptersBySlug(page, size, slug, search);
         return ApiResponse.success(result);
     }
 

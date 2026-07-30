@@ -1,7 +1,6 @@
 package com.dacia1704.truyenonline.module.authentication.service;
 
 import com.dacia1704.truyenonline.module.authentication.repository.PasswordResetTokenRepository;
-import com.dacia1704.truyenonline.module.authentication.repository.RefreshTokenRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

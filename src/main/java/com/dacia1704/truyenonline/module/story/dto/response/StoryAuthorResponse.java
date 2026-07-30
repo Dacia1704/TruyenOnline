@@ -10,8 +10,8 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class StoryAuthorResponse {
-    AuthorResponse authorResponse;
-    StoryResponse storyResponse;
-    AuthorRole authorRole;
+    AuthorResponse author;
+    StoryResponse story;
+    AuthorRole role;
     Byte sortOrder = 1;
 }

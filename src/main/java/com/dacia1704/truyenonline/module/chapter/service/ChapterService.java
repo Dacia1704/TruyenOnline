@@ -107,6 +107,7 @@ public class ChapterService {
         chapter.setTitleNoAccent(StringUtils.removeAccent(chapter.getTitle()));
         chapter.setStory(story);
         chapter = chapterRepository.save(chapter);
+        auditLogService.log(AuditAction.CREATE, AuditObjectType.CHAPTER, chapter.getId(), null, chapter, null);
         return chapterMapper.toChapterResponse(chapter);
     }
 
@@ -115,8 +116,11 @@ public class ChapterService {
                 chapterRepository
                         .findById(chapterId)
                         .orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND));
+        Chapter oldValue = objectMapper.convertValue(chapter, Chapter.class);
         chapterMapper.updateChapter(chapter, request);
         chapter = chapterRepository.save(chapter);
+        auditLogService.log(AuditAction.UPDATE, AuditObjectType.CHAPTER, chapter.getId(), oldValue, chapter, null);
+
         return chapterMapper.toChapterResponse(chapter);
     }
 
@@ -142,9 +146,14 @@ public class ChapterService {
             throw new AppException(ErrorCode.NO_PERMISSION);
         }
 
-        chapters.forEach(chapter -> chapter.setPublished(request.getPublishStatus()));
+        chapters.forEach(chapter -> {
+            Chapter oldValue = objectMapper.convertValue(chapter, Chapter.class);
+            chapter.setPublished(request.getPublishStatus());
+            auditLogService.log(AuditAction.PUBLISH, AuditObjectType.CHAPTER, chapter.getId(), oldValue, chapter, null);
+        });
 
         chapterRepository.saveAll(chapters);
+
     }
 
     public ChapterResponse updateChapterContent(String chapterId, ChapterContentUpdateRequest request) {
@@ -152,32 +161,20 @@ public class ChapterService {
                 chapterRepository
                         .findById(chapterId)
                         .orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND));
+        Chapter oldValue = objectMapper.convertValue(chapter, Chapter.class);
         chapter.setContent(request.getContent());
         chapter = chapterRepository.save(chapter);
+        auditLogService.log(AuditAction.UPDATE, AuditObjectType.CHAPTER, chapter.getId(), oldValue, chapter, null);
+
         return chapterMapper.toChapterResponse(chapter);
     }
 
     public ChapterResponse banChapter(String chapterId, ChapterBanRequest request) {
-        Chapter chapter = chapterRepository.findById(chapterId)
-                .orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND));
-
-        if (chapter.isBanned()) {
-            throw new AppException(ErrorCode.CHAPTER_ALREADY_BANNED);
-        }
-
-        String oldValue;
-        String newValue;
-
-        try {
-            oldValue = objectMapper.writeValueAsString(chapter);
-
-            chapter.setBanned(true);
-
-            newValue = objectMapper.writeValueAsString(chapter);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot serialize chapter", e);
-        }
-
+        Chapter chapter = chapterRepository.findById(chapterId).orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND));
+        if (chapter.isBanned()) throw new AppException(ErrorCode.CHAPTER_ALREADY_BANNED);
+        Chapter oldValue = objectMapper.convertValue(chapter, Chapter.class);
+        chapter.setBanned(true);
+        chapter = chapterRepository.save(chapter);
         moderationActionService.createModerationAction(
                 ModerationActionCreateRequest.builder()
                         .objectId(chapterId)
@@ -187,44 +184,16 @@ public class ChapterService {
                         .reason(request.getReason())
                         .build()
         );
-
-        auditLogService.createAuditLog(
-                AuditLogCreateRequest.builder()
-                        .action(AuditAction.BAN)
-                        .objectType(AuditObjectType.CHAPTER)
-                        .objectId(chapterId)
-                        .description(request.getReason())
-                        .oldValue(oldValue)
-                        .newValue(newValue)
-                        .build()
-        );
-
-        chapter = chapterRepository.save(chapter);
-
+        auditLogService.log(AuditAction.BAN, AuditObjectType.CHAPTER, chapter.getId(), oldValue, chapter, request.getReason());
         return chapterMapper.toChapterResponse(chapter);
     }
 
     public ChapterResponse unbanChapter(String chapterId, ChapterUnbanRequest request) {
-        Chapter chapter = chapterRepository.findById(chapterId)
-                .orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND));
-
-        if (!chapter.isBanned()) {
-            throw new AppException(ErrorCode.CHAPTER_NOT_GET_BANNED);
-        }
-
-        String oldValue;
-        String newValue;
-
-        try {
-            oldValue = objectMapper.writeValueAsString(chapter);
-
-            chapter.setBanned(false);
-
-            newValue = objectMapper.writeValueAsString(chapter);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot serialize chapter", e);
-        }
-
+        Chapter chapter = chapterRepository.findById(chapterId).orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND));
+        if (!chapter.isBanned()) throw new AppException(ErrorCode.CHAPTER_NOT_GET_BANNED);
+        Chapter oldValue = objectMapper.convertValue(chapter, Chapter.class);
+        chapter.setBanned(false);
+        chapter = chapterRepository.save(chapter);
         moderationActionService.createModerationAction(
                 ModerationActionCreateRequest.builder()
                         .objectId(chapterId)
@@ -233,25 +202,15 @@ public class ChapterService {
                         .reason(request.getReason())
                         .build()
         );
-
-        auditLogService.createAuditLog(
-                AuditLogCreateRequest.builder()
-                        .action(AuditAction.UNBAN)
-                        .objectType(AuditObjectType.CHAPTER)
-                        .objectId(chapterId)
-                        .description(request.getReason())
-                        .oldValue(oldValue)
-                        .newValue(newValue)
-                        .build()
-        );
-
-        chapter = chapterRepository.save(chapter);
-
+        auditLogService.log(AuditAction.UNBAN, AuditObjectType.CHAPTER, chapter.getId(), oldValue, chapter, request.getReason());
         return chapterMapper.toChapterResponse(chapter);
     }
 
 
     public void deleteChapter(String chapterId) {
+        Chapter chapter = chapterRepository.findById(chapterId).orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND));
         chapterRepository.deleteById(chapterId);
+        auditLogService.log(AuditAction.DELETE, AuditObjectType.CHAPTER, chapter.getId(), chapter, null, null);
+
     }
 }

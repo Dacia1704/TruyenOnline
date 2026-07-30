@@ -31,15 +31,19 @@ public class MediaFileService {
         mediaFileRepository.save(mediaFile);
     }
     public void increaseReference(String secureUrl) {
-        MediaFile mediaFile = mediaFileRepository.findBySecureUrl(secureUrl).orElseThrow(() -> new AppException(ErrorCode.MEDIA_FILE_NOT_FOUND));
-        mediaFile.increment();
-        mediaFileRepository.save(mediaFile);
+        mediaFileRepository.findBySecureUrl(secureUrl)
+                .ifPresent(mediaFile -> {
+                    mediaFile.increment();
+                    mediaFileRepository.save(mediaFile);
+                });
     }
 
     public void decreaseReference(String secureUrl) {
-        MediaFile mediaFile = mediaFileRepository.findBySecureUrl(secureUrl).orElseThrow(() -> new AppException(ErrorCode.MEDIA_FILE_NOT_FOUND));
-        mediaFile.decrement();
-        mediaFileRepository.save(mediaFile);
+        mediaFileRepository.findBySecureUrl(secureUrl)
+                .ifPresent(mediaFile -> {
+                    mediaFile.decrement();
+                    mediaFileRepository.save(mediaFile);
+                });
     }
 
     public void deleteOrphanImageFileBeforeDays() throws IOException {

@@ -7,12 +7,14 @@ import com.dacia1704.truyenonline.module.payment.dto.response.TransactionRespons
 import com.dacia1704.truyenonline.module.payment.service.PaymentService;
 import com.dacia1704.truyenonline.module.user.entity.User;
 import com.dacia1704.truyenonline.shared.response.ApiResponse;
+import com.dacia1704.truyenonline.shared.response.PageResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -71,9 +73,19 @@ public class PaymentController {
     // GET /api/payment/transactions
     // Lịch sử giao dịch của user hiện tại
     // ----------------------------------------------------------------
-    @GetMapping("/transactions")
-    public ApiResponse<List<TransactionResponse>> getTransactions() {
+    @GetMapping("/transactions/me")
+    public ApiResponse<List<TransactionResponse>> getTransactionsMe() {
         List<TransactionResponse> transactions = paymentService.getTransactionsByUser();
+        return ApiResponse.success(transactions);
+    }
+
+    @GetMapping("/transactions")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<PageResponse<TransactionResponse>> getTransactions(@RequestParam(defaultValue = "1") int page,
+                                                                          @RequestParam(defaultValue = "10") int size,
+                                                                          @RequestParam(required = false) String userId
+                                                                          ) {
+        PageResponse<TransactionResponse> transactions = paymentService.getTransactions(page, size, userId);
         return ApiResponse.success(transactions);
     }
 
