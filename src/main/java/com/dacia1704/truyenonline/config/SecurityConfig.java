@@ -27,14 +27,14 @@ public class SecurityConfig {
     }
 
     private final String[] PUBLIC_ENDPOINTS = {
-        "/auth/login",
-        "/auth/register",
-        "/auth/introspect",
-        "/auth/logout",
-        "/auth/refresh",
-        "/auth/google",
-        "/auth/forgot-password",
-        "/auth/reset-password",
+        "/api/auth/login",
+        "/api/auth/register",
+        "/api/auth/introspect",
+        "/api/auth/logout",
+        "/api/auth/refresh",
+        "/api/auth/google",
+        "/api/auth/forgot-password",
+        "/api/auth/reset-password",
         "/api/banners/active",
         "/api/stories/slug/{slug}/chapters",
         "/api/chapters/{id}",
