@@ -1,28 +1,20 @@
 package com.dacia1704.truyenonline.module.banner.entity;
 
-import com.dacia1704.truyenonline.module.media.entity.MediaFile;
 import com.dacia1704.truyenonline.module.user.entity.User;
 import com.dacia1704.truyenonline.shared.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Table(
         name = "banners",
         indexes = {
-                @Index(
-                        name = "idx_banner_position_active",
-                        columnList = "position, is_active, sort_order"
-                ),
-                @Index(
-                        name = "idx_banner_created_by",
-                        columnList = "created_by"
-                )
-        }
-)
+            @Index(
+                    name = "idx_banner_position_active",
+                    columnList = "position, is_active, sort_order"),
+            @Index(name = "idx_banner_created_by", columnList = "created_by")
+        })
 @Getter
 @Setter
 @Builder
@@ -56,7 +48,7 @@ public class Banner extends BaseEntity {
 
     @Builder.Default
     @Column(name = "is_active", nullable = false)
-    boolean isActive = true;
+    Boolean isActive = true;
 
     @Builder.Default
     @Column(name = "click_count", nullable = false)

@@ -9,15 +9,15 @@ import com.dacia1704.truyenonline.shared.exception.ErrorCode;
 import com.dacia1704.truyenonline.shared.utils.HashUtil;
 import com.dacia1704.truyenonline.shared.utils.UserAgentUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -32,42 +32,52 @@ public class RefreshTokenService {
     final RefreshTokenRepository refreshTokenRepository;
 
     public long deleteExpiredTokens() {
-        long deleteRevoked =  refreshTokenRepository.deleteByRevokedAtIsNotNull();
-        long deleteExpired =  refreshTokenRepository.deleteByExpiredAtBefore(LocalDateTime.now());
+        long deleteRevoked = refreshTokenRepository.deleteByRevokedAtIsNotNull();
+        long deleteExpired = refreshTokenRepository.deleteByExpiredAtBefore(LocalDateTime.now());
         return deleteExpired + deleteRevoked;
     }
 
-    public RefreshToken createRefreshToken(HttpServletRequest servletRequest, String deviceId,String rawRefreshToken, User user) {
+    public RefreshToken createRefreshToken(
+            HttpServletRequest servletRequest, String deviceId, String rawRefreshToken, User user) {
         var hashRefreshToken = HashUtil.sha256(rawRefreshToken);
         String userAgent = servletRequest.getHeader("User-Agent");
         String deviceName = UserAgentUtil.getDeviceName(userAgent);
         String ip = servletRequest.getRemoteAddr();
-        RefreshToken refreshToken = RefreshToken.builder()
-                .user(user)
-                .tokenHash(hashRefreshToken)
-                .expiredAt(LocalDateTime.now().plus(Duration.ofMillis(refreshExpiration)))
-                .lastUsedAt(LocalDateTime.now())
-                .deviceName(deviceName)
-                .deviceId(deviceId)
-                .ipAddress(ip)
-                .userAgent(userAgent)
-                .build();
+        RefreshToken refreshToken =
+                RefreshToken.builder()
+                        .user(user)
+                        .tokenHash(hashRefreshToken)
+                        .expiredAt(LocalDateTime.now().plus(Duration.ofMillis(refreshExpiration)))
+                        .lastUsedAt(LocalDateTime.now())
+                        .deviceName(deviceName)
+                        .deviceId(deviceId)
+                        .ipAddress(ip)
+                        .userAgent(userAgent)
+                        .build();
 
         refreshToken = refreshTokenRepository.save(refreshToken);
         return refreshToken;
     }
-    public RefreshToken createRefreshToken(String userAgent, String deviceName, String ip, String deviceId,String rawRefreshToken, User user) {
+
+    public RefreshToken createRefreshToken(
+            String userAgent,
+            String deviceName,
+            String ip,
+            String deviceId,
+            String rawRefreshToken,
+            User user) {
         var hashRefreshToken = HashUtil.sha256(rawRefreshToken);
-        RefreshToken refreshToken = RefreshToken.builder()
-                .user(user)
-                .tokenHash(hashRefreshToken)
-                .expiredAt(LocalDateTime.now().plus(Duration.ofMillis(refreshExpiration)))
-                .lastUsedAt(LocalDateTime.now())
-                .deviceName(deviceName)
-                .deviceId(deviceId)
-                .ipAddress(ip)
-                .userAgent(userAgent)
-                .build();
+        RefreshToken refreshToken =
+                RefreshToken.builder()
+                        .user(user)
+                        .tokenHash(hashRefreshToken)
+                        .expiredAt(LocalDateTime.now().plus(Duration.ofMillis(refreshExpiration)))
+                        .lastUsedAt(LocalDateTime.now())
+                        .deviceName(deviceName)
+                        .deviceId(deviceId)
+                        .ipAddress(ip)
+                        .userAgent(userAgent)
+                        .build();
 
         refreshToken = refreshTokenRepository.save(refreshToken);
         return refreshToken;
@@ -75,8 +85,10 @@ public class RefreshTokenService {
 
     public RefreshToken revokedRefreshToken(String token) {
         String hashToken = HashUtil.sha256(token);
-        RefreshToken refreshToken = refreshTokenRepository.findByTokenHash(hashToken)
-                .orElseThrow(() -> new AppException(ErrorCode.REFRESH_TOKEN_NOT_FOUND));
+        RefreshToken refreshToken =
+                refreshTokenRepository
+                        .findByTokenHash(hashToken)
+                        .orElseThrow(() -> new AppException(ErrorCode.REFRESH_TOKEN_NOT_FOUND));
         if (!refreshToken.isActive()) throw new AppException(ErrorCode.REFRESH_TOKEN_EXPIRED);
         refreshToken.setLastUsedAt(LocalDateTime.now());
         refreshToken.setTokenHash(hashToken);
@@ -94,7 +106,8 @@ public class RefreshTokenService {
     public String renewRefreshToken(String token, User user) {
         String newRefreshToken = jwtTokenService.generateRefreshToken(user);
         RefreshToken refreshToken = revokedRefreshToken(token);
-        createRefreshToken(refreshToken.getUserAgent(),
+        createRefreshToken(
+                refreshToken.getUserAgent(),
                 refreshToken.getDeviceName(),
                 refreshToken.getId(),
                 refreshToken.getDeviceId(),
@@ -103,7 +116,8 @@ public class RefreshTokenService {
         return newRefreshToken;
     }
 
-    public RefreshTokenResponse rotateRefreshToken(HttpServletRequest servletRequest, String deviceId, User user) {
+    public RefreshTokenResponse rotateRefreshToken(
+            HttpServletRequest servletRequest, String deviceId, User user) {
         List<RefreshToken> refreshTokens = refreshTokenRepository.findAllByUser_Id(user.getId());
         refreshTokens.forEach((refreshToken -> refreshToken.setRevokedAt(LocalDateTime.now())));
         refreshTokenRepository.saveAll(refreshTokens);
@@ -114,18 +128,22 @@ public class RefreshTokenService {
         String userAgent = servletRequest.getHeader("User-Agent");
         String deviceName = UserAgentUtil.getDeviceName(userAgent);
         String ip = servletRequest.getRemoteAddr();
-        RefreshToken refreshToken = RefreshToken.builder()
-                .user(user)
-                .tokenHash(hashRefreshToken)
-                .expiredAt(LocalDateTime.now().plus(Duration.ofMillis(refreshExpiration)))
-                .lastUsedAt(LocalDateTime.now())
-                .deviceName(deviceName)
-                .deviceId(deviceId)
-                .ipAddress(ip)
-                .userAgent(userAgent)
-                .build();
+        RefreshToken refreshToken =
+                RefreshToken.builder()
+                        .user(user)
+                        .tokenHash(hashRefreshToken)
+                        .expiredAt(LocalDateTime.now().plus(Duration.ofMillis(refreshExpiration)))
+                        .lastUsedAt(LocalDateTime.now())
+                        .deviceName(deviceName)
+                        .deviceId(deviceId)
+                        .ipAddress(ip)
+                        .userAgent(userAgent)
+                        .build();
 
         refreshTokenRepository.save(refreshToken);
-        return RefreshTokenResponse.builder().accessToken(accessToken).refreshToken(rawRefreshToken).build();
+        return RefreshTokenResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(rawRefreshToken)
+                .build();
     }
 }

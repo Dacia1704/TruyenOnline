@@ -27,7 +27,28 @@ public class SecurityConfig {
     }
 
     private final String[] PUBLIC_ENDPOINTS = {
-        "/auth/login", "/auth/register", "/auth/introspect", "/auth/logout", "/auth/refresh", "/auth/google", "/auth/forgot-password", "/auth/reset-password"
+        "/auth/login",
+        "/auth/register",
+        "/auth/introspect",
+        "/auth/logout",
+        "/auth/refresh",
+        "/auth/google",
+        "/auth/forgot-password",
+        "/auth/reset-password",
+        "/api/banners/active",
+        "/api/stories/slug/{slug}/chapters",
+        "/api/chapters/{id}",
+        "/api/chapters/{id}/pages",
+        "/api/comments/chapter/{id}",
+        "/api/stories/list",
+        "/api/stories/slug/{slug}",
+        "/api/stories/id/{id}",
+        "/api/reading-histories/story/{storyId}",
+        "/api/reading-histories",
+        "/api/subscription-plan",
+        "/api/subscription-plan/{code}",
+        "/api/authors",
+        "/api/genres",
     };
 
     private final CustomJwtDecoder customJwtDecoder;
@@ -37,10 +58,14 @@ public class SecurityConfig {
         // 1. Phân quyền API endpoints
         httpSecurity.authorizeHttpRequests(
                 request ->
-                        request.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
-                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                .requestMatchers("/api/payment/vnpay-ipn").permitAll()
-                                .requestMatchers("/api/payment/vnpay-return").permitAll()
+                        request.requestMatchers(PUBLIC_ENDPOINTS)
+                                .permitAll()
+                                .requestMatchers(HttpMethod.OPTIONS, "/**")
+                                .permitAll()
+                                .requestMatchers("/api/payment/vnpay-ipn")
+                                .permitAll()
+                                .requestMatchers("/api/payment/vnpay-return")
+                                .permitAll()
                                 .anyRequest()
                                 .authenticated());
 
@@ -80,7 +105,8 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:3000"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedMethods(
+                List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 

@@ -2,32 +2,27 @@ package com.dacia1704.truyenonline.module.administration.service;
 
 import com.dacia1704.truyenonline.module.administration.dto.request.AuditLogCreateRequest;
 import com.dacia1704.truyenonline.module.administration.dto.request.AuditLogPageRequest;
-import com.dacia1704.truyenonline.module.administration.dto.request.ModerationActionCreateRequest;
-import com.dacia1704.truyenonline.module.administration.dto.request.ModerationActionPageRequest;
 import com.dacia1704.truyenonline.module.administration.dto.response.AuditLogResponse;
-import com.dacia1704.truyenonline.module.administration.dto.response.ModerationActionResponse;
 import com.dacia1704.truyenonline.module.administration.entity.AuditAction;
 import com.dacia1704.truyenonline.module.administration.entity.AuditLog;
 import com.dacia1704.truyenonline.module.administration.entity.AuditObjectType;
-import com.dacia1704.truyenonline.module.administration.entity.ModerationAction;
 import com.dacia1704.truyenonline.module.administration.mapper.AuditLogMapper;
-import com.dacia1704.truyenonline.module.administration.mapper.ModerationActionMapper;
 import com.dacia1704.truyenonline.module.administration.repository.AuditLogRepository;
-import com.dacia1704.truyenonline.module.administration.repository.ModerationActionRepository;
 import com.dacia1704.truyenonline.module.administration.repository.specification.AuditLogSpecification;
-import com.dacia1704.truyenonline.module.administration.repository.specification.ModerationActionSpecification;
 import com.dacia1704.truyenonline.module.user.entity.Role;
 import com.dacia1704.truyenonline.module.user.entity.User;
 import com.dacia1704.truyenonline.module.user.repository.UserRepository;
-import com.dacia1704.truyenonline.module.user.service.UserService;
 import com.dacia1704.truyenonline.shared.exception.AppException;
 import com.dacia1704.truyenonline.shared.exception.ErrorCode;
 import com.dacia1704.truyenonline.shared.response.PageResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -37,9 +32,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -50,16 +43,12 @@ public class AuditLogService {
     UserRepository userRepository;
     ObjectMapper objectMapper;
 
-    public PageResponse<AuditLogResponse> getAuditLogs(
-            AuditLogPageRequest request) {
+    public PageResponse<AuditLogResponse> getAuditLogs(AuditLogPageRequest request) {
 
         int pageNo = request.getPage() > 0 ? request.getPage() - 1 : 0;
 
-        Pageable pageable = PageRequest.of(
-                pageNo,
-                request.getSize(),
-                Sort.by("createdAt").descending()
-        );
+        Pageable pageable =
+                PageRequest.of(pageNo, request.getSize(), Sort.by("createdAt").descending());
 
         Specification<AuditLog> spec =
                 AuditLogSpecification.filterAuditLogs(
@@ -68,17 +57,12 @@ public class AuditLogService {
                         request.getObjectType(),
                         request.getObjectId(),
                         request.getFromDate(),
-                        request.getToDate()
-                );
+                        request.getToDate());
 
-        Page<AuditLog> auditLogPage =
-                auditLogRepository.findAll(spec, pageable);
+        Page<AuditLog> auditLogPage = auditLogRepository.findAll(spec, pageable);
 
         List<AuditLogResponse> responses =
-                auditLogPage.getContent()
-                        .stream()
-                        .map(auditLogMapper::toResponse)
-                        .toList();
+                auditLogPage.getContent().stream().map(auditLogMapper::toResponse).toList();
 
         return PageResponse.<AuditLogResponse>builder()
                 .currentPage(request.getPage())
@@ -89,23 +73,25 @@ public class AuditLogService {
                 .build();
     }
 
-    public AuditLogResponse createAuditLog(
-            AuditLogCreateRequest request) {
+    public AuditLogResponse createAuditLog(AuditLogCreateRequest request) {
 
-        var context = SecurityContextHolder.getContext();
-        String userId = context.getAuthentication().getName();
-        User currentUser =  userRepository
-                .findById(userId)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        String userId =
+                request.getActorId() != null
+                        ? request.getActorId()
+                        : SecurityContextHolder.getContext().getAuthentication().getName();
+        User currentUser =
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         AuditLog auditLog = auditLogMapper.toAuditLog(request);
 
         auditLog.setActor(currentUser);
-        String roles = currentUser.getRoles()
-                .stream()
-                .map(Role::getName)
-                .sorted()
-                .collect(Collectors.joining(","));
+        String roles =
+                currentUser.getRoles().stream()
+                        .map(Role::getName)
+                        .sorted()
+                        .collect(Collectors.joining(","));
 
         auditLog.setActorRole(roles);
 
@@ -120,8 +106,18 @@ public class AuditLogService {
             String objectId,
             Object oldValue,
             Object newValue,
-            String description
-    ) {
+            String description) {
+        log(action, objectType, objectId, oldValue, newValue, description, null);
+    }
+
+    public void log(
+            AuditAction action,
+            AuditObjectType objectType,
+            String objectId,
+            Object oldValue,
+            Object newValue,
+            String description,
+            String actorId) {
         try {
             createAuditLog(
                     AuditLogCreateRequest.builder()
@@ -129,11 +125,18 @@ public class AuditLogService {
                             .objectType(objectType)
                             .objectId(objectId)
                             .description(description)
-                            .oldValue(oldValue == null ? null : objectMapper.writeValueAsString(oldValue))
-                            .newValue(newValue == null ? null : objectMapper.writeValueAsString(newValue))
-                            .build()
-            );
+                            .oldValue(
+                                    oldValue == null
+                                            ? null
+                                            : objectMapper.writeValueAsString(oldValue))
+                            .newValue(
+                                    newValue == null
+                                            ? null
+                                            : objectMapper.writeValueAsString(newValue))
+                            .actorId(actorId)
+                            .build());
         } catch (JsonProcessingException e) {
+            log.error(e.toString());
             throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
     }

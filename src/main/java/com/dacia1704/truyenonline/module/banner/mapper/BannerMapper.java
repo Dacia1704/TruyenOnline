@@ -12,10 +12,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 
 @Mapper(
         componentModel = "spring",
-        uses = {
-                UserMapper.class
-        }
-)
+        uses = {UserMapper.class})
 public interface BannerMapper {
 
     Banner toBanner(BannerCreateRequest request);
@@ -23,8 +20,5 @@ public interface BannerMapper {
     BannerResponse toBannerResponse(Banner banner);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateBanner(
-            @MappingTarget Banner banner,
-            BannerUpdateRequest request
-    );
+    void updateBanner(@MappingTarget Banner banner, BannerUpdateRequest request);
 }

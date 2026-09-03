@@ -6,20 +6,17 @@ import com.dacia1704.truyenonline.module.interaction.dto.request.CommentUnbanReq
 import com.dacia1704.truyenonline.module.interaction.dto.request.CommentUpdateRequest;
 import com.dacia1704.truyenonline.module.interaction.dto.response.CommentResponse;
 import com.dacia1704.truyenonline.module.interaction.service.CommentService;
-import com.dacia1704.truyenonline.module.story.dto.request.StoryBanRequest;
-import com.dacia1704.truyenonline.module.story.dto.request.StoryUnbanRequest;
-import com.dacia1704.truyenonline.module.story.dto.response.StoryResponse;
 import com.dacia1704.truyenonline.shared.response.ApiResponse;
 import com.dacia1704.truyenonline.shared.response.PageResponse;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
-
+@Slf4j
 @RestController
 @RequestMapping("/api/comments")
 @RequiredArgsConstructor
@@ -42,8 +39,7 @@ public class CommentController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @PathVariable("id") String storyId) {
-        PageResponse<CommentResponse> result =
-                commentService.getCommentStory(storyId, page, size);
+        PageResponse<CommentResponse> result = commentService.getCommentStory(storyId, page, size);
         return ApiResponse.success(result);
     }
 
@@ -51,6 +47,7 @@ public class CommentController {
     @PreAuthorize("hasAuthority('comment:create')")
     public ApiResponse<CommentResponse> createMyComment(
             @RequestBody @Valid CommentCreateRequest request) {
+        log.error("Tạo comment");
         CommentResponse result = commentService.createMyComment(request);
         return ApiResponse.success(result);
     }
@@ -73,7 +70,7 @@ public class CommentController {
     @PatchMapping("/{id}/ban")
     @PreAuthorize("hasAnyRole('ADMIN', 'UPLOADER')")
     public ApiResponse<CommentResponse> banComment(
-            @PathVariable("id") String id, @RequestBody @Valid CommentBanRequest request) throws IOException {
+            @PathVariable("id") String id, @RequestBody @Valid CommentBanRequest request) {
         CommentResponse result = commentService.banComment(id, request);
         return ApiResponse.success(result);
     }
@@ -81,7 +78,7 @@ public class CommentController {
     @PatchMapping("/{id}/unban")
     @PreAuthorize("hasAnyRole('ADMIN', 'UPLOADER')")
     public ApiResponse<CommentResponse> unbanComment(
-            @PathVariable("id") String id, @RequestBody @Valid CommentUnbanRequest request) throws IOException {
+            @PathVariable("id") String id, @RequestBody @Valid CommentUnbanRequest request) {
         CommentResponse result = commentService.unbanComment(id, request);
         return ApiResponse.success(result);
     }

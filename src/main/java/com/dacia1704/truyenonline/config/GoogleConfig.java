@@ -14,5 +14,4 @@ public class GoogleConfig {
     private String clientId;
 
     private String clientSecret;
-
 }

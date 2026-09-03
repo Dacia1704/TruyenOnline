@@ -1,13 +1,12 @@
 package com.dacia1704.truyenonline.module.authentication.service;
 
 import com.dacia1704.truyenonline.module.authentication.repository.PasswordResetTokenRepository;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
 
 @Slf4j
 @Service
@@ -19,5 +18,4 @@ public class PasswordResetTokenService {
     public int deleteNotUsablePasswordResetToken() {
         return passwordResetTokenRepository.deleteAllNotUsable(LocalDateTime.now());
     }
-
 }

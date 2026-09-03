@@ -1,7 +1,6 @@
 package com.dacia1704.truyenonline.module.interaction.dto.response;
 
 import com.dacia1704.truyenonline.module.user.dto.response.UserResponse;
-import jakarta.persistence.*;
 import java.util.List;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -17,4 +16,5 @@ public class CommentResponse {
     String content;
     UserResponse author;
     List<CommentResponse> replies;
+    Boolean isBanned;
 }

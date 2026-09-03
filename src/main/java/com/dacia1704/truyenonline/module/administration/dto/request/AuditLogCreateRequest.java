@@ -14,11 +14,9 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AuditLogCreateRequest {
 
-    @NotNull
-    AuditAction action;
+    @NotNull AuditAction action;
 
-    @NotNull
-    AuditObjectType objectType;
+    @NotNull AuditObjectType objectType;
 
     String objectId;
 
@@ -27,4 +25,6 @@ public class AuditLogCreateRequest {
     String oldValue;
 
     String newValue;
+
+    String actorId;
 }

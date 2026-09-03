@@ -6,8 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -15,8 +13,7 @@ import java.time.LocalDateTime;
 @Builder
 public class BannerUpdateRequest {
 
-    @NotBlank
-    private String title;
+    @NotBlank private String title;
 
     private String linkUrl;
 
@@ -24,9 +21,7 @@ public class BannerUpdateRequest {
 
     private MultipartFile imageFile;
 
-    @NotNull
-    private BannerPosition position;
+    @NotNull private BannerPosition position;
 
-    @NotNull
-    private Integer sortOrder;
+    @NotNull private Integer sortOrder;
 }

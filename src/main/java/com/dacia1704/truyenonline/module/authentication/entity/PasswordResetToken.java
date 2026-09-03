@@ -2,13 +2,13 @@ package com.dacia1704.truyenonline.module.authentication.entity;
 
 import com.dacia1704.truyenonline.module.user.entity.User;
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "password_reset_tokens")
@@ -25,9 +25,9 @@ public class PasswordResetToken {
     String id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false,
-            foreignKey = @ForeignKey(name = "fk_prt_user"))
+    @JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(name = "fk_prt_user"))
     private User user;
+
     @Column(name = "token_hash", length = 255, nullable = false, unique = true)
     private String tokenHash;
 

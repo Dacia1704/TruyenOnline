@@ -4,11 +4,10 @@ import com.dacia1704.truyenonline.module.story.entity.StoryStatus;
 import com.dacia1704.truyenonline.module.story.entity.StoryType;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import java.util.List;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -28,11 +27,12 @@ public class StoryCreateRequest {
     @NotNull(message = "Trường thể loại truyện không được để trống")
     StoryType storyType;
 
-    @Builder.Default
-    StoryStatus status = StoryStatus.ONGOING;
+    @Builder.Default StoryStatus status = StoryStatus.ONGOING;
 
     Integer freeChapterLimit;
 
     List<StoryAuthorUpdateRequest> authors;
 
+    @NotEmpty(message = "Truyện phải có ít nhất 1 thể loại")
+    List<Integer> genreIds;
 }

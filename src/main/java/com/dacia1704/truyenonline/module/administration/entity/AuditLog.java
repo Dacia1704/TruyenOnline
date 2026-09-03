@@ -1,25 +1,22 @@
 package com.dacia1704.truyenonline.module.administration.entity;
 
 import com.dacia1704.truyenonline.module.user.entity.User;
-import com.dacia1704.truyenonline.shared.entity.BaseEntity;
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Table(
         name = "audit_logs",
         indexes = {
-                @Index(name = "idx_audit_logs_actor", columnList = "actor_id"),
-                @Index(name = "idx_audit_logs_object", columnList = "object_type, object_id"),
-                @Index(name = "idx_audit_logs_action", columnList = "action"),
-                @Index(name = "idx_audit_logs_created_at", columnList = "created_at")
-        }
-)
+            @Index(name = "idx_audit_logs_actor", columnList = "actor_id"),
+            @Index(name = "idx_audit_logs_object", columnList = "object_type, object_id"),
+            @Index(name = "idx_audit_logs_action", columnList = "action"),
+            @Index(name = "idx_audit_logs_created_at", columnList = "created_at")
+        })
 @Getter
 @Setter
 @Builder

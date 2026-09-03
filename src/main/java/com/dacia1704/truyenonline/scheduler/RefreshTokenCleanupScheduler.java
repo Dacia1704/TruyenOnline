@@ -23,9 +23,14 @@ public class RefreshTokenCleanupScheduler {
         log.info("Start cleanup expired refresh tokens");
 
         long deleted = refreshTokenService.deleteExpiredTokens();
-        auditLogService.log(AuditAction.DELETE, AuditObjectType.SYSTEM, null, null, null, " Cleanup expired refresh tokens");
+        auditLogService.log(
+                AuditAction.DELETE,
+                AuditObjectType.SYSTEM,
+                null,
+                null,
+                null,
+                " Cleanup expired refresh tokens");
 
         log.info("Deleted {} refresh tokens", deleted);
     }
-
 }

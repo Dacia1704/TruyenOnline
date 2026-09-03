@@ -1,7 +1,5 @@
 package com.dacia1704.truyenonline.module.payment.utils;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -11,6 +9,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 
 public class VNPayUtil {
 
@@ -23,8 +23,8 @@ public class VNPayUtil {
     public static String hmacSHA512(String key, String data) {
         try {
             Mac mac = Mac.getInstance("HmacSHA512");
-            SecretKeySpec secretKeySpec = new SecretKeySpec(
-                    key.getBytes(StandardCharsets.UTF_8), "HmacSHA512");
+            SecretKeySpec secretKeySpec =
+                    new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA512");
             mac.init(secretKeySpec);
             byte[] hash = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
 
@@ -97,19 +97,15 @@ public class VNPayUtil {
     // ----------------------------------------------------------------
     public static String generateTxnRef() {
         String timestamp = formatDate(LocalDateTime.now());
-        String random = UUID.randomUUID().toString()
-                .replace("-", "")
-                .substring(0, 8)
-                .toUpperCase();
+        String random = UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
         return timestamp + "_" + random;
     }
 
     // ----------------------------------------------------------------
     // Verify secure hash từ VNPay callback
     // ----------------------------------------------------------------
-    public static boolean verifySecureHash(String hashSecret,
-                                           Map<String, String> params,
-                                           String receivedHash) {
+    public static boolean verifySecureHash(
+            String hashSecret, Map<String, String> params, String receivedHash) {
         String computedHash = hmacSHA512(hashSecret, buildHashData(params));
         return computedHash.equalsIgnoreCase(receivedHash);
     }

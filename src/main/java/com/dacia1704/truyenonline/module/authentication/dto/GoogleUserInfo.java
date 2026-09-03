@@ -16,5 +16,4 @@ public class GoogleUserInfo {
     private String picture;
 
     private boolean emailVerified;
-
 }

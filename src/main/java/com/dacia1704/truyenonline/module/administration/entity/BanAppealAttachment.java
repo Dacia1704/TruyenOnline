@@ -8,13 +8,7 @@ import lombok.experimental.FieldDefaults;
 @Entity
 @Table(
         name = "ban_appeal_attachments",
-        indexes = {
-                @Index(
-                        name = "idx_appeal_attachment_appeal",
-                        columnList = "appeal_id"
-                )
-        }
-)
+        indexes = {@Index(name = "idx_appeal_attachment_appeal", columnList = "appeal_id")})
 @Getter
 @Setter
 @Builder

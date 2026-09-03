@@ -29,28 +29,41 @@ public enum ErrorCode {
     INVALID_REQUEST(HttpStatus.BAD_REQUEST, "Request không hợp lệ"),
     CHAPTER_NOT_SAME_STORY(HttpStatus.BAD_REQUEST, "Các chapter gửi lên không thuộc cùng 1 truyện"),
     STORY_PUBLISH_REQUEST_APPROVED(HttpStatus.BAD_REQUEST, "Yêu cầu xuất bản truyện đã được duyệt"),
-    STORY_PUBLISH_REQUEST_PENDING(HttpStatus.BAD_REQUEST, "Yêu cầu xuất bản truyện đã được tạo và đang chờ duyệt"),
-    STORY_PUBLISH_REQUEST_CONFIRMED(HttpStatus.BAD_REQUEST, "Yêu cầu xuất bản truyện đã được phê duyệt"),
+    STORY_PUBLISH_REQUEST_PENDING(
+            HttpStatus.BAD_REQUEST, "Yêu cầu xuất bản truyện đã được tạo và đang chờ duyệt"),
+    STORY_PUBLISH_REQUEST_CONFIRMED(
+            HttpStatus.BAD_REQUEST, "Yêu cầu xuất bản truyện đã được phê duyệt"),
     STORY_ALREADY_BANNED(HttpStatus.BAD_REQUEST, "Truyện này hiện đang bị hạn chế xuất bản."),
-    CHAPTER_ALREADY_BANNED(HttpStatus.BAD_REQUEST, "Chương truyện này hiện đang bị hạn chế xuất bản."),
+    STORY_NOT_PUBLISHED(HttpStatus.BAD_REQUEST, "Truyện này hiện đang chưa được xuất bản"),
+    CHAPTER_ALREADY_BANNED(
+            HttpStatus.BAD_REQUEST, "Chương truyện này hiện đang bị hạn chế xuất bản."),
     USER_ALREADY_BANNED(HttpStatus.BAD_REQUEST, "Tài khoản này hiện đang bị tạm khóa."),
     COMMENT_ALREADY_BANNED(HttpStatus.BAD_REQUEST, "Bình luận này hiện đang bị ẩn do vi phạm."),
     STORY_NOT_GET_BANNED(HttpStatus.BAD_REQUEST, "Truyện này hiện đang không bị hạn chế xuất bản."),
-    CHAPTER_NOT_GET_BANNED(HttpStatus.BAD_REQUEST, "Chương truyện này hiện đang không bị hạn chế xuất bản."),
+    CHAPTER_NOT_GET_BANNED(
+            HttpStatus.BAD_REQUEST, "Chương truyện này hiện đang không bị hạn chế xuất bản."),
     USER_NOT_GET_BANNED(HttpStatus.BAD_REQUEST, "Tài khoản này hiện đang không bị tạm khóa."),
-    COMMENT_NOT_GET_BANNED(HttpStatus.BAD_REQUEST, "Bình luận này hiện đang không bị ẩn do vi phạm."),
+    COMMENT_NOT_GET_BANNED(
+            HttpStatus.BAD_REQUEST, "Bình luận này hiện đang không bị ẩn do vi phạm."),
     INVALID_PLAN(HttpStatus.BAD_REQUEST, "Gói bạn chọn không hợp lệ"),
     FAILED_TO_SEND_EMAIL(HttpStatus.BAD_REQUEST, "Failed to send email."),
     INVALID_TOKEN(HttpStatus.BAD_REQUEST, "Token không khả dụng"),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error"),
-    REFRESH_TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "Phiên đăng nhập không còn hợp lệ. Vui lòng đăng nhập lại."),
-    REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."),
+    REFRESH_TOKEN_NOT_FOUND(
+            HttpStatus.UNAUTHORIZED, "Phiên đăng nhập không còn hợp lệ. Vui lòng đăng nhập lại."),
+    REFRESH_TOKEN_EXPIRED(
+            HttpStatus.UNAUTHORIZED, "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."),
     MEDIA_FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy file ảnh"),
-    GOOGLE_ACCOUNT_EMAIL_NOT_MATCH(HttpStatus.BAD_REQUEST, "Tài khoản email google không khớp với email đã đăng kí tài khoản"),
+    GOOGLE_ACCOUNT_EMAIL_NOT_MATCH(
+            HttpStatus.BAD_REQUEST,
+            "Tài khoản email google không khớp với email đã đăng kí tài khoản"),
     SOCIAL_ACCOUNT_ALREADY_LINKED(HttpStatus.BAD_REQUEST, "Tài khoản google đã được liên kết"),
     SOCIAL_ACCOUNT_NOT_FOUND(HttpStatus.NOT_FOUND, "Tài khoản liên kết không tồn tại"),
-    DONOT_HAVE_LOCAL_ACCOUNT_SO_CANNOT_UNLINK_LAST_PROVIDER(HttpStatus.BAD_REQUEST, "Bạn không đăng kí tài khoản thường nên không thể xóa tài khoản liên kết cuối cùng"),
-    NEED_AT_LEAST_A_CHAPTER_TO_PUBLISH(HttpStatus.BAD_REQUEST, "Cần ít nhất 1 chapter để yêu xầu xuất bản"),
+    DONOT_HAVE_LOCAL_ACCOUNT_SO_CANNOT_UNLINK_LAST_PROVIDER(
+            HttpStatus.BAD_REQUEST,
+            "Bạn không đăng kí tài khoản thường nên không thể xóa tài khoản liên kết cuối cùng"),
+    NEED_AT_LEAST_A_CHAPTER_TO_PUBLISH(
+            HttpStatus.BAD_REQUEST, "Cần ít nhất 1 chapter để yêu xầu xuất bản"),
     BANNER_NOT_FOUND(HttpStatus.NOT_FOUND, "Banner không tồn tại"),
     NO_PERMISSION(HttpStatus.FORBIDDEN, "Bạn không có quyền thực hiện hành động này"),
     UPLOAD_IMAGE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Upload ảnh thất bại."),

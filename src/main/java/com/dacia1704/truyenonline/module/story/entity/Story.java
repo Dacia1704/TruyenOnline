@@ -5,7 +5,6 @@ import com.dacia1704.truyenonline.module.interaction.entity.Bookmark;
 import com.dacia1704.truyenonline.module.user.entity.User; // Import Entity User của bạn
 import com.dacia1704.truyenonline.shared.entity.BaseEntity;
 import jakarta.persistence.*;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -66,7 +65,7 @@ public class Story extends BaseEntity {
 
     @Builder.Default
     @Column(name = "is_published", nullable = false)
-    boolean isPublished = false;
+    Boolean isPublished = false;
 
     // Sửa thành Integer để chấp nhận giá trị NULL (Toàn bộ free)
     @Column(name = "free_chapter_limit")
@@ -86,7 +85,7 @@ public class Story extends BaseEntity {
 
     @Builder.Default
     @Column(name = "is_banned", nullable = false)
-    boolean isBanned = false;
+    Boolean isBanned = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "current_moderation_id")
@@ -102,8 +101,6 @@ public class Story extends BaseEntity {
 
     // Helper method — lấy danh sách Author từ StoryAuthor
     public List<Author> getAuthors() {
-        return storyAuthors.stream()
-                .map(StoryAuthor::getAuthor)
-                .toList();
+        return storyAuthors.stream().map(StoryAuthor::getAuthor).toList();
     }
 }

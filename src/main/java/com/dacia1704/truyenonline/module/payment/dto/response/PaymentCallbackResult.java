@@ -9,9 +9,9 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PaymentCallbackResult {
-    String  txnRef;
+    String txnRef;
     boolean success;
-    String  responseCode;
+    String responseCode;
     boolean validSignature;
-    String  message;
+    String message;
 }

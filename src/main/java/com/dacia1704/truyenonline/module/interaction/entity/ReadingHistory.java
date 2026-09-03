@@ -13,18 +13,18 @@ import lombok.experimental.FieldDefaults;
 @Table(
         name = "reading_history",
         indexes = {
-                @Index(name = "idx_rh_user_id", columnList = "user_id"),
-                @Index(name = "idx_rh_session_id", columnList = "session_id"),
-                @Index(name = "idx_rh_last_read", columnList = "last_read_at"),
+            @Index(name = "idx_rh_user_id", columnList = "user_id"),
+            @Index(name = "idx_rh_session_id", columnList = "session_id"),
+            @Index(name = "idx_rh_last_read", columnList = "last_read_at"),
         },
         // Cập nhật lại Unique Constraint thêm cột 'type'
         uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uq_user_story_type",
-                        columnNames = {"user_id", "story_id", "type"}),
-                @UniqueConstraint(
-                        name = "uq_session_story_type",
-                        columnNames = {"session_id", "story_id", "type"})
+            @UniqueConstraint(
+                    name = "uq_user_story_type",
+                    columnNames = {"user_id", "story_id", "type"}),
+            @UniqueConstraint(
+                    name = "uq_session_story_type",
+                    columnNames = {"session_id", "story_id", "type"})
         })
 @Getter
 @Setter

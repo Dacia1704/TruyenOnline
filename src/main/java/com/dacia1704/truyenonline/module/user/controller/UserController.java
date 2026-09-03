@@ -1,10 +1,7 @@
 package com.dacia1704.truyenonline.module.user.controller;
 
-import com.dacia1704.truyenonline.module.authentication.dto.request.LoginRequest;
-import com.dacia1704.truyenonline.module.story.dto.request.StoryBanRequest;
-import com.dacia1704.truyenonline.module.story.dto.request.StoryUnbanRequest;
-import com.dacia1704.truyenonline.module.story.dto.response.StoryResponse;
 import com.dacia1704.truyenonline.module.user.dto.request.*;
+import com.dacia1704.truyenonline.module.user.dto.response.RoleResponse;
 import com.dacia1704.truyenonline.module.user.dto.response.UserResponse;
 import com.dacia1704.truyenonline.module.user.dto.response.UserUpgradeToUploaderResponse;
 import com.dacia1704.truyenonline.module.user.service.UserService;
@@ -12,14 +9,14 @@ import com.dacia1704.truyenonline.shared.response.ApiResponse;
 import com.dacia1704.truyenonline.shared.response.PageResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import java.io.IOException;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/users")
@@ -30,7 +27,8 @@ public class UserController {
 
     // User - Uploader
     @PatchMapping(value = "/me", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    ApiResponse<UserResponse> updateMyInfo(@ModelAttribute @Valid UserUpdateRequest request) throws IOException {
+    ApiResponse<UserResponse> updateMyInfo(@ModelAttribute @Valid UserUpdateRequest request)
+            throws IOException {
         return ApiResponse.success(userService.updateMyInfo(request));
     }
 
@@ -42,8 +40,7 @@ public class UserController {
     @PatchMapping("/me/upgrade-to-uploader")
     ApiResponse<UserUpgradeToUploaderResponse> upgradeToUploader(
             HttpServletRequest servletRequest,
-            @RequestHeader(value = "Device-Id", required = false) String deviceId
-    ) {
+            @RequestHeader(value = "Device-Id", required = false) String deviceId) {
         return ApiResponse.success(userService.upgradeToUploader(servletRequest, deviceId));
     }
 
@@ -66,7 +63,8 @@ public class UserController {
     @PatchMapping("/{id}/ban")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<UserResponse> banUser(
-            @PathVariable("id") String id, @RequestBody @Valid UserBanRequest request) throws IOException {
+            @PathVariable("id") String id, @RequestBody @Valid UserBanRequest request)
+            throws IOException {
         UserResponse result = userService.banUser(id, request);
         return ApiResponse.success(result);
     }
@@ -74,7 +72,8 @@ public class UserController {
     @PatchMapping("/{id}/unban")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<UserResponse> unbanUser(
-            @PathVariable("id") String id, @RequestBody @Valid UserUnbanRequest request) throws IOException {
+            @PathVariable("id") String id, @RequestBody @Valid UserUnbanRequest request)
+            throws IOException {
         UserResponse result = userService.unbanUser(id, request);
         return ApiResponse.success(result);
     }
@@ -85,5 +84,12 @@ public class UserController {
             @PathVariable("userId") String userId,
             @RequestBody @Valid UserUpdateRoleRequest request) {
         return ApiResponse.success(userService.updateRoles(userId, request));
+    }
+
+    @GetMapping("/roles")
+    @PreAuthorize("hasAuthority('user:manage_roles')")
+    public ApiResponse<List<RoleResponse>> getRoles() {
+        List<RoleResponse> result = userService.getRoles();
+        return ApiResponse.success(result);
     }
 }

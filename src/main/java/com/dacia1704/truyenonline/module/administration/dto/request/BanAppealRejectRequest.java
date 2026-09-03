@@ -10,6 +10,5 @@ import lombok.*;
 @Builder
 public class BanAppealRejectRequest {
 
-    @NotBlank
-    private String reviewerNote;
+    @NotBlank private String reviewerNote;
 }

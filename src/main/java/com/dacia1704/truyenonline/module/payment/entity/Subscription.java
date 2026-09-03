@@ -45,8 +45,6 @@ public class Subscription extends BaseEntity {
     @JoinColumn(
             name = "plan",
             referencedColumnName = "code",
-            foreignKey = @ForeignKey(name = "fk_sub_plan")
-    )
+            foreignKey = @ForeignKey(name = "fk_sub_plan"))
     private SubscriptionPlan plan;
-
 }

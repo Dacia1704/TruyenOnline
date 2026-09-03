@@ -4,7 +4,9 @@ import com.dacia1704.truyenonline.module.authentication.dto.request.RegisterRequ
 import com.dacia1704.truyenonline.module.authentication.dto.response.RegisterResponse;
 import com.dacia1704.truyenonline.module.user.dto.request.UserCreateRequest;
 import com.dacia1704.truyenonline.module.user.dto.request.UserUpdateRequest;
+import com.dacia1704.truyenonline.module.user.dto.response.RoleResponse;
 import com.dacia1704.truyenonline.module.user.dto.response.UserResponse;
+import com.dacia1704.truyenonline.module.user.entity.Role;
 import com.dacia1704.truyenonline.module.user.entity.User;
 import org.mapstruct.*;
 
@@ -26,4 +28,6 @@ public interface UserMapper {
     UserResponse toUserResponse(User user);
 
     RegisterResponse toRegisterResponse(User user);
+
+    RoleResponse toRoleResponse(Role role);
 }

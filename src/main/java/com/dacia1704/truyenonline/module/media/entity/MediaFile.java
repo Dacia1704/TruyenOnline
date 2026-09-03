@@ -2,33 +2,25 @@ package com.dacia1704.truyenonline.module.media.entity;
 
 import com.dacia1704.truyenonline.module.user.entity.User;
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.type.SqlTypes;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
- * Đại diện cho một file đã upload lên Cloudinary. Story/Chapter/User...
- * tham chiếu tới entity này (qua id) thay vì lưu thẳng URL.
+ * Đại diện cho một file đã upload lên Cloudinary. Story/Chapter/User... tham chiếu tới entity này
+ * (qua id) thay vì lưu thẳng URL.
  *
- * Cơ chế reference_count (thay cho is_active):
- * - Upload mới          -> reference_count = 0
- * - Entity gắn file này -> reference_count += 1 (increment())
- * - Đổi ảnh / xoá entity -> reference_count -= 1 (decrement())
- * - reference_count = 0 -> file "mồ côi", chưa xoá ngay.
+ * <p>Cơ chế reference_count (thay cho is_active): - Upload mới -> reference_count = 0 - Entity gắn
+ * file này -> reference_count += 1 (increment()) - Đổi ảnh / xoá entity -> reference_count -= 1
+ * (decrement()) - reference_count = 0 -> file "mồ côi", chưa xoá ngay.
  *
- * Cron job định kỳ tìm các row có reference_count = 0 VÀ
- * updated_at đã quá X ngày (query trực tiếp trên bảng này,
- * không cần quét Story/Chapter/User) để xoá trên Cloudinary
- * rồi xoá bản ghi.
+ * <p>Cron job định kỳ tìm các row có reference_count = 0 VÀ updated_at đã quá X ngày (query trực
+ * tiếp trên bảng này, không cần quét Story/Chapter/User) để xoá trên Cloudinary rồi xoá bản ghi.
  */
 @Entity
 @Table(name = "media_files")

@@ -18,6 +18,5 @@ public class StoryAuthorUpdateRequest {
     @NotNull(message = "Role không được để trống")
     AuthorRole role; // AUTHOR, CO_AUTHOR, ILLUSTRATOR, TRANSLATOR
 
-    @Builder.Default
-    Byte sortOrder = 1;
+    @Builder.Default Byte sortOrder = 1;
 }

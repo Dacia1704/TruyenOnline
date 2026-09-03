@@ -19,7 +19,6 @@ import com.dacia1704.truyenonline.shared.exception.ErrorCode;
 import com.dacia1704.truyenonline.shared.response.PageResponse;
 import java.util.List;
 import java.util.Optional;
-
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -31,7 +30,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -54,10 +52,8 @@ public class ReadingHistoryService {
                         && !"anonymousUser".equals(authentication.getPrincipal());
 
         int pageNo = Math.max(page - 1, 0);
-        Pageable pageable = PageRequest.of(
-                pageNo,
-                size,
-                Sort.by(Sort.Direction.DESC, "lastReadAt"));
+        Pageable pageable =
+                PageRequest.of(pageNo, size, Sort.by(Sort.Direction.DESC, "lastReadAt"));
 
         String userId = null;
 
@@ -75,10 +71,10 @@ public class ReadingHistoryService {
         Page<ReadingHistory> readingHistories =
                 readingHistoryRepository.findAll(specification, pageable);
 
-        List<ReadingHistoryResponse> responses = readingHistories.getContent()
-                .stream()
-                .map(readingHistoryMapper::toReadingHistoryResponse)
-                .toList();
+        List<ReadingHistoryResponse> responses =
+                readingHistories.getContent().stream()
+                        .map(readingHistoryMapper::toReadingHistoryResponse)
+                        .toList();
 
         return PageResponse.<ReadingHistoryResponse>builder()
                 .currentPage(page)
@@ -89,72 +85,185 @@ public class ReadingHistoryService {
                 .build();
     }
 
-    public ReadingHistoryResponse getLastReadingChapterInStory(
-            String sessionId, String storyId) {
+    public ReadingHistoryResponse getLastReadingChapterInStory(String sessionId, String storyId) {
 
         var authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        boolean isAuthenticated = authentication != null && authentication.isAuthenticated()
-                        && !"anonymousUser".equals(authentication.getPrincipal());
-        Optional<ReadingHistory> optional;
-        if (isAuthenticated) {
-            String userId = authentication.getName();
-            optional = readingHistoryRepository.findByStoryIdAndUserIdAndType(storyId, userId, HistoryType.CHAPTER);
-        } else {
-            if (sessionId == null || sessionId.isBlank()) return null;
-            optional = readingHistoryRepository.findByStoryIdAndSessionIdAndType(storyId, sessionId, HistoryType.CHAPTER);
-        }
-        return optional.map(readingHistoryMapper::toReadingHistoryResponse).orElse(null);
-    }
-
-    public ReadingHistoryResponse updateMyReadingHistory(
-            String sessionId, ReadingHistoryRequest request) {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAuthenticated =
                 authentication != null
                         && authentication.isAuthenticated()
                         && !"anonymousUser".equals(authentication.getPrincipal());
-        Story story = storyRepository.findById(request.getStoryId()).orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
+        Optional<ReadingHistory> optional;
+        if (isAuthenticated) {
+            String userId = authentication.getName();
+            optional =
+                    readingHistoryRepository.findByStoryIdAndUserIdAndType(
+                            storyId, userId, HistoryType.CHAPTER);
+        } else {
+            if (sessionId == null || sessionId.isBlank()) return null;
+            optional =
+                    readingHistoryRepository.findByStoryIdAndSessionIdAndType(
+                            storyId, sessionId, HistoryType.CHAPTER);
+        }
+        return optional.map(readingHistoryMapper::toReadingHistoryResponse).orElse(null);
+    }
+
+    @Transactional
+    public ReadingHistoryResponse updateMyReadingHistory(
+            String sessionId, ReadingHistoryRequest request) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        boolean isAuthenticated =
+                authentication != null
+                        && authentication.isAuthenticated()
+                        && !"anonymousUser".equals(authentication.getPrincipal());
+
+        Story story =
+                storyRepository
+                        .findById(request.getStoryId())
+                        .orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
 
         ReadingHistory readingHistory;
-        if(request.getType().equals(HistoryType.STORY)) {
+
+        // =========================================================
+        // STORY HISTORY
+        // =========================================================
+        if (request.getType() == HistoryType.STORY) {
+
             if (isAuthenticated) {
+
                 String userId = authentication.getName();
-                User user = userRepository.findById(userId)
-                        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-                readingHistory = readingHistoryRepository.findByStoryIdAndUserIdAndType(story.getId(), userId, HistoryType.STORY)
-                                .orElseGet(() -> ReadingHistory.builder().story(story).user(user).type(HistoryType.STORY).build());
+
+                User user =
+                        userRepository
+                                .findById(userId)
+                                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+                readingHistory =
+                        readingHistoryRepository
+                                .findByStoryIdAndUserIdAndType(
+                                        story.getId(), userId, HistoryType.STORY)
+                                .orElseGet(
+                                        () ->
+                                                ReadingHistory.builder()
+                                                        .story(story)
+                                                        .user(user)
+                                                        .type(HistoryType.STORY)
+                                                        .build());
+
             } else {
+
                 if (sessionId == null || sessionId.isBlank()) {
                     throw new AppException(ErrorCode.SESSION_INVALID);
                 }
 
-                readingHistory = readingHistoryRepository.findByStoryIdAndSessionIdAndType(story.getId(), sessionId, HistoryType.STORY)
-                                .orElseGet(() -> ReadingHistory.builder().story(story).sessionId(sessionId).type(HistoryType.STORY).build());
+                readingHistory =
+                        readingHistoryRepository
+                                .findByStoryIdAndSessionIdAndType(
+                                        story.getId(), sessionId, HistoryType.STORY)
+                                .orElseGet(
+                                        () ->
+                                                ReadingHistory.builder()
+                                                        .story(story)
+                                                        .sessionId(sessionId)
+                                                        .type(HistoryType.STORY)
+                                                        .build());
             }
-            story.setViewCount(story.getViewCount()+1);
+
+            // Tăng lượt xem story
+            story.setViewCount(story.getViewCount() + 1);
             storyRepository.save(story);
-        } else {
-            Chapter chapter = chapterRepository.findById(request.getChapterId())
+
+        }
+
+        // =========================================================
+        // CHAPTER HISTORY
+        // =========================================================
+        else if (request.getType() == HistoryType.CHAPTER) {
+
+            if (request.getChapterId() == null || request.getChapterId().isBlank()) {
+                throw new AppException(ErrorCode.CHAPTER_NOT_FOUND);
+            }
+
+            Chapter chapter =
+                    chapterRepository
+                            .findById(request.getChapterId())
                             .orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND));
+
+            // Đảm bảo chapter thuộc đúng story
+            if (!chapter.getStory().getId().equals(story.getId())) {
+                throw new AppException(ErrorCode.CHAPTER_NOT_FOUND);
+            }
+
             if (isAuthenticated) {
+
                 String userId = authentication.getName();
-                User user = userRepository.findById(userId)
-                        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-                readingHistory = readingHistoryRepository.findByChapterIdAndUserIdAndType(chapter.getId(), userId, HistoryType.CHAPTER)
-                        .orElseGet(() -> ReadingHistory.builder().story(story).chapter(chapter).user(user).type(HistoryType.CHAPTER).build());
+
+                User user =
+                        userRepository
+                                .findById(userId)
+                                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+                /*
+                 * Quan trọng:
+                 *
+                 * Unique constraint:
+                 * (user_id, story_id, type)
+                 *
+                 * Vì vậy phải tìm theo STORY, không tìm theo chapter.
+                 */
+                readingHistory =
+                        readingHistoryRepository
+                                .findByStoryIdAndUserIdAndType(
+                                        story.getId(), userId, HistoryType.CHAPTER)
+                                .orElseGet(
+                                        () ->
+                                                ReadingHistory.builder()
+                                                        .story(story)
+                                                        .user(user)
+                                                        .type(HistoryType.CHAPTER)
+                                                        .build());
+
             } else {
+
                 if (sessionId == null || sessionId.isBlank()) {
                     throw new AppException(ErrorCode.SESSION_INVALID);
                 }
 
-                readingHistory = readingHistoryRepository.findByChapterIdAndSessionIdAndType(chapter.getId(), sessionId, HistoryType.CHAPTER)
-                        .orElseGet(() -> ReadingHistory.builder().story(story).chapter(chapter).sessionId(sessionId).type(HistoryType.CHAPTER).build());
+                readingHistory =
+                        readingHistoryRepository
+                                .findByStoryIdAndSessionIdAndType(
+                                        story.getId(), sessionId, HistoryType.CHAPTER)
+                                .orElseGet(
+                                        () ->
+                                                ReadingHistory.builder()
+                                                        .story(story)
+                                                        .sessionId(sessionId)
+                                                        .type(HistoryType.CHAPTER)
+                                                        .build());
             }
-            chapter.setViewCount(chapter.getViewCount()+1);
+
+            /*
+             * Nếu history đã tồn tại:
+             *
+             * Chapter 1 -> Chapter 2
+             *
+             * Không INSERT record mới.
+             * Chỉ UPDATE chapter_id.
+             */
+            readingHistory.setChapter(chapter);
+
+            // Tăng lượt xem chapter
+            chapter.setViewCount(chapter.getViewCount() + 1);
             chapterRepository.save(chapter);
+
+        } else {
+            throw new IllegalArgumentException("Unsupported history type: " + request.getType());
         }
+
+        // @PrePersist / @PreUpdate sẽ tự cập nhật lastReadAt
         readingHistory = readingHistoryRepository.save(readingHistory);
+
         return readingHistoryMapper.toReadingHistoryResponse(readingHistory);
     }
 
@@ -175,17 +284,19 @@ public class ReadingHistoryService {
     }
 
     public void mergeSessionHistory(String userId, String sessionId) {
-        if(userId == null) {
+        if (userId == null) {
             throw new AppException(ErrorCode.NO_PERMISSION);
         }
         ReadingHistoryFilter filter = ReadingHistoryFilter.builder().sessionId(sessionId).build();
         Specification<ReadingHistory> specification =
                 ReadingHistorySpecification.filter(null, filter.getSessionId(), filter);
 
-        List<ReadingHistory> readingHistories =
-                readingHistoryRepository.findAll(specification);
+        List<ReadingHistory> readingHistories = readingHistoryRepository.findAll(specification);
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        User user =
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         readingHistories.forEach(readingHistory -> readingHistory.setUser(user));
         readingHistoryRepository.saveAll(readingHistories);
     }

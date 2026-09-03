@@ -15,5 +15,4 @@ public class SocialAccountResponse {
     private AuthProvider provider;
 
     private boolean linked;
-
 }

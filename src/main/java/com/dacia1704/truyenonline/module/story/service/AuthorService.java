@@ -1,5 +1,7 @@
 package com.dacia1704.truyenonline.module.story.service;
 
+import com.dacia1704.truyenonline.module.media.dto.response.CloudinaryUploadResult;
+import com.dacia1704.truyenonline.module.media.service.CloudinaryService;
 import com.dacia1704.truyenonline.module.media.service.MediaFileService;
 import com.dacia1704.truyenonline.module.story.dto.request.AuthorCreateRequest;
 import com.dacia1704.truyenonline.module.story.dto.request.AuthorUpdateRequest;
@@ -17,9 +19,10 @@ import com.dacia1704.truyenonline.module.story.repository.StoryRepository;
 import com.dacia1704.truyenonline.shared.exception.AppException;
 import com.dacia1704.truyenonline.shared.exception.ErrorCode;
 import com.dacia1704.truyenonline.shared.response.PageResponse;
-import com.dacia1704.truyenonline.module.media.service.CloudinaryService;
-import com.dacia1704.truyenonline.module.media.dto.response.CloudinaryUploadResult;
 import com.dacia1704.truyenonline.shared.utils.StringUtils;
+import java.io.IOException;
+import java.util.List;
+import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -28,10 +31,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -60,8 +59,8 @@ public class AuthorService {
             authorPage = authorRepository.findAll(pageable);
         }
 
-        List<AuthorResponse> responses = authorPage.getContent().stream()
-                .map(authorMapper::toAuthorResponse).toList();
+        List<AuthorResponse> responses =
+                authorPage.getContent().stream().map(authorMapper::toAuthorResponse).toList();
 
         return PageResponse.<AuthorResponse>builder()
                 .currentPage(page)
@@ -73,8 +72,15 @@ public class AuthorService {
     }
 
     public AuthorResponse getAuthorBySlug(String slug) {
-        Author author = authorRepository.findBySlug(slug)
-                .orElseThrow(() -> new AppException(ErrorCode.AUTHOR_NOT_FOUND)); // Định nghĩa ErrorCode thêm
+        Author author =
+                authorRepository
+                        .findBySlug(slug)
+                        .orElseThrow(
+                                () ->
+                                        new AppException(
+                                                ErrorCode
+                                                        .AUTHOR_NOT_FOUND)); // Định nghĩa ErrorCode
+        // thêm
         return authorMapper.toAuthorResponse(author);
     }
 
@@ -84,7 +90,8 @@ public class AuthorService {
 
         if (request.getAvatarFile() != null && !request.getAvatarFile().isEmpty()) {
             String path = String.format(folderPath, author.getId());
-            CloudinaryUploadResult uploadResult = cloudinaryService.uploadImage(request.getAvatarFile(), path);
+            CloudinaryUploadResult uploadResult =
+                    cloudinaryService.uploadImage(request.getAvatarFile(), path);
             mediaFileService.createMediaFile(uploadResult);
             author.setAvatarUrl(uploadResult.getSecureUrl());
         }
@@ -96,12 +103,15 @@ public class AuthorService {
     }
 
     public AuthorResponse updateAuthor(String id, AuthorUpdateRequest request) throws IOException {
-        Author author = authorRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.AUTHOR_NOT_FOUND));
+        Author author =
+                authorRepository
+                        .findById(id)
+                        .orElseThrow(() -> new AppException(ErrorCode.AUTHOR_NOT_FOUND));
 
         if (request.getAvatarFile() != null && !request.getAvatarFile().isEmpty()) {
             String path = String.format(folderPath, author.getId());
-            CloudinaryUploadResult uploadResult = cloudinaryService.uploadImage(request.getAvatarFile(), path);
+            CloudinaryUploadResult uploadResult =
+                    cloudinaryService.uploadImage(request.getAvatarFile(), path);
             mediaFileService.createMediaFile(uploadResult);
             author.setAvatarUrl(uploadResult.getSecureUrl());
         }
@@ -117,32 +127,50 @@ public class AuthorService {
     }
 
     public void deleteAuthor(String id) {
+        Author author =
+                authorRepository
+                        .findById(id)
+                        .orElseThrow(() -> new AppException(ErrorCode.AUTHOR_NOT_FOUND));
+        mediaFileService.decreaseReference(author.getAvatarUrl());
         authorRepository.deleteById(id);
     }
 
     // --- Xử lý liên kết Story <-> Author ---
 
-    public StoryResponse updateStoryAuthors(String storyId, List<StoryAuthorUpdateRequest> requests) {
-        Story story = storyRepository.findById(storyId)
-                .orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
+    public StoryResponse updateStoryAuthors(
+            String storyId, List<StoryAuthorUpdateRequest> requests) {
+        Story story =
+                storyRepository
+                        .findById(storyId)
+                        .orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
 
         // 1. Xóa các author cũ của truyện này
         storyAuthorRepository.deleteByStoryId(storyId);
 
         // 2. Thêm lại list author mới
-        List<StoryAuthor> storyAuthors = requests.stream().map(req -> {
-            Author author = authorRepository.findById(req.getAuthorId())
-                    .orElseThrow(() -> new AppException(ErrorCode.AUTHOR_NOT_FOUND));
+        List<StoryAuthor> storyAuthors =
+                requests.stream()
+                        .map(
+                                req -> {
+                                    Author author =
+                                            authorRepository
+                                                    .findById(req.getAuthorId())
+                                                    .orElseThrow(
+                                                            () ->
+                                                                    new AppException(
+                                                                            ErrorCode
+                                                                                    .AUTHOR_NOT_FOUND));
 
-            return StoryAuthor.builder()
-                    .storyId(story.getId())
-                    .authorId(author.getId())
-                    .story(story)
-                    .author(author)
-                    .role(req.getRole())
-                    .sortOrder(req.getSortOrder())
-                    .build();
-        }).toList();
+                                    return StoryAuthor.builder()
+                                            .storyId(story.getId())
+                                            .authorId(author.getId())
+                                            .story(story)
+                                            .author(author)
+                                            .role(req.getRole())
+                                            .sortOrder(req.getSortOrder())
+                                            .build();
+                                })
+                        .toList();
 
         storyAuthors = storyAuthorRepository.saveAll(storyAuthors);
         story.getStoryAuthors().clear();
@@ -152,7 +180,8 @@ public class AuthorService {
 
     private String generateSlug(String name) {
         String nameNoAccent = StringUtils.removeAccent(name);
-        String baseSlug = nameNoAccent.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-|-$", "");
+        String baseSlug =
+                nameNoAccent.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-|-$", "");
         String finalSlug = baseSlug;
         int counter = 1;
         while (authorRepository.existsBySlug(finalSlug)) {

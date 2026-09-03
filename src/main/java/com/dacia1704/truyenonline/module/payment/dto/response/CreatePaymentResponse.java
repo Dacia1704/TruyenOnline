@@ -11,7 +11,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CreatePaymentResponse {
     String txnRef;
-    String paymentUrl;  // URL redirect sang VNPay
-    Long   amount;      // Số tiền VND (chưa × 100)
+    String paymentUrl; // URL redirect sang VNPay
+    Long amount; // Số tiền VND (chưa × 100)
     SubscriptionPlan plan;
 }

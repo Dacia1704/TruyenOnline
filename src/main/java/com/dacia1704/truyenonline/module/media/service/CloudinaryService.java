@@ -3,15 +3,13 @@ package com.dacia1704.truyenonline.module.media.service;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.dacia1704.truyenonline.module.media.dto.response.CloudinaryUploadResult;
+import com.dacia1704.truyenonline.shared.exception.AppException;
+import com.dacia1704.truyenonline.shared.exception.ErrorCode;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-
-import com.dacia1704.truyenonline.shared.exception.AppException;
-import com.dacia1704.truyenonline.shared.exception.ErrorCode;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,36 +21,42 @@ public class CloudinaryService {
 
     private final Executor executor;
 
-    private final MediaFileService mediaFileService;
-
     public CloudinaryService(
-            Cloudinary cloudinary,
-            @Qualifier("cloudinaryExecutor") Executor executor, MediaFileService mediaFileService) {
+            Cloudinary cloudinary, @Qualifier("cloudinaryExecutor") Executor executor) {
         this.cloudinary = cloudinary;
         this.executor = executor;
-        this.mediaFileService = mediaFileService;
     }
 
     public CloudinaryUploadResult uploadImage(MultipartFile file, String folder) {
         try {
-            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap("folder", folder, "resource_type", "image"));
-            CloudinaryUploadResult cloudinaryUploadResult = CloudinaryUploadResult.builder()
+            Map uploadResult =
+                    cloudinary
+                            .uploader()
+                            .upload(
+                                    file.getBytes(),
+                                    ObjectUtils.asMap("folder", folder, "resource_type", "image"));
+            return CloudinaryUploadResult.builder()
                     .secureUrl(uploadResult.get("secure_url").toString())
                     .publicId(uploadResult.get("public_id").toString())
                     .width((Integer) uploadResult.get("width"))
                     .height((Integer) uploadResult.get("height"))
                     .build();
-            mediaFileService.createMediaFile(cloudinaryUploadResult);
-            return cloudinaryUploadResult;
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw new AppException(ErrorCode.UPLOAD_IMAGE_ERROR);
         }
     }
 
-    public List<CloudinaryUploadResult> uploadImagesAsync(List<MultipartFile> files, String folder) {
+    public List<CloudinaryUploadResult> uploadImagesAsync(
+            List<MultipartFile> files, String folder) {
         // 1. Chia việc cho các Thread chạy song song
-        List<CompletableFuture<CloudinaryUploadResult>> futures = files.stream().map(file -> CompletableFuture.supplyAsync(
-                                    () -> uploadImage(file, folder), executor)) // <--- Ép nó chạy trên ThreadPool chuyên dụng, không dùng luồng chính
+        List<CompletableFuture<CloudinaryUploadResult>> futures =
+                files.stream()
+                        .map(
+                                file ->
+                                        CompletableFuture.supplyAsync(
+                                                () -> uploadImage(file, folder),
+                                                executor)) // <--- Ép nó chạy trên ThreadPool chuyên
+                        // dụng, không dùng luồng chính
                         .toList();
 
         // 2. Chờ TẤT CẢ các luồng hoàn thành và gom kết quả lại

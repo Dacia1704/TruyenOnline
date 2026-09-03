@@ -7,8 +7,7 @@ import java.util.HexFormat;
 
 public final class HashUtil {
 
-    private HashUtil() {
-    }
+    private HashUtil() {}
 
     /**
      * Băm chuỗi bằng SHA-256 và trả về chuỗi hex.
@@ -20,18 +19,12 @@ public final class HashUtil {
         try {
             MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
 
-            byte[] hash = messageDigest.digest(
-                    input.getBytes(StandardCharsets.UTF_8)
-            );
+            byte[] hash = messageDigest.digest(input.getBytes(StandardCharsets.UTF_8));
 
             return HexFormat.of().formatHex(hash);
 
         } catch (NoSuchAlgorithmException ex) {
-            throw new IllegalStateException(
-                    "SHA-256 algorithm is not available.",
-                    ex
-            );
+            throw new IllegalStateException("SHA-256 algorithm is not available.", ex);
         }
     }
-
 }

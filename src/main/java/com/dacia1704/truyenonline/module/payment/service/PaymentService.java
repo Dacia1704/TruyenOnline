@@ -8,7 +8,6 @@ import com.dacia1704.truyenonline.module.payment.dto.request.CreatePaymentReques
 import com.dacia1704.truyenonline.module.payment.dto.response.CreatePaymentResponse;
 import com.dacia1704.truyenonline.module.payment.dto.response.PaymentCallbackResult;
 import com.dacia1704.truyenonline.module.payment.dto.response.TransactionResponse;
-import com.dacia1704.truyenonline.module.payment.entity.Subscription;
 import com.dacia1704.truyenonline.module.payment.entity.SubscriptionPlan;
 import com.dacia1704.truyenonline.module.payment.entity.Transaction;
 import com.dacia1704.truyenonline.module.payment.entity.TransactionStatus;
@@ -18,10 +17,16 @@ import com.dacia1704.truyenonline.module.payment.repository.TransactionRepositor
 import com.dacia1704.truyenonline.module.payment.utils.VNPayUtil;
 import com.dacia1704.truyenonline.module.user.entity.User;
 import com.dacia1704.truyenonline.module.user.repository.UserRepository;
+import com.dacia1704.truyenonline.module.user.service.UserService;
 import com.dacia1704.truyenonline.shared.exception.AppException;
 import com.dacia1704.truyenonline.shared.exception.ErrorCode;
 import com.dacia1704.truyenonline.shared.response.PageResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -33,12 +38,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 @Slf4j
 @Service
@@ -54,6 +53,7 @@ public class PaymentService {
     SubscriptionPlanRepository subscriptionPlanRepository;
     TransactionMapper transactionMapper;
     AuditLogService auditLogService;
+    UserService userService;
 
     // ----------------------------------------------------------------
     // Bước 1: Tạo giao dịch PENDING + build URL redirect sang VNPay
@@ -62,12 +62,15 @@ public class PaymentService {
     public CreatePaymentResponse createPayment(CreatePaymentRequest request, String clientIp) {
         var context = SecurityContextHolder.getContext();
         String userId = context.getAuthentication().getName();
-        User currentUser =  userRepository
-                .findById(userId)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        User currentUser =
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-
-        SubscriptionPlan plan = subscriptionPlanRepository.findById(request.getPlanId()).orElseThrow(() -> new AppException(ErrorCode.SUBSCRIPTION_PLAN_NOT_FOUND));
+        SubscriptionPlan plan =
+                subscriptionPlanRepository
+                        .findById(request.getPlanId())
+                        .orElseThrow(() -> new AppException(ErrorCode.SUBSCRIPTION_PLAN_NOT_FOUND));
         Long amountVND = plan.getPrice();
 
         if (amountVND == null) {
@@ -76,18 +79,23 @@ public class PaymentService {
 
         // Tạo transaction PENDING trong DB
         String txnRef = VNPayUtil.generateTxnRef();
-        Transaction transaction = Transaction.builder()
-                .user(currentUser)
-                .subscriptionPlan(plan)
-                .vnpTxnRef(txnRef)
-                .vnpAmount(VNPayUtil.toVNPayAmount(amountVND))
-                .status(TransactionStatus.PENDING)
-                .ipAddress(clientIp)
-                .build();
+        Transaction transaction =
+                Transaction.builder()
+                        .user(currentUser)
+                        .subscriptionPlan(plan)
+                        .vnpTxnRef(txnRef)
+                        .vnpAmount(VNPayUtil.toVNPayAmount(amountVND))
+                        .status(TransactionStatus.PENDING)
+                        .ipAddress(clientIp)
+                        .build();
         transactionRepository.save(transaction);
 
-        log.info("Tạo transaction PENDING: txnRef={}, user={}, plan={}, amount={}",
-                txnRef, currentUser.getId(), plan, amountVND);
+        log.info(
+                "Tạo transaction PENDING: txnRef={}, user={}, plan={}, amount={}",
+                txnRef,
+                currentUser.getId(),
+                plan,
+                amountVND);
 
         // Build params gửi sang VNPay
         String payUrl = buildVNPayUrl(txnRef, amountVND, request.getOrderInfo(), clientIp);
@@ -108,11 +116,11 @@ public class PaymentService {
         String receivedHash = params.remove("vnp_SecureHash");
         params.remove("vnp_SecureHashType");
 
-        boolean validHash = VNPayUtil.verifySecureHash(
-                vnPayConfig.getHashSecret(), params, receivedHash);
+        boolean validHash =
+                VNPayUtil.verifySecureHash(vnPayConfig.getHashSecret(), params, receivedHash);
 
         String responseCode = params.get("vnp_ResponseCode");
-        String txnRef       = params.get("vnp_TxnRef");
+        String txnRef = params.get("vnp_TxnRef");
 
         return PaymentCallbackResult.builder()
                 .txnRef(txnRef)
@@ -136,8 +144,8 @@ public class PaymentService {
             params.remove("vnp_SecureHashType");
 
             // 2. Verify chữ ký — bảo mật quan trọng nhất
-            boolean validHash = VNPayUtil.verifySecureHash(
-                    vnPayConfig.getHashSecret(), params, receivedHash);
+            boolean validHash =
+                    VNPayUtil.verifySecureHash(vnPayConfig.getHashSecret(), params, receivedHash);
 
             if (!validHash) {
                 log.warn("VNPay IPN: chữ ký không hợp lệ, params={}", params);
@@ -146,17 +154,15 @@ public class PaymentService {
                 return response;
             }
 
-            String txnRef      = params.get("vnp_TxnRef");
-            String rspCode     = params.get("vnp_ResponseCode");
-            String vnpAmount   = params.get("vnp_Amount");
-            String txnNo       = params.get("vnp_TransactionNo");
-            String bankCode    = params.get("vnp_BankCode");
-            String payDate     = params.get("vnp_PayDate");
+            String txnRef = params.get("vnp_TxnRef");
+            String rspCode = params.get("vnp_ResponseCode");
+            String vnpAmount = params.get("vnp_Amount");
+            String txnNo = params.get("vnp_TransactionNo");
+            String bankCode = params.get("vnp_BankCode");
+            String payDate = params.get("vnp_PayDate");
 
             // 3. Tìm transaction
-            Transaction transaction = transactionRepository
-                    .findByVnpTxnRef(txnRef)
-                    .orElse(null);
+            Transaction transaction = transactionRepository.findByVnpTxnRef(txnRef).orElse(null);
 
             if (transaction == null) {
                 log.warn("VNPay IPN: không tìm thấy txnRef={}", txnRef);
@@ -167,8 +173,10 @@ public class PaymentService {
 
             // 4. Idempotency check — tránh xử lý 2 lần
             if (transaction.getStatus() != TransactionStatus.PENDING) {
-                log.info("VNPay IPN: txnRef={} đã xử lý rồi (status={})",
-                        txnRef, transaction.getStatus());
+                log.info(
+                        "VNPay IPN: txnRef={} đã xử lý rồi (status={})",
+                        txnRef,
+                        transaction.getStatus());
                 response.put("RspCode", "02");
                 response.put("Message", "Order already confirmed");
                 return response;
@@ -177,8 +185,10 @@ public class PaymentService {
             // 5. Kiểm tra số tiền khớp
             long receivedAmount = Long.parseLong(vnpAmount);
             if (receivedAmount != transaction.getVnpAmount()) {
-                log.error("VNPay IPN: số tiền không khớp! expected={}, received={}",
-                        transaction.getVnpAmount(), receivedAmount);
+                log.error(
+                        "VNPay IPN: số tiền không khớp! expected={}, received={}",
+                        transaction.getVnpAmount(),
+                        receivedAmount);
                 response.put("RspCode", "04");
                 response.put("Message", "Invalid amount");
                 return response;
@@ -202,18 +212,34 @@ public class PaymentService {
                 transactionRepository.save(transaction);
 
                 // Kích hoạt gói Premium
-                Subscription subscription = subscriptionService.activateSubscription(transaction.getUser(), transaction.getSubscriptionPlan());
+                subscriptionService.activateSubscription(
+                        transaction.getUser(), transaction.getSubscriptionPlan());
 
-                auditLogService.log(AuditAction.SUCCESS, AuditObjectType.TRANSACTION, transaction.getId(), null, transaction, null);
+                auditLogService.log(
+                        AuditAction.SUCCESS,
+                        AuditObjectType.TRANSACTION,
+                        transaction.getId(),
+                        null,
+                        response,
+                        null);
 
-                log.info("VNPay IPN: thanh toán thành công txnRef={}, user={}", txnRef, transaction.getUser().getId());
+                log.info(
+                        "VNPay IPN: thanh toán thành công txnRef={}, user={}",
+                        txnRef,
+                        transaction.getUser().getId());
 
             } else {
                 // Thanh toán thất bại
                 transaction.setStatus(TransactionStatus.FAILED);
                 transactionRepository.save(transaction);
 
-                auditLogService.log(AuditAction.FAIL, AuditObjectType.TRANSACTION, transaction.getId(), null, transaction, null);
+                auditLogService.log(
+                        AuditAction.FAIL,
+                        AuditObjectType.TRANSACTION,
+                        transaction.getId(),
+                        null,
+                        response,
+                        null);
 
                 log.warn("VNPay IPN: thanh toán thất bại txnRef={}, rspCode={}", txnRef, rspCode);
             }
@@ -240,36 +266,33 @@ public class PaymentService {
 
         // Dùng TreeMap để đảm bảo sort theo key (VNPay yêu cầu)
         Map<String, String> params = new TreeMap<>();
-        params.put("vnp_Version",     vnPayConfig.getVersion());
-        params.put("vnp_Command",     vnPayConfig.getCommand());
-        params.put("vnp_TmnCode",     vnPayConfig.getTmnCode());
-        params.put("vnp_Amount",      String.valueOf(VNPayUtil.toVNPayAmount(amountVND)));
-        params.put("vnp_CurrCode",    vnPayConfig.getCurrencyCode());
-        params.put("vnp_TxnRef",      txnRef);
-        params.put("vnp_OrderInfo",   orderInfo != null ? orderInfo : "Thanh toan goi " + txnRef);
-        params.put("vnp_OrderType",   vnPayConfig.getOrderType());
-        params.put("vnp_Locale",      vnPayConfig.getLocale());
-        params.put("vnp_ReturnUrl",   vnPayConfig.getReturnUrl());
-        params.put("vnp_IpAddr",      clientIp);
-        params.put("vnp_CreateDate",  createDate);
-        params.put("vnp_ExpireDate",  expireDate);
+        params.put("vnp_Version", vnPayConfig.getVersion());
+        params.put("vnp_Command", vnPayConfig.getCommand());
+        params.put("vnp_TmnCode", vnPayConfig.getTmnCode());
+        params.put("vnp_Amount", String.valueOf(VNPayUtil.toVNPayAmount(amountVND)));
+        params.put("vnp_CurrCode", vnPayConfig.getCurrencyCode());
+        params.put("vnp_TxnRef", txnRef);
+        params.put("vnp_OrderInfo", orderInfo != null ? orderInfo : "Thanh toan goi " + txnRef);
+        params.put("vnp_OrderType", vnPayConfig.getOrderType());
+        params.put("vnp_Locale", vnPayConfig.getLocale());
+        params.put("vnp_ReturnUrl", vnPayConfig.getReturnUrl());
+        params.put("vnp_IpAddr", clientIp);
+        params.put("vnp_CreateDate", createDate);
+        params.put("vnp_ExpireDate", expireDate);
 
         // Tính secure hash
-        String hashData   = VNPayUtil.buildHashData(params);
+        String hashData = VNPayUtil.buildHashData(params);
         String secureHash = VNPayUtil.hmacSHA512(vnPayConfig.getHashSecret(), hashData);
 
         // Build query string + append hash
         String queryString = VNPayUtil.buildQueryString(params);
-        return vnPayConfig.getPayUrl() + "?" + queryString
-                + "&vnp_SecureHash=" + secureHash;
+        return vnPayConfig.getPayUrl() + "?" + queryString + "&vnp_SecureHash=" + secureHash;
     }
 
     public List<TransactionResponse> getTransactionsByUser() {
         var context = SecurityContextHolder.getContext();
         String userId = context.getAuthentication().getName();
-        return transactionRepository
-                .findByUserIdOrderByCreatedAtDesc(userId)
-                .stream()
+        return transactionRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
                 .map(transactionMapper::toTransactionResponse)
                 .toList();
     }
@@ -284,7 +307,9 @@ public class PaymentService {
             transactionPage = transactionRepository.findAll(pageable);
         }
         List<TransactionResponse> transactionResponses =
-                transactionPage.getContent().stream().map(transactionMapper::toTransactionResponse).toList();
+                transactionPage.getContent().stream()
+                        .map(transactionMapper::toTransactionResponse)
+                        .toList();
         return PageResponse.<TransactionResponse>builder()
                 .currentPage(page)
                 .pageSize(transactionPage.getSize())
@@ -293,5 +318,4 @@ public class PaymentService {
                 .data(transactionResponses)
                 .build();
     }
-
 }

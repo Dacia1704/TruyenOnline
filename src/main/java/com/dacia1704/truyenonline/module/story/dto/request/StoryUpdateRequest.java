@@ -2,11 +2,10 @@ package com.dacia1704.truyenonline.module.story.dto.request;
 
 import com.dacia1704.truyenonline.module.story.entity.StoryStatus;
 import com.dacia1704.truyenonline.module.story.entity.StoryType;
+import java.util.List;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -33,4 +32,6 @@ public class StoryUpdateRequest {
     Long viewCount = 0L;
 
     List<StoryAuthorUpdateRequest> authors;
+
+    List<Integer> genreIds;
 }

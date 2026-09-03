@@ -1,10 +1,9 @@
 package com.dacia1704.truyenonline.module.payment.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.*;
 import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "subscription_plans")

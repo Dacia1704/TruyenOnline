@@ -1,6 +1,5 @@
 package com.dacia1704.truyenonline.shared.service;
 
-
 import com.dacia1704.truyenonline.shared.exception.AppException;
 import com.dacia1704.truyenonline.shared.exception.ErrorCode;
 import jakarta.mail.MessagingException;
@@ -24,21 +23,15 @@ public class SmtpEmailService implements EmailService {
     private String from;
 
     @Override
-    public void sendHtmlEmail(
-            String to,
-            String subject,
-            String html
-    ) {
+    public void sendHtmlEmail(String to, String subject, String html) {
 
         try {
 
             MimeMessage mimeMessage = mailSender.createMimeMessage();
 
-            MimeMessageHelper helper = new MimeMessageHelper(
-                    mimeMessage,
-                    MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED,
-                    "UTF-8"
-            );
+            MimeMessageHelper helper =
+                    new MimeMessageHelper(
+                            mimeMessage, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, "UTF-8");
 
             helper.setFrom(from);
             helper.setTo(to);

@@ -1,10 +1,9 @@
 package com.dacia1704.truyenonline.module.administration.dto.request;
 
 import com.dacia1704.truyenonline.module.administration.entity.*;
+import java.time.LocalDateTime;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -14,11 +13,9 @@ import java.time.LocalDateTime;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AuditLogPageRequest {
 
-    @Builder.Default
-    Integer page = 1;
+    @Builder.Default Integer page = 1;
 
-    @Builder.Default
-    Integer size = 10;
+    @Builder.Default Integer size = 10;
 
     String actorId;
 

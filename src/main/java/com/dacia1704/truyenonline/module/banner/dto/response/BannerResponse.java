@@ -2,9 +2,8 @@ package com.dacia1704.truyenonline.module.banner.dto.response;
 
 import com.dacia1704.truyenonline.module.banner.entity.BannerPosition;
 import com.dacia1704.truyenonline.module.user.dto.response.UserResponse;
-import lombok.*;
-
 import java.time.LocalDateTime;
+import lombok.*;
 
 @Getter
 @Setter
@@ -25,7 +24,7 @@ public class BannerResponse {
 
     private Integer sortOrder;
 
-    private boolean isActive;
+    private Boolean isActive;
 
     private Long clickCount;
 

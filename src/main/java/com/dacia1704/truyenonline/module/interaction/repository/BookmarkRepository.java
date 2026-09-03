@@ -2,6 +2,8 @@ package com.dacia1704.truyenonline.module.interaction.repository;
 
 import com.dacia1704.truyenonline.module.interaction.entity.Bookmark;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,4 +14,6 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, String> {
 
     @Transactional
     long deleteByUserIdAndStoryId(String userId, String storyId);
+
+    Page<Bookmark> findByUserIdOrderByCreatedAtDesc(String userId, Pageable pageable);
 }

@@ -1,6 +1,5 @@
 package com.dacia1704.truyenonline.module.user.dto.response;
 
-import com.dacia1704.truyenonline.module.user.entity.Role;
 import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
@@ -18,5 +17,5 @@ public class UserResponse {
     String username;
     String avatarUrl;
     boolean isActive;
-    Set<Role> roles = new HashSet<>();
+    Set<RoleResponse> roles = new HashSet<>();
 }

@@ -11,8 +11,7 @@ public interface GenreMapper {
 
     @Mapping(
             target = "storyQuantity",
-            expression = "java(genre.getStories() != null ? genre.getStories().size() : 0)"
-    )
+            expression = "java(genre.getStories() != null ? genre.getStories().size() : 0)")
     GenreResponse toGenreResponse(Genre genre);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

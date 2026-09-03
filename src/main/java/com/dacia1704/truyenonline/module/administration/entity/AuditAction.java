@@ -6,6 +6,7 @@ public enum AuditAction {
     REGISTER,
     LOGIN,
     LOGOUT,
+    LOGOUT_ALL,
 
     // CRUD
     CREATE,

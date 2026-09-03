@@ -4,16 +4,11 @@ import com.dacia1704.truyenonline.module.story.dto.request.StoryCreateRequest;
 import com.dacia1704.truyenonline.module.story.dto.request.StoryUpdateRequest;
 import com.dacia1704.truyenonline.module.story.dto.response.StoryResponse;
 import com.dacia1704.truyenonline.module.story.entity.Story;
-import com.dacia1704.truyenonline.module.user.dto.response.UserResponse;
-import com.dacia1704.truyenonline.module.user.entity.User;
 import org.mapstruct.*;
 
 @Mapper(
         componentModel = "spring",
-        uses = {
-                StoryAuthorMapper.class
-        }
-)
+        uses = {StoryAuthorMapper.class})
 public interface StoryMapper {
     Story toStory(StoryResponse request);
 
@@ -28,6 +23,8 @@ public interface StoryMapper {
     StoryResponse toStoryResponse(Story story);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "authors", ignore = true)
+    @Mapping(target = "genres", ignore = true)
+    @Mapping(target = "coverImageUrl", ignore = true)
     void updateStory(@MappingTarget Story story, StoryUpdateRequest request);
-
 }

@@ -5,13 +5,10 @@ import nl.basjes.parse.useragent.UserAgentAnalyzer;
 
 public final class UserAgentUtil {
 
-    private static final UserAgentAnalyzer ANALYZER = UserAgentAnalyzer.newBuilder()
-                                                        .hideMatcherLoadStats()
-                                                        .withCache(1000)
-                                                        .build();
+    private static final UserAgentAnalyzer ANALYZER =
+            UserAgentAnalyzer.newBuilder().hideMatcherLoadStats().withCache(1000).build();
 
-    private UserAgentUtil() {
-    }
+    private UserAgentUtil() {}
 
     public static String getDeviceName(String userAgentString) {
 

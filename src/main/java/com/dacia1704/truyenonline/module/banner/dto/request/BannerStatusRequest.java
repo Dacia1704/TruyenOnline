@@ -10,6 +10,5 @@ import lombok.*;
 @Builder
 public class BannerStatusRequest {
 
-    @NotNull
-    private Boolean active;
+    @NotNull private Boolean active;
 }

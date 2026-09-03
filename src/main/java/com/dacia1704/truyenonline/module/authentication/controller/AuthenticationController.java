@@ -5,15 +5,13 @@ import com.dacia1704.truyenonline.module.authentication.dto.response.*;
 import com.dacia1704.truyenonline.module.authentication.service.AuthenticationService;
 import com.dacia1704.truyenonline.module.authentication.service.UserSocialAccountService;
 import com.dacia1704.truyenonline.shared.response.ApiResponse;
-import com.nimbusds.openid.connect.sdk.AuthenticationResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/auth")
@@ -29,15 +27,19 @@ public class AuthenticationController {
             @RequestHeader(value = "Device-Id", required = false) String deviceId,
             @RequestHeader(value = "Session-Id", required = false) String sessionId,
             @RequestBody @Valid LoginRequest request) {
-        return ApiResponse.success(authenticationService.authenticate(servletRequest,deviceId,sessionId, request));
+        return ApiResponse.success(
+                authenticationService.authenticate(servletRequest, deviceId, sessionId, request));
     }
+
     @PostMapping("/google")
     public ApiResponse<LoginResponse> loginWithGoogle(
             HttpServletRequest servletRequest,
             @RequestHeader(value = "Device-Id", required = false) String deviceId,
             @RequestHeader(value = "Session-Id", required = false) String sessionId,
             @RequestBody @Valid GoogleLoginRequest request) {
-        return ApiResponse.success(userSocialAccountService.loginWithGoogle(servletRequest,deviceId,sessionId, request.getIdToken()));
+        return ApiResponse.success(
+                userSocialAccountService.loginWithGoogle(
+                        servletRequest, deviceId, sessionId, request.getIdToken()));
     }
 
     @PostMapping("/refresh")
@@ -67,7 +69,6 @@ public class AuthenticationController {
         authenticationService.logoutAll();
         return ApiResponse.success("Đăng xuất toàn bộ thiết bị thành công");
     }
-
 
     @PostMapping("/forgot-password")
     public ApiResponse<String> forgotPassword(@RequestBody @Valid ForgotPasswordRequest request) {

@@ -1,16 +1,15 @@
 package com.dacia1704.truyenonline.module.story.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
-
 @Entity
-@Table(name = "story_authors", indexes = {
-        @Index(name = "idx_sa_author_id", columnList = "author_id")
-})
+@Table(
+        name = "story_authors",
+        indexes = {@Index(name = "idx_sa_author_id", columnList = "author_id")})
 @IdClass(StoryAuthorId.class)
 @Getter
 @Setter

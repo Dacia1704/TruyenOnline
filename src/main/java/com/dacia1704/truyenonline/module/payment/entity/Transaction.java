@@ -70,7 +70,6 @@ public class Transaction extends BaseEntity {
     @JoinColumn(
             name = "subscription_plan",
             referencedColumnName = "code",
-            foreignKey = @ForeignKey(name = "fk_txn_plan")
-    )
+            foreignKey = @ForeignKey(name = "fk_txn_plan"))
     private SubscriptionPlan subscriptionPlan;
 }

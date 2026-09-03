@@ -8,19 +8,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface BanAppealRepository extends JpaRepository<BanAppeal, String> {
 
-    Page<BanAppeal> findAllByUser_IdOrderByCreatedAtDesc(
-            String userId,
-            Pageable pageable
-    );
+    Page<BanAppeal> findAllByUser_IdOrderByCreatedAtDesc(String userId, Pageable pageable);
 
-    Page<BanAppeal> findAllByStatusOrderByCreatedAtDesc(
-            BanAppealStatus status,
-            Pageable pageable
-    );
+    Page<BanAppeal> findAllByStatusOrderByCreatedAtDesc(BanAppealStatus status, Pageable pageable);
 
-    Page<BanAppeal> findAllByOrderByCreatedAtDesc(
-            Pageable pageable
-    );
+    Page<BanAppeal> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
     boolean existsByModerationAction_Id(String moderationActionId);
 }

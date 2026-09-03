@@ -14,11 +14,9 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ModerationActionPageRequest {
 
-    @Builder.Default
-    Integer page = 1;
+    @Builder.Default Integer page = 1;
 
-    @Builder.Default
-    Integer size = 10;
+    @Builder.Default Integer size = 10;
 
     String objectId;
 

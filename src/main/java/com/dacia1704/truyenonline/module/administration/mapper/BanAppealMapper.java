@@ -5,10 +5,9 @@ import com.dacia1704.truyenonline.module.administration.dto.request.BanAppealRes
 import com.dacia1704.truyenonline.module.administration.dto.response.BanAppealAttachmentResponse;
 import com.dacia1704.truyenonline.module.administration.entity.BanAppeal;
 import com.dacia1704.truyenonline.module.administration.entity.BanAppealAttachment;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-
-import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface BanAppealMapper {
@@ -21,8 +20,6 @@ public interface BanAppealMapper {
     @Mapping(target = "resolvedAt", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "attachments", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
     BanAppeal toBanAppeal(BanAppealCreateRequest request);
 
     BanAppealResponse toBanAppealResponse(BanAppeal appeal);

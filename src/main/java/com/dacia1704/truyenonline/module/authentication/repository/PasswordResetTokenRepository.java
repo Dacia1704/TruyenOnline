@@ -10,13 +10,17 @@ import org.springframework.data.repository.query.Param;
 
 public interface PasswordResetTokenRepository extends JpaRepository<PasswordResetToken, String> {
     Optional<PasswordResetToken> findByTokenHash(String tokenHash);
+
     void deleteAllByUser_Id(String userId);
+
     void deleteByExpiredAtBefore(LocalDateTime now);
+
     @Modifying
-    @Query("""
-        DELETE FROM PasswordResetToken prt
-        WHERE prt.usedAt IS NOT NULL
-           OR prt.expiredAt < :now
-    """)
+    @Query(
+            """
+                DELETE FROM PasswordResetToken prt
+                WHERE prt.usedAt IS NOT NULL
+                   OR prt.expiredAt < :now
+            """)
     int deleteAllNotUsable(@Param("now") LocalDateTime now);
 }

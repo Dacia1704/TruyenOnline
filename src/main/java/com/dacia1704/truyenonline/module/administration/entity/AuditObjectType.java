@@ -1,7 +1,6 @@
 package com.dacia1704.truyenonline.module.administration.entity;
 
 public enum AuditObjectType {
-
     USER,
 
     STORY,

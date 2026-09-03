@@ -1,29 +1,19 @@
 package com.dacia1704.truyenonline.module.authentication.service;
 
-import com.dacia1704.truyenonline.module.authentication.dto.response.LoginResponse;
-import com.dacia1704.truyenonline.module.authentication.entity.RefreshToken;
-import com.dacia1704.truyenonline.module.user.entity.Permission;
-import com.dacia1704.truyenonline.module.user.entity.Role;
 import com.dacia1704.truyenonline.module.user.entity.User;
 import com.dacia1704.truyenonline.shared.exception.AppException;
 import com.dacia1704.truyenonline.shared.exception.ErrorCode;
-import com.dacia1704.truyenonline.shared.utils.HashUtil;
-import com.dacia1704.truyenonline.shared.utils.UserAgentUtil;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import java.text.ParseException;
-import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.StringJoiner;
 import java.util.UUID;
-
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -143,7 +133,4 @@ public class JwtTokenService {
         }
         return stringJoiner.toString();
     }
-
-
-
 }

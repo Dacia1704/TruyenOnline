@@ -2,10 +2,9 @@ package com.dacia1704.truyenonline.module.payment.dto.response;
 
 import com.dacia1704.truyenonline.module.payment.entity.SubscriptionStatus;
 import com.dacia1704.truyenonline.module.user.dto.response.UserResponse;
+import java.time.LocalDateTime;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.time.LocalDateTime;
 
 @Data
 @Builder

@@ -13,6 +13,9 @@ import com.dacia1704.truyenonline.shared.exception.ErrorCode;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,7 +39,8 @@ public class BookmarkService {
             throw new AppException(ErrorCode.UNAUTHORIZED); // Ném lỗi 401
         }
         String userId = authentication.getName();
-        return bookmarkRepository.findByUserIdAndStoryId(userId, storyId)
+        return bookmarkRepository
+                .findByUserIdAndStoryId(userId, storyId)
                 .map(bookmarkMapper::toBookmarkResponse)
                 .orElse(null);
     }
@@ -60,6 +64,24 @@ public class BookmarkService {
         Bookmark bookmark = Bookmark.builder().user(user).story(story).build();
         bookmark = bookmarkRepository.save(bookmark);
         return bookmarkMapper.toBookmarkResponse(bookmark);
+    }
+
+    public Page<BookmarkResponse> getMyBookmarks(int page, int size) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        String userId = authentication.getName();
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        return bookmarkRepository
+                .findByUserIdOrderByCreatedAtDesc(userId, pageable)
+                .map(bookmarkMapper::toBookmarkResponse);
     }
 
     public void deleteBookmark(String storyId) {

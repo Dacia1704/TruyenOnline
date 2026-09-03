@@ -3,16 +3,17 @@ package com.dacia1704.truyenonline.module.story.entity;
 import com.dacia1704.truyenonline.module.user.entity.User;
 import com.dacia1704.truyenonline.shared.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.*;
 
 @Entity
-@Table(name = "authors", indexes = {
-        @Index(name = "idx_author_user_id", columnList = "user_id"),
-        @Index(name = "idx_author_slug",    columnList = "slug")
-})
+@Table(
+        name = "authors",
+        indexes = {
+            @Index(name = "idx_author_user_id", columnList = "user_id"),
+            @Index(name = "idx_author_slug", columnList = "slug")
+        })
 @Getter
 @Setter
 @NoArgsConstructor

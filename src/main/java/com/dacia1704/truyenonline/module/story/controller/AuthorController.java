@@ -9,15 +9,14 @@ import com.dacia1704.truyenonline.module.story.service.AuthorService;
 import com.dacia1704.truyenonline.shared.response.ApiResponse;
 import com.dacia1704.truyenonline.shared.response.PageResponse;
 import jakarta.validation.Valid;
+import java.io.IOException;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.io.IOException;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/authors")
@@ -42,15 +41,16 @@ public class AuthorController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAuthority('author:create')")
-    public ApiResponse<AuthorResponse> createAuthor(@ModelAttribute @Valid AuthorCreateRequest request) throws IOException {
+    public ApiResponse<AuthorResponse> createAuthor(
+            @ModelAttribute @Valid AuthorCreateRequest request) throws IOException {
         return ApiResponse.success(authorService.createAuthor(request));
     }
 
     @PatchMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAuthority('author:update')")
     public ApiResponse<AuthorResponse> updateAuthor(
-            @PathVariable String id,
-            @ModelAttribute @Valid AuthorUpdateRequest request) throws IOException {
+            @PathVariable String id, @ModelAttribute @Valid AuthorUpdateRequest request)
+            throws IOException {
         return ApiResponse.success(authorService.updateAuthor(id, request));
     }
 

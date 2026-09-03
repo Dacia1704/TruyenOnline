@@ -1,6 +1,5 @@
 package com.dacia1704.truyenonline.module.story.dto.request;
 
-import com.dacia1704.truyenonline.module.administration.entity.ViolationType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;

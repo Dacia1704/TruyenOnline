@@ -16,18 +16,14 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ModerationActionCreateRequest {
-    @NotBlank
-    String objectId;
+    @NotBlank String objectId;
 
-    @NotNull
-    ModerationObjectType objectType;
+    @NotNull ModerationObjectType objectType;
 
-    @NotNull
-    ModerationActionType actionType;
+    @NotNull ModerationActionType actionType;
 
     ViolationType violationType;
 
-    @NotBlank
     @Size(max = 1000)
     String reason;
 }

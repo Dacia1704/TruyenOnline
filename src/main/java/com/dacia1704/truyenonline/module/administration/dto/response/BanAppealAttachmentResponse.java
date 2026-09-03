@@ -1,8 +1,7 @@
 package com.dacia1704.truyenonline.module.administration.dto.response;
 
-import lombok.*;
-
 import java.time.LocalDateTime;
+import lombok.*;
 
 @Getter
 @Setter

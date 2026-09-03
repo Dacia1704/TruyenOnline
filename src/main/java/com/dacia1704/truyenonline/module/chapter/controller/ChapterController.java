@@ -3,9 +3,6 @@ package com.dacia1704.truyenonline.module.chapter.controller;
 import com.dacia1704.truyenonline.module.chapter.dto.request.*;
 import com.dacia1704.truyenonline.module.chapter.dto.response.ChapterResponse;
 import com.dacia1704.truyenonline.module.chapter.service.ChapterService;
-import com.dacia1704.truyenonline.module.user.dto.request.UserBanRequest;
-import com.dacia1704.truyenonline.module.user.dto.request.UserUnbanRequest;
-import com.dacia1704.truyenonline.module.user.dto.response.UserResponse;
 import com.dacia1704.truyenonline.shared.response.ApiResponse;
 import com.dacia1704.truyenonline.shared.response.PageResponse;
 import jakarta.validation.Valid;
@@ -15,8 +12,6 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
-
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -24,13 +19,28 @@ import java.io.IOException;
 public class ChapterController {
     ChapterService chapterService;
 
-    @GetMapping("/stories/{slug}/chapters")
+    @GetMapping("/stories/slug/{slug}/chapters")
     public ApiResponse<PageResponse<ChapterResponse>> getChaptersBySlugStory(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) Integer from,
             @PathVariable("slug") String slug,
-            @RequestParam() String search) {
-        PageResponse<ChapterResponse> result = chapterService.getChaptersBySlug(page, size, slug, search);
+            @RequestParam(required = false) String search) {
+        PageResponse<ChapterResponse> result =
+                chapterService.getChaptersBySlugStory(page, size, from, slug, search);
+        return ApiResponse.success(result);
+    }
+
+    @GetMapping("/stories/id/{id}/chapters")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('UPLOADER')")
+    public ApiResponse<PageResponse<ChapterResponse>> getChaptersByIdStory(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) Integer from,
+            @PathVariable("id") String id,
+            @RequestParam(required = false) String search) {
+        PageResponse<ChapterResponse> result =
+                chapterService.getChaptersByStoryId(page, size, from, id, search);
         return ApiResponse.success(result);
     }
 
@@ -43,7 +53,7 @@ public class ChapterController {
     @PostMapping("/stories/{id}/chapters")
     @PreAuthorize("hasAuthority('chapter:create')")
     public ApiResponse<ChapterResponse> createChapters(
-            @PathVariable("id") String id, @RequestBody @Valid ChapterCreateRequest request) throws IOException {
+            @PathVariable("id") String id, @RequestBody @Valid ChapterCreateRequest request) {
         ChapterResponse result = chapterService.createChapter(id, request);
         return ApiResponse.success(result);
     }
@@ -51,7 +61,8 @@ public class ChapterController {
     @PatchMapping("/chapters/{id}/update-content")
     @PreAuthorize("hasAuthority('chapter:update_own')")
     public ApiResponse<ChapterResponse> updateChapterContent(
-            @PathVariable("id") String id, @RequestBody @Valid ChapterContentUpdateRequest request) {
+            @PathVariable("id") String id,
+            @RequestBody @Valid ChapterContentUpdateRequest request) {
         ChapterResponse result = chapterService.updateChapterContent(id, request);
         return ApiResponse.success(result);
     }
@@ -72,19 +83,18 @@ public class ChapterController {
         return ApiResponse.success(result);
     }
 
-
-    @PatchMapping("/{id}/ban")
+    @PatchMapping("/chapters/{id}/ban")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<ChapterResponse> banChapter(
-            @PathVariable("id") String id, @RequestBody @Valid ChapterBanRequest request) throws IOException {
+            @PathVariable("id") String id, @RequestBody @Valid ChapterBanRequest request) {
         ChapterResponse result = chapterService.banChapter(id, request);
         return ApiResponse.success(result);
     }
 
-    @PatchMapping("/{id}/unban")
+    @PatchMapping("/chapters/{id}/unban")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<ChapterResponse> unbanChapter(
-            @PathVariable("id") String id, @RequestBody @Valid ChapterUnbanRequest request) throws IOException {
+            @PathVariable("id") String id, @RequestBody @Valid ChapterUnbanRequest request) {
         ChapterResponse result = chapterService.unbanChapter(id, request);
         return ApiResponse.success(result);
     }

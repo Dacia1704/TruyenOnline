@@ -10,13 +10,9 @@ import lombok.experimental.FieldDefaults;
 @Table(
         name = "moderation_actions",
         indexes = {
-                @Index(
-                        name = "idx_moderation_object",
-                        columnList = "object_type, object_id"
-                ),
-                @Index(name = "idx_moderation_admin", columnList = "admin_id"),
-        }
-)
+            @Index(name = "idx_moderation_object", columnList = "object_type, object_id"),
+            @Index(name = "idx_moderation_admin", columnList = "admin_id"),
+        })
 @Getter
 @Setter
 @Builder
@@ -50,6 +46,4 @@ public class ModerationAction extends BaseEntity {
 
     @Column(name = "reason", columnDefinition = "TEXT")
     String reason;
-
-
 }

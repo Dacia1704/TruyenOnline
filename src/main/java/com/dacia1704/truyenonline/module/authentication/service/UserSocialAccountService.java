@@ -15,6 +15,8 @@ import com.dacia1704.truyenonline.module.user.repository.UserRepository;
 import com.dacia1704.truyenonline.shared.exception.AppException;
 import com.dacia1704.truyenonline.shared.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.HashSet;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -22,8 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.HashSet;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -39,25 +39,32 @@ public class UserSocialAccountService {
     final AuthenticationService authenticationService;
 
     @Transactional
-    public LoginResponse loginWithGoogle(HttpServletRequest servletRequest,String deviceId,String sessionId,String idToken) {
+    public LoginResponse loginWithGoogle(
+            HttpServletRequest servletRequest, String deviceId, String sessionId, String idToken) {
 
         GoogleUserInfo googleUser = googleTokenVerifier.verify(idToken);
 
         if (!googleUser.isEmailVerified()) throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
 
-        UserSocialAccount socialAccount = userSocialAccountRepository.findByProviderAndProviderUserId(AuthProvider.GOOGLE, googleUser.getGoogleId()).orElse(null);
+        UserSocialAccount socialAccount =
+                userSocialAccountRepository
+                        .findByProviderAndProviderUserId(
+                                AuthProvider.GOOGLE, googleUser.getGoogleId())
+                        .orElse(null);
 
         // Đã từng đăng nhập Google
         if (socialAccount != null) {
             User user = socialAccount.getUser();
             if (!user.isActive()) throw new AppException(ErrorCode.NOT_ACTIVE);
-            if (user.isBanned()) throw new AppException(ErrorCode.USER_ALREADY_BANNED);
+            if (Boolean.TRUE.equals(user.getIsBanned()))
+                throw new AppException(ErrorCode.USER_ALREADY_BANNED);
             readingHistoryService.mergeSessionHistory(user.getId(), sessionId);
             return authenticationService.buildLoginResponse(servletRequest, deviceId, user);
         }
 
         // Email đã tồn tại bằng tài khoản LOCAL
-        if (userRepository.existsByEmail(googleUser.getEmail())) throw new AppException(ErrorCode.EMAIL_ALREADY_EXISTS);
+        if (userRepository.existsByEmail(googleUser.getEmail()))
+            throw new AppException(ErrorCode.EMAIL_ALREADY_EXISTS);
 
         // Chưa có tài khoản -> tạo mới
         User user = createGoogleUser(googleUser);
@@ -70,13 +77,12 @@ public class UserSocialAccountService {
     @Transactional
     public void linkGoogle(LinkGoogleRequest request) {
 
-        String userId = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getName();
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        User user =
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         GoogleUserInfo googleUser = googleTokenVerifier.verify(request.getIdToken());
 
@@ -95,9 +101,7 @@ public class UserSocialAccountService {
         UserSocialAccount existed =
                 userSocialAccountRepository
                         .findByProviderAndProviderUserId(
-                                AuthProvider.GOOGLE,
-                                googleUser.getGoogleId()
-                        )
+                                AuthProvider.GOOGLE, googleUser.getGoogleId())
                         .orElse(null);
 
         if (existed != null) {
@@ -106,36 +110,41 @@ public class UserSocialAccountService {
 
         createGoogleSocialAccount(user, googleUser);
     }
+
     @Transactional
     public void unlinkGoogle() {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         UserSocialAccount socialAccount =
-                userSocialAccountRepository.findByUser_IdAndProvider(userId, AuthProvider.GOOGLE).orElseThrow(() -> new AppException(ErrorCode.SOCIAL_ACCOUNT_NOT_FOUND));
+                userSocialAccountRepository
+                        .findByUser_IdAndProvider(userId, AuthProvider.GOOGLE)
+                        .orElseThrow(() -> new AppException(ErrorCode.SOCIAL_ACCOUNT_NOT_FOUND));
 
         long providerCount = userSocialAccountRepository.countByUser_Id(userId);
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        User user =
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-        if (providerCount <= 1 && user.getPasswordHash()!= null) {
-            throw new AppException(ErrorCode.DONOT_HAVE_LOCAL_ACCOUNT_SO_CANNOT_UNLINK_LAST_PROVIDER);
+        if (providerCount <= 1 && user.getPasswordHash() != null) {
+            throw new AppException(
+                    ErrorCode.DONOT_HAVE_LOCAL_ACCOUNT_SO_CANNOT_UNLINK_LAST_PROVIDER);
         }
 
         userSocialAccountRepository.delete(socialAccount);
     }
+
     @Transactional(readOnly = true)
     public List<SocialAccountResponse> getMyProviders() {
 
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        return userSocialAccountRepository
-                .findAllByUser_Id(userId)
-                .stream()
-                .map(account ->
-                        SocialAccountResponse.builder()
-                                .provider(account.getProvider())
-                                .linked(true)
-                                .build()
-                )
+        return userSocialAccountRepository.findAllByUser_Id(userId).stream()
+                .map(
+                        account ->
+                                SocialAccountResponse.builder()
+                                        .provider(account.getProvider())
+                                        .linked(true)
+                                        .build())
                 .toList();
     }
 
@@ -148,13 +157,15 @@ public class UserSocialAccountService {
                         .build();
         userSocialAccountRepository.save(socialAccount);
     }
+
     private User createGoogleUser(GoogleUserInfo googleUser) {
-        User user = User.builder()
-                .email(googleUser.getEmail())
-                .username(generateUniqueUsername(googleUser.getEmail()))
-                .avatarUrl(googleUser.getPicture())
-                .isActive(true)
-                .build();
+        User user =
+                User.builder()
+                        .email(googleUser.getEmail())
+                        .username(generateUniqueUsername(googleUser.getEmail()))
+                        .avatarUrl(googleUser.getPicture())
+                        .isActive(true)
+                        .build();
         List<Role> defaultRoles = roleRepository.findByIsDefaultTrue();
         user.setRoles(new HashSet<>(defaultRoles));
 

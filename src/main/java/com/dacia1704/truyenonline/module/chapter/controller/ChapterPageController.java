@@ -30,17 +30,18 @@ public class ChapterPageController {
     }
 
     @PostMapping(value = "/pages", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('UPLOADER')")
     public ApiResponse<List<ChapterPageResponse>> createChapterPages(
             @RequestPart("chapterPageRequests") List<ChapterPageRequest> chapterPageRequests,
             @RequestPart("files") List<MultipartFile> files,
-            @RequestPart("chapterId") String chapterId
-    ) throws IOException {
+            @RequestPart("chapterId") String chapterId) {
 
-        ChapterPageListRequest request = ChapterPageListRequest.builder()
-                .chapterId(chapterId)
-                .chapterPageRequests(chapterPageRequests)
-                .files(files)
-                .build();
+        ChapterPageListRequest request =
+                ChapterPageListRequest.builder()
+                        .chapterId(chapterId)
+                        .chapterPageRequests(chapterPageRequests)
+                        .files(files)
+                        .build();
 
         return ApiResponse.success(chapterPageService.createChapterPage(request));
     }

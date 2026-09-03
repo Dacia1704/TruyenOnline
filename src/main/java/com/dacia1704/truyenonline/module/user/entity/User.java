@@ -59,7 +59,7 @@ public class User extends BaseEntity {
 
     @Builder.Default
     @Column(name = "is_banned", nullable = false)
-    boolean isBanned = false;
+    Boolean isBanned = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "current_moderation_id")

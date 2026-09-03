@@ -18,12 +18,15 @@ import org.hibernate.annotations.OnDeleteAction;
 @Table(
         name = "comments",
         indexes = {
-                @Index(name = "idx_cmt_story_id", columnList = "story_id"),
-                @Index(name = "idx_cmt_chapter_id", columnList = "chapter_id"),
-                @Index(name = "idx_cmt_user_id", columnList = "user_id"),
+            @Index(name = "idx_cmt_story_id", columnList = "story_id"),
+            @Index(name = "idx_cmt_chapter_id", columnList = "chapter_id"),
+            @Index(name = "idx_cmt_user_id", columnList = "user_id"),
         })
 // Cập nhật lại Check Constraint để bắt buộc validate theo type
-@Check(constraints = "(type = 'STORY' AND story_id IS NOT NULL) OR (type = 'CHAPTER' AND chapter_id IS NOT NULL)")
+@Check(
+        constraints =
+                "(type = 'STORY' AND story_id IS NOT NULL) OR (type = 'CHAPTER' AND chapter_id IS"
+                        + " NOT NULL)")
 @Getter
 @Setter
 @Builder
@@ -70,7 +73,7 @@ public class Comment extends BaseEntity {
 
     @Builder.Default
     @Column(name = "is_banned", nullable = false)
-    boolean isBanned = false;
+    Boolean isBanned = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "current_moderation_id")

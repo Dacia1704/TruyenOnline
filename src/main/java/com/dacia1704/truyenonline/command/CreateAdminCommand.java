@@ -23,11 +23,7 @@ public class CreateAdminCommand implements ApplicationRunner {
         String email = getRequiredOption(args, "email");
         String password = getRequiredOption(args, "password");
 
-        adminCommandService.createAdmin(
-                username,
-                email,
-                password
-        );
+        adminCommandService.createAdmin(username, email, password);
 
         System.exit(0);
     }
@@ -38,9 +34,7 @@ public class CreateAdminCommand implements ApplicationRunner {
                 || args.getOptionValues(option) == null
                 || args.getOptionValues(option).isEmpty()) {
 
-            throw new IllegalArgumentException(
-                    "Missing required option --" + option
-            );
+            throw new IllegalArgumentException("Missing required option --" + option);
         }
 
         return args.getOptionValues(option).get(0);

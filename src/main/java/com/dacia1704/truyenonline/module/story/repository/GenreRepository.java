@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface GenreRepository
-        extends JpaRepository<Genre, String>, JpaSpecificationExecutor<Genre> {
+        extends JpaRepository<Genre, Integer>, JpaSpecificationExecutor<Genre> {
     Optional<Story> findBySlug(String slug);
 
     boolean existsBySlug(String slug);

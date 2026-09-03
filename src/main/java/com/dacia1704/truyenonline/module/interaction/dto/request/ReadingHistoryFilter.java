@@ -1,11 +1,8 @@
 package com.dacia1704.truyenonline.module.interaction.dto.request;
 
-import com.dacia1704.truyenonline.module.interaction.entity.HistoryType;
-import jakarta.validation.constraints.NotBlank;
+import java.time.LocalDate;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.time.LocalDate;
 
 @Data
 @AllArgsConstructor
