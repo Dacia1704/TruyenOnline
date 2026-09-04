@@ -33,7 +33,7 @@ public class StoryController {
     }
 
     @PostMapping("/list/admin")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'UPLOADER')")
     public ApiResponse<PageResponse<StoryResponse>> getStoriesByAdmin(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
