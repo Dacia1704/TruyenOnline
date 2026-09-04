@@ -10,7 +10,7 @@ public enum ErrorCode {
     USER_EXISTED(HttpStatus.BAD_REQUEST, "Tên đăng nhập hoặc email đã tồn tại"),
     EMAIL_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "Email đã tồn tại"),
     EMAIL_NOT_VERIFIED(HttpStatus.BAD_REQUEST, "Email google chưa được xác minh"),
-    UNAUTHENTICATED(HttpStatus.UNAUTHORIZED, "Bạn cần đăng nhập để thực hiện thao tác này"),
+    UNAUTHENTICATED(HttpStatus.UNAUTHORIZED, "Xác minh người dùng thất bại"),
     NOT_ACTIVE(HttpStatus.FORBIDDEN, "Tài khoản của bạn đã bị khóa hoặc chưa được kích hoạt."),
     UNAUTHORIZED(HttpStatus.FORBIDDEN, "Bạn không có quyền truy cập"),
     ROLE_NOT_FOUND(HttpStatus.NOT_FOUND, "Role không tồn tại"),
