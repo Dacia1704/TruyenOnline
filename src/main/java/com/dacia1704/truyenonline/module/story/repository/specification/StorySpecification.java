@@ -39,6 +39,8 @@ public class StorySpecification {
                 predicates.add(criteriaBuilder.equal(root.get("storyType"), filters.getType()));
             }
 
+            predicates.add(criteriaBuilder.equal(root.get("isPublished"), true));
+
             // 3. Lọc (Filter) theo trạng thái
             if (filters.getStatus() != null) {
                 predicates.add(criteriaBuilder.equal(root.get("status"), filters.getStatus()));

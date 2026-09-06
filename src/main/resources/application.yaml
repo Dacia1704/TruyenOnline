@@ -55,6 +55,8 @@ logging:
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.orm.jdbc.bind: TRACE
+    org.springframework.transaction: TRACE
+    org.springframework.orm.jpa: DEBUG
 
 jwt:
   secret: ${JWT_SECRET:YOUR_SECRET_KEY_HERE}

@@ -15,6 +15,8 @@ import com.dacia1704.truyenonline.module.chapter.entity.Chapter;
 import com.dacia1704.truyenonline.module.chapter.mapper.ChapterMapper;
 import com.dacia1704.truyenonline.module.chapter.repository.ChapterRepository;
 import com.dacia1704.truyenonline.module.chapter.repository.specification.ChapterSpecification;
+import com.dacia1704.truyenonline.module.interaction.service.CommentService;
+import com.dacia1704.truyenonline.module.interaction.service.ReadingHistoryService;
 import com.dacia1704.truyenonline.module.payment.entity.Subscription;
 import com.dacia1704.truyenonline.module.payment.repository.SubscriptionRepository;
 import com.dacia1704.truyenonline.module.story.entity.Story;
@@ -57,6 +59,8 @@ public class ChapterService {
     AuditLogService auditLogService;
     UserRepository userRepository;
     SubscriptionRepository subscriptionRepository;
+    CommentService commentService;
+    ReadingHistoryService readingHistoryService;
 
     public PageResponse<ChapterResponse> getChaptersBySlugStory(
             int page, int size, Integer from, String slug, String search) {
@@ -69,7 +73,7 @@ public class ChapterService {
         Pageable pageable = PageRequest.of(pageNo, size, Sort.by("chapterNumber").ascending());
 
         Specification<Chapter> spec =
-                ChapterSpecification.filterChapters(search, story, from, null, false);
+                ChapterSpecification.filterChapters(search, story, from, null, false, true);
 
         Page<Chapter> chapterPage = chapterRepository.findAll(spec, pageable);
         List<ChapterResponse> chapterResponses =
@@ -95,10 +99,10 @@ public class ChapterService {
                 userRepository
                         .findById(userId)
                         .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
         boolean isUploaderOrAdmin =
-                story.getUploader().getId().equals(userId)
-                        || user.getRoles().stream()
-                                .anyMatch(role -> "ADMIN".equals(role.getName()));
+                storyRepository.isStoryUploader(story.getId(),userId)
+                        || user.getRoles().stream().anyMatch(role -> "ADMIN".equals(role.getName()));
         if (Boolean.TRUE.equals(story.getIsBanned()) && !isUploaderOrAdmin) {
             throw new AppException(ErrorCode.STORY_ALREADY_BANNED);
         }
@@ -110,7 +114,7 @@ public class ChapterService {
         Pageable pageable = PageRequest.of(pageNo, size, Sort.by("chapterNumber").ascending());
 
         Specification<Chapter> spec =
-                ChapterSpecification.filterChapters(search, story, from, null, null);
+                ChapterSpecification.filterChapters(search, story, from, null, null, null);
 
         Page<Chapter> chapterPage = chapterRepository.findAll(spec, pageable);
         List<ChapterResponse> chapterResponses =
@@ -149,10 +153,10 @@ public class ChapterService {
                         subscriptionRepository
                                 .findActiveByUser(authentication.getName(), LocalDateTime.now())
                                 .orElse(null);
-                if (subscription == null
-                        && (chapter.getStory().getUploader().getId().equals(userId)
-                                || user.getRoles().stream()
-                                        .anyMatch(role -> "ADMIN".equals(role.getName())))) {
+
+                boolean isUploader = chapterRepository.isChapterUploader(chapterId, userId);
+                boolean isAdmin = user.getRoles().stream().anyMatch(role -> "ADMIN".equals(role.getName()));
+                if (subscription == null && !(isUploader || isAdmin)) {
                     throw new AppException(ErrorCode.PREMIUM_REQUIRED);
                 }
             } else {
@@ -203,6 +207,7 @@ public class ChapterService {
                         .findById(chapterId)
                         .orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND));
         var oldValue = buildAuditLogChapter(chapter);
+
         chapterMapper.updateChapter(chapter, request);
         chapter = chapterRepository.save(chapter);
         auditLogService.log(
@@ -337,6 +342,18 @@ public class ChapterService {
                 chapterRepository
                         .findById(chapterId)
                         .orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND));
+
+        var context = SecurityContextHolder.getContext();
+        String uploaderId = context.getAuthentication().getName();
+        if (!chapterRepository.isChapterUploader(chapter.getId(), uploaderId))
+            throw new AppException(ErrorCode.NO_PERMISSION);
+
+        chapterPageService.deleteChapterPageByChapter(chapterId);
+
+        commentService.deleteCommentByChapter(chapterId);
+
+        readingHistoryService.deleteReadingHistoryByChapter(chapterId);
+
         chapterRepository.deleteById(chapterId);
         auditLogService.log(
                 AuditAction.DELETE,

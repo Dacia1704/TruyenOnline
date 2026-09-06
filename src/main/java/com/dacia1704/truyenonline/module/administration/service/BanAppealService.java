@@ -99,7 +99,7 @@ public class BanAppealService {
 
         appeal.getAttachments()
                 .forEach(a -> mediaFileService.decreaseReference(a.getAttachmentUrl()));
-        attachmentRepository.deleteAll(appeal.getAttachments());
+        //        attachmentRepository.deleteAll(appeal.getAttachments());
 
         banAppealRepository.delete(appeal);
     }

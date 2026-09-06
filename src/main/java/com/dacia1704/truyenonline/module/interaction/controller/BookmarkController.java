@@ -19,7 +19,6 @@ public class BookmarkController {
     BookmarkService bookmarkService;
 
     @GetMapping("/me")
-    @PreAuthorize("hasRole('USER')")
     public Page<BookmarkResponse> getMyBookmarks(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -28,7 +27,6 @@ public class BookmarkController {
     }
 
     @GetMapping("/{storyId}")
-    @PreAuthorize("hasRole('USER')")
     public ApiResponse<BookmarkResponse> getBookmarkByStoryId(@PathVariable String storyId) {
 
         BookmarkResponse result = bookmarkService.getBookmarkByStoryId(storyId);
@@ -37,7 +35,6 @@ public class BookmarkController {
     }
 
     @PostMapping("/{storyId}")
-    @PreAuthorize("hasRole('USER')")
     public ApiResponse<BookmarkResponse> createMyBookmark(@PathVariable String storyId) {
 
         BookmarkResponse result = bookmarkService.createBookmark(storyId);
@@ -46,7 +43,6 @@ public class BookmarkController {
     }
 
     @DeleteMapping("/{storyId}")
-    @PreAuthorize("hasRole('USER')")
     public ApiResponse<String> deleteBookmark(@PathVariable String storyId) {
 
         bookmarkService.deleteBookmark(storyId);

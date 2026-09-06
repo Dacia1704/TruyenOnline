@@ -42,6 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@Transactional
 public class AuthenticationService {
     @Value("${app.frontend-url}")
     private String frontendUrl;
@@ -142,14 +143,6 @@ public class AuthenticationService {
         }
         user.setRoles(new HashSet<>(defaultRoles));
         user = userRepository.save(user);
-
-        auditLogService.log(
-                AuditAction.REGISTER,
-                AuditObjectType.USER,
-                user.getId(),
-                null,
-                userService.buildAuditLogUser(user),
-                null);
 
         return userMapper.toRegisterResponse(user);
     }

@@ -79,6 +79,7 @@ public class AuditLogService {
                 request.getActorId() != null
                         ? request.getActorId()
                         : SecurityContextHolder.getContext().getAuthentication().getName();
+
         User currentUser =
                 userRepository
                         .findById(userId)

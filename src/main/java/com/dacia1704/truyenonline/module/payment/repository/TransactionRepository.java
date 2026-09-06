@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -21,4 +22,11 @@ public interface TransactionRepository extends JpaRepository<Transaction, String
 
     @Query("SELECT t FROM Transaction t WHERE t.user.id = :userId AND t.status = :status")
     List<Transaction> findByUserIdAndStatus(String userId, TransactionStatus status);
+
+    @Query("SELECT t FROM Transaction t " +
+            "JOIN FETCH t.user " +
+            "LEFT JOIN FETCH t.subscriptionPlan " +
+            "WHERE t.vnpTxnRef = :vnpTxnRef")
+    Optional<Transaction> findByVnpTxnRefWithUserAndPlan(@Param("vnpTxnRef") String vnpTxnRef);
+
 }

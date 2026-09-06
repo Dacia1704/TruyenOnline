@@ -29,6 +29,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -123,146 +124,70 @@ public class ReadingHistoryService {
                         .findById(request.getStoryId())
                         .orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
 
-        ReadingHistory readingHistory;
+        String chapterIdToSet = null;
 
-        // =========================================================
-        // STORY HISTORY
-        // =========================================================
-        if (request.getType() == HistoryType.STORY) {
-
-            if (isAuthenticated) {
-
-                String userId = authentication.getName();
-
-                User user =
-                        userRepository
-                                .findById(userId)
-                                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-
-                readingHistory =
-                        readingHistoryRepository
-                                .findByStoryIdAndUserIdAndType(
-                                        story.getId(), userId, HistoryType.STORY)
-                                .orElseGet(
-                                        () ->
-                                                ReadingHistory.builder()
-                                                        .story(story)
-                                                        .user(user)
-                                                        .type(HistoryType.STORY)
-                                                        .build());
-
-            } else {
-
-                if (sessionId == null || sessionId.isBlank()) {
-                    throw new AppException(ErrorCode.SESSION_INVALID);
-                }
-
-                readingHistory =
-                        readingHistoryRepository
-                                .findByStoryIdAndSessionIdAndType(
-                                        story.getId(), sessionId, HistoryType.STORY)
-                                .orElseGet(
-                                        () ->
-                                                ReadingHistory.builder()
-                                                        .story(story)
-                                                        .sessionId(sessionId)
-                                                        .type(HistoryType.STORY)
-                                                        .build());
-            }
-
-            // Tăng lượt xem story
-            story.setViewCount(story.getViewCount() + 1);
-            storyRepository.save(story);
-
-        }
-
-        // =========================================================
-        // CHAPTER HISTORY
-        // =========================================================
-        else if (request.getType() == HistoryType.CHAPTER) {
-
+        if (request.getType() == HistoryType.CHAPTER) {
             if (request.getChapterId() == null || request.getChapterId().isBlank()) {
                 throw new AppException(ErrorCode.CHAPTER_NOT_FOUND);
             }
-
             Chapter chapter =
                     chapterRepository
                             .findById(request.getChapterId())
                             .orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND));
 
-            // Đảm bảo chapter thuộc đúng story
             if (!chapter.getStory().getId().equals(story.getId())) {
                 throw new AppException(ErrorCode.CHAPTER_NOT_FOUND);
             }
-
-            if (isAuthenticated) {
-
-                String userId = authentication.getName();
-
-                User user =
-                        userRepository
-                                .findById(userId)
-                                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-
-                /*
-                 * Quan trọng:
-                 *
-                 * Unique constraint:
-                 * (user_id, story_id, type)
-                 *
-                 * Vì vậy phải tìm theo STORY, không tìm theo chapter.
-                 */
-                readingHistory =
-                        readingHistoryRepository
-                                .findByStoryIdAndUserIdAndType(
-                                        story.getId(), userId, HistoryType.CHAPTER)
-                                .orElseGet(
-                                        () ->
-                                                ReadingHistory.builder()
-                                                        .story(story)
-                                                        .user(user)
-                                                        .type(HistoryType.CHAPTER)
-                                                        .build());
-
-            } else {
-
-                if (sessionId == null || sessionId.isBlank()) {
-                    throw new AppException(ErrorCode.SESSION_INVALID);
-                }
-
-                readingHistory =
-                        readingHistoryRepository
-                                .findByStoryIdAndSessionIdAndType(
-                                        story.getId(), sessionId, HistoryType.CHAPTER)
-                                .orElseGet(
-                                        () ->
-                                                ReadingHistory.builder()
-                                                        .story(story)
-                                                        .sessionId(sessionId)
-                                                        .type(HistoryType.CHAPTER)
-                                                        .build());
-            }
-
-            /*
-             * Nếu history đã tồn tại:
-             *
-             * Chapter 1 -> Chapter 2
-             *
-             * Không INSERT record mới.
-             * Chỉ UPDATE chapter_id.
-             */
-            readingHistory.setChapter(chapter);
-
-            // Tăng lượt xem chapter
-            chapter.setViewCount(chapter.getViewCount() + 1);
-            chapterRepository.save(chapter);
-
-        } else {
+            chapterIdToSet = chapter.getId();
+        } else if (request.getType() != HistoryType.STORY) {
             throw new IllegalArgumentException("Unsupported history type: " + request.getType());
         }
 
-        // @PrePersist / @PreUpdate sẽ tự cập nhật lastReadAt
-        readingHistory = readingHistoryRepository.save(readingHistory);
+        ReadingHistory readingHistory;
+
+        if (isAuthenticated) {
+            String userId = authentication.getName();
+            userRepository.findById(userId)
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+            readingHistory = readingHistoryRepository
+                    .findByStoryIdAndUserIdAndType(story.getId(), userId, request.getType())
+                    .orElse(null);
+
+            String id = readingHistory != null ? readingHistory.getId() : java.util.UUID.randomUUID().toString();
+
+            readingHistoryRepository.upsertByUser(
+                    id, userId, story.getId(), chapterIdToSet, request.getType().name());
+
+            readingHistory = readingHistoryRepository
+                    .findByStoryIdAndUserIdAndType(story.getId(), userId, request.getType())
+                    .orElse(null);
+
+        } else {
+            if (sessionId == null || sessionId.isBlank()) {
+                throw new AppException(ErrorCode.SESSION_INVALID);
+            }
+
+            readingHistory = readingHistoryRepository
+                    .findByStoryIdAndSessionIdAndType(story.getId(), sessionId, request.getType())
+                    .orElse(null);
+
+            String id = readingHistory != null ? readingHistory.getId() : java.util.UUID.randomUUID().toString();
+
+            readingHistoryRepository.upsertByGuest(
+                    id, sessionId, story.getId(), chapterIdToSet, request.getType().name());
+
+            readingHistory = readingHistoryRepository
+                    .findByStoryIdAndSessionIdAndType(story.getId(), sessionId, request.getType())
+                    .orElse(null);
+        }
+
+        // Tăng view count sau khi upsert thành công
+        if (request.getType() == HistoryType.STORY) {
+            storyRepository.incrementViewCount(story.getId());
+        } else {
+            chapterRepository.incrementViewCount(chapterIdToSet);
+        }
 
         return readingHistoryMapper.toReadingHistoryResponse(readingHistory);
     }
@@ -281,6 +206,14 @@ public class ReadingHistoryService {
         } else {
             readingHistoryRepository.deleteBySessionId(sessionId);
         }
+    }
+
+    public void deleteReadingHistoryByChapter(String chapterId) {
+        readingHistoryRepository.deleteByChapterId(chapterId);
+    }
+
+    public void deleteReadingHistoryByStory(String storyId) {
+        readingHistoryRepository.deleteByStoryId(storyId);
     }
 
     public void mergeSessionHistory(String userId, String sessionId) {

@@ -168,10 +168,9 @@ public class ChapterPageService {
                         subscriptionRepository
                                 .findActiveByUser(authentication.getName(), LocalDateTime.now())
                                 .orElse(null);
-                if (subscription == null
-                        && (chapter.getStory().getUploader().getId().equals(userId)
-                                || user.getRoles().stream()
-                                        .anyMatch(role -> "ADMIN".equals(role.getName())))) {
+                boolean isUploader = chapterRepository.isChapterUploader(chapterId, userId);
+                boolean isAdmin = user.getRoles().stream().anyMatch(role -> "ADMIN".equals(role.getName()));
+                if (subscription == null && !(isUploader || isAdmin)) {
                     throw new AppException(ErrorCode.PREMIUM_REQUIRED);
                 }
             } else {
@@ -179,7 +178,7 @@ public class ChapterPageService {
             }
         }
 
-        List<ChapterPage> chapterPages = chapterPageRepository.findByChapterId(chapterId);
+        List<ChapterPage> chapterPages = chapterPageRepository.findByChapterIdOrderByPageNumberAsc(chapterId);
         return chapterPages.stream().map(chapterPageMapper::toChapterPageResponse).toList();
     }
 

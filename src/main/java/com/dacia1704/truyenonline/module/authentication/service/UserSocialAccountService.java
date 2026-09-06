@@ -125,7 +125,7 @@ public class UserSocialAccountService {
                         .findById(userId)
                         .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-        if (providerCount <= 1 && user.getPasswordHash() != null) {
+        if (providerCount <= 1 && user.getPasswordHash() == null) {
             throw new AppException(
                     ErrorCode.DONOT_HAVE_LOCAL_ACCOUNT_SO_CANNOT_UNLINK_LAST_PROVIDER);
         }

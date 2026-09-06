@@ -19,7 +19,8 @@ public class ChapterSpecification {
             Story story,
             Integer from,
             BigDecimal freeChapterLimit,
-            Boolean isBanned) {
+            Boolean isBanned,
+            Boolean isPublished) {
 
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -42,6 +43,9 @@ public class ChapterSpecification {
 
             if (isBanned != null)
                 predicates.add(criteriaBuilder.equal(root.get("isBanned"), isBanned));
+
+            if (isPublished != null)
+                predicates.add(criteriaBuilder.equal(root.get("isPublished"), isPublished));
 
             if (from != null && from > 0)
                 predicates.add(

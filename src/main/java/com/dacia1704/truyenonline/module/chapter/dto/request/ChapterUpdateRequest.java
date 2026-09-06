@@ -13,5 +13,5 @@ import lombok.experimental.FieldDefaults;
 public class ChapterUpdateRequest {
     BigDecimal chapterNumber;
     String title;
-    boolean isPublished = false;
+    Boolean isPublished;
 }

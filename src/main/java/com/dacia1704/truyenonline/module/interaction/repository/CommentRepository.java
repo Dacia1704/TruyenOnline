@@ -1,6 +1,7 @@
 package com.dacia1704.truyenonline.module.interaction.repository;
 
 import com.dacia1704.truyenonline.module.interaction.entity.Comment;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,5 +11,9 @@ import org.springframework.stereotype.Repository;
 public interface CommentRepository extends JpaRepository<Comment, String> {
     Page<Comment> findByChapterIdAndParentIsNull(String chapterId, Pageable pageable);
 
+    List<Comment> findByChapterId(String chapterId);
+
     Page<Comment> findByStoryIdAndParentIsNull(String storyId, Pageable pageable);
+
+    List<Comment> findByStoryId(String storyId);
 }

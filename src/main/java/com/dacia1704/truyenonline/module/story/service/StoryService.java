@@ -8,7 +8,11 @@ import com.dacia1704.truyenonline.module.administration.entity.ModerationObjectT
 import com.dacia1704.truyenonline.module.administration.mapper.AuditMapper;
 import com.dacia1704.truyenonline.module.administration.service.AuditLogService;
 import com.dacia1704.truyenonline.module.administration.service.ModerationActionService;
+import com.dacia1704.truyenonline.module.chapter.entity.Chapter;
 import com.dacia1704.truyenonline.module.chapter.repository.ChapterRepository;
+import com.dacia1704.truyenonline.module.chapter.service.ChapterService;
+import com.dacia1704.truyenonline.module.interaction.service.CommentService;
+import com.dacia1704.truyenonline.module.interaction.service.ReadingHistoryService;
 import com.dacia1704.truyenonline.module.media.dto.response.CloudinaryUploadResult;
 import com.dacia1704.truyenonline.module.media.service.CloudinaryService;
 import com.dacia1704.truyenonline.module.media.service.MediaFileService;
@@ -44,6 +48,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,6 +75,9 @@ public class StoryService {
     ChapterRepository chapterRepository;
     GenreMapper genreMapper;
     GenreRepository genreRepository;
+    ChapterService chapterService;
+    CommentService commentService;
+    ReadingHistoryService readingHistoryService;
 
     String folderPath = "truyenonline/stories/%s";
 
@@ -118,6 +126,16 @@ public class StoryService {
     // lấy toàn bộ truyện có phân trang, search theo tên, filter thuộc tính
     public PageResponse<StoryResponse> getStoriesByAdmin(
             int page, int size, StoryAdminFilter filters) {
+
+        var context = SecurityContextHolder.getContext();
+        String userId = context.getAuthentication().getName();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        boolean isUploader =
+                authentication.getAuthorities().stream()
+                        .anyMatch(authority -> authority.getAuthority().equals("ROLE_UPLOADER"));
+        if (isUploader) filters.setUploaderId(userId);
+
         int pageNo = (page > 0) ? page - 1 : 0;
         Pageable pageable = PageRequest.of(pageNo, size);
 
@@ -244,7 +262,6 @@ public class StoryService {
         User uploader = userService.getCurrentUser();
         story.setUploader(uploader);
 
-        log.info(request.toString());
         if (request.getGenreIds() != null && !request.getGenreIds().isEmpty()) {
             List<Genre> fetchedGenres = genreRepository.findAllById(request.getGenreIds());
             if (fetchedGenres.size() != request.getGenreIds().size()) {
@@ -253,6 +270,11 @@ public class StoryService {
             story.setGenres(new HashSet<>(fetchedGenres));
         }
 
+        story.setSlug(generateSlug(request.getTitle()));
+        story.setTitleNoAccent(StringUtils.removeAccent(request.getTitle()));
+
+        story = storyRepository.save(story);
+
         if (request.getCoverImageFile() != null && !request.getCoverImageFile().isEmpty()) {
             String path = String.format(folderPath, story.getId());
             CloudinaryUploadResult fileUploadResult =
@@ -260,9 +282,6 @@ public class StoryService {
             mediaFileService.createMediaFile(fileUploadResult);
             story.setCoverImageUrl(fileUploadResult.getSecureUrl());
         }
-
-        story.setSlug(generateSlug(request.getTitle()));
-        story.setTitleNoAccent(StringUtils.removeAccent(request.getTitle()));
         story = storyRepository.save(story);
 
         if (request.getAuthors() != null && !request.getAuthors().isEmpty()) {
@@ -342,19 +361,28 @@ public class StoryService {
     }
 
     public void deleteStory(String id) {
-        Story story =
-                storyRepository
-                        .findById(id)
-                        .orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
-        mediaFileService.decreaseReference(story.getCoverImageUrl());
-        storyRepository.deleteById(id);
-        auditLogService.log(
-                AuditAction.DELETE,
-                AuditObjectType.STORY,
-                id,
-                buildAuditLogStory(story),
-                null,
-                null);
+            Story story =
+                    storyRepository
+                            .findById(id)
+                            .orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
+            mediaFileService.decreaseReference(story.getCoverImageUrl());
+
+            readingHistoryService.deleteReadingHistoryByStory(id);
+            List<Chapter> chapters = chapterRepository.findByStoryId(id);
+            for (Chapter chapter : chapters) {
+                chapterService.deleteChapter(chapter.getId());
+            }
+
+            commentService.deleteCommentByStory(id);
+
+            auditLogService.log(
+                    AuditAction.DELETE,
+                    AuditObjectType.STORY,
+                    id,
+                    buildAuditLogStory(story),
+                    null,
+                    null);
+            storyRepository.delete(story);
     }
 
     public void deletePublishRequest(String id) {
@@ -403,8 +431,8 @@ public class StoryService {
                                 publishRequest.getStatus() == StoryPublishRequestStatus.PENDING)) {
             throw new AppException(ErrorCode.STORY_PUBLISH_REQUEST_PENDING);
         }
-
-        if (chapterRepository.countByStory_Id(storyId) >= 1) {
+        long x = chapterRepository.countByStory_Id(storyId);
+        if (chapterRepository.countByStory_Id(storyId) < 1) {
             throw new AppException(ErrorCode.NEED_AT_LEAST_A_CHAPTER_TO_PUBLISH);
         }
 

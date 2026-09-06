@@ -19,5 +19,6 @@ public interface ChapterMapper {
     Chapter toChapter(ChapterCreateRequest request);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "isPublished", source = "isPublished")
     void updateChapter(@MappingTarget Chapter chapter, ChapterUpdateRequest request);
 }

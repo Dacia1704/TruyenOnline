@@ -162,7 +162,7 @@ public class PaymentService {
             String payDate = params.get("vnp_PayDate");
 
             // 3. Tìm transaction
-            Transaction transaction = transactionRepository.findByVnpTxnRef(txnRef).orElse(null);
+            Transaction transaction = transactionRepository.findByVnpTxnRefWithUserAndPlan(txnRef).orElse(null);
 
             if (transaction == null) {
                 log.warn("VNPay IPN: không tìm thấy txnRef={}", txnRef);
@@ -221,7 +221,8 @@ public class PaymentService {
                         transaction.getId(),
                         null,
                         response,
-                        null);
+                        null,
+                        transaction.getUser().getId());
 
                 log.info(
                         "VNPay IPN: thanh toán thành công txnRef={}, user={}",

@@ -6,11 +6,14 @@ import com.dacia1704.truyenonline.module.administration.mapper.AuditMapper;
 import com.dacia1704.truyenonline.module.administration.service.AuditLogService;
 import com.dacia1704.truyenonline.module.payment.dto.request.SubscriptionPlanRequest;
 import com.dacia1704.truyenonline.module.payment.dto.response.SubscriptionPlanResponse;
+import com.dacia1704.truyenonline.module.payment.entity.Subscription;
 import com.dacia1704.truyenonline.module.payment.entity.SubscriptionPlan;
 import com.dacia1704.truyenonline.module.payment.mapper.SubscriptionPlanMapper;
 import com.dacia1704.truyenonline.module.payment.repository.SubscriptionPlanRepository;
+import com.dacia1704.truyenonline.module.payment.repository.SubscriptionRepository;
 import com.dacia1704.truyenonline.shared.exception.AppException;
 import com.dacia1704.truyenonline.shared.exception.ErrorCode;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import lombok.AccessLevel;
@@ -27,6 +30,7 @@ public class SubscriptionPlanService {
     SubscriptionPlanRepository subscriptionPlanRepository;
     SubscriptionPlanMapper subscriptionPlanMapper;
     AuditLogService auditLogService;
+    SubscriptionRepository subscriptionRepository;
 
     public List<SubscriptionPlanResponse> getPlans(Boolean isActive) {
         List<SubscriptionPlan> plans = subscriptionPlanRepository.findAllByIsActive(isActive);
@@ -78,6 +82,14 @@ public class SubscriptionPlanService {
                 subscriptionPlanRepository
                         .findById(code)
                         .orElseThrow(() -> new AppException(ErrorCode.SUBSCRIPTION_PLAN_NOT_FOUND));
+
+        boolean isBeingUsed = subscriptionRepository.existsActiveByPlan(code, LocalDateTime.now());
+
+        if (isBeingUsed) throw new AppException(ErrorCode.SUBSCRIPTION_PLAN_STILL_USED);
+
+        List<Subscription> expiredSubscription = subscriptionRepository.findByPlan(plan);
+        subscriptionRepository.deleteAll(expiredSubscription);
+
         subscriptionPlanRepository.deleteById(code);
         auditLogService.log(
                 AuditAction.DELETE,

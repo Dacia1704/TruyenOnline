@@ -11,5 +11,7 @@ public interface StoryAuthorRepository
         extends JpaRepository<StoryAuthor, String>, JpaSpecificationExecutor<StoryAuthor> {
     List<StoryAuthor> findByStoryId(String storyId);
 
+    List<StoryAuthor> findByAuthorId(String authorId);
+
     void deleteByStoryId(String storyId);
 }

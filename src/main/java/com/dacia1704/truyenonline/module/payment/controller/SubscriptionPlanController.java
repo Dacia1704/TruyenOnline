@@ -52,7 +52,7 @@ public class SubscriptionPlanController {
 
     @DeleteMapping("/{code}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<String> deleteGenre(@PathVariable("code") String code) {
+    public ApiResponse<String> deleteSubscriptionPlan(@PathVariable("code") String code) {
         subscriptionPlanService.deletePlan(code);
         return ApiResponse.success("Xóa gói thành công");
     }

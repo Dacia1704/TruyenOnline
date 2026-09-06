@@ -19,6 +19,10 @@ public enum ErrorCode {
     CHAPTER_NOT_FOUND(HttpStatus.NOT_FOUND, "Chapter không tồn tại"),
     AUTHOR_NOT_FOUND(HttpStatus.NOT_FOUND, "Tác giả không tồn tại"),
     SUBSCRIPTION_PLAN_NOT_FOUND(HttpStatus.NOT_FOUND, "Gói không tồn tại"),
+    SUBSCRIPTION_PLAN_STILL_USED(
+            HttpStatus.BAD_REQUEST,
+            "Gói hiện vẫn đang được sử dụng. Bạn có thể inactive gói trước và xóa gói khi không còn"
+                    + " ai sử dụng"),
     SUBSCRIPTION_NOT_FOUND(HttpStatus.NOT_FOUND, "Bạn chưa đăng kí"),
     SUBSCRIPTION_PLAN_CODE_EXISTS(HttpStatus.BAD_REQUEST, "Mã gói đã tồn tại"),
     STORY_PUBLISH_REQUEST_NOT_FOUND(HttpStatus.NOT_FOUND, "Yêu cầu xuất bản truyện không tồn tại"),
@@ -71,6 +75,7 @@ public enum ErrorCode {
     BAN_APPEAL_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "Khiếu nại đã tồn tại"),
     BAN_APPEAL_ALREADY_RESOLVED(HttpStatus.BAD_REQUEST, "Khiếu nại đã tồn tại và chưa được xử lý"),
     BAN_APPEAL_NOT_FOUND(HttpStatus.NOT_FOUND, "Khiếu nại không được tìm thấy"),
+    READING_HISTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy lịch sử"),
 
     // Story & Chapter
     STORY_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy bộ truyện này"),

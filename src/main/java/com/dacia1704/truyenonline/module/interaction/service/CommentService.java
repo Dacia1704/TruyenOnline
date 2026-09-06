@@ -283,6 +283,46 @@ public class CommentService {
                 null);
     }
 
+    public void deleteCommentByChapter(String chapterId) {
+        List<Comment> comments = commentRepository.findByChapterId(chapterId);
+        if (comments.isEmpty()) return;
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!userId.equals(comments.getFirst().getChapter().getStory().getUploader().getId())) {
+            throw new AppException(ErrorCode.NO_PERMISSION);
+        }
+
+        for (Comment comment : comments) {
+            commentRepository.delete(comment);
+            auditLogService.log(
+                    AuditAction.DELETE,
+                    AuditObjectType.COMMENT,
+                    comment.getId(),
+                    buildAuditLogComment(comment),
+                    null,
+                    null);
+        }
+    }
+
+    public void deleteCommentByStory(String storyId) {
+        List<Comment> comments = commentRepository.findByStoryId(storyId);
+        if (comments.isEmpty()) return;
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!userId.equals(comments.getFirst().getStory().getUploader().getId())) {
+            throw new AppException(ErrorCode.NO_PERMISSION);
+        }
+
+        for (Comment comment : comments) {
+            commentRepository.delete(comment);
+            auditLogService.log(
+                    AuditAction.DELETE,
+                    AuditObjectType.COMMENT,
+                    comment.getId(),
+                    buildAuditLogComment(comment),
+                    null,
+                    null);
+        }
+    }
+
     public CommentResponse banComment(String commentId, CommentBanRequest request) {
         Comment comment =
                 commentRepository

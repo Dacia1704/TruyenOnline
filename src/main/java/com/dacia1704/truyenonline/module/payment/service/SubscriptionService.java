@@ -91,7 +91,8 @@ public class SubscriptionService {
                 subscription.getId(),
                 null,
                 buildAuditLogSubscription(subscription),
-                null);
+                null,
+                user.getId());
         return subscription;
     }
 

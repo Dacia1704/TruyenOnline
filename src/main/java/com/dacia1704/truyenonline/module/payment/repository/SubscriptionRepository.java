@@ -1,7 +1,9 @@
 package com.dacia1704.truyenonline.module.payment.repository;
 
 import com.dacia1704.truyenonline.module.payment.entity.Subscription;
+import com.dacia1704.truyenonline.module.payment.entity.SubscriptionPlan;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -22,4 +24,16 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Stri
     Optional<Subscription> findActiveByUser(String userId, LocalDateTime now);
 
     Optional<Subscription> findFirstByUserIdOrderByCreatedAtDesc(String userId);
+
+    @Query(
+            """
+                SELECT COUNT(s) > 0
+                FROM Subscription s
+                WHERE s.plan.code = :planCode
+                  AND s.status = 'ACTIVE'
+                  AND s.expiresAt > :now
+            """)
+    boolean existsActiveByPlan(String planCode, LocalDateTime now);
+
+    List<Subscription> findByPlan(SubscriptionPlan plan);
 }

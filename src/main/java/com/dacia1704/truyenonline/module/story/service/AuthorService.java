@@ -131,7 +131,13 @@ public class AuthorService {
                 authorRepository
                         .findById(id)
                         .orElseThrow(() -> new AppException(ErrorCode.AUTHOR_NOT_FOUND));
-        mediaFileService.decreaseReference(author.getAvatarUrl());
+
+        List<StoryAuthor> storyAuthors = storyAuthorRepository.findByAuthorId(id);
+        storyAuthorRepository.deleteAll(storyAuthors);
+
+        if (author.getAvatarUrl() != null) {
+            mediaFileService.decreaseReference(author.getAvatarUrl());
+        }
         authorRepository.deleteById(id);
     }
 
